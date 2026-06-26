@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sign in · The Strategy Spine</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="spine-config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#F6F3EC; --bg-2:#FBF9F4; --panel:#FFFFFF;
+  --ink:#1C1A16; --ink-2:#56524A; --ink-3:#736E63;
+  --line:#E4DFD3; --line-2:#EFEBE1;
+  --accent:#234E42; --accent-soft:#E6EEE9; --accent-ink:#1A3B32;
+  --bad:#B23A3A; --bad-bg:#F7E7E5; --good:#2E7D5B; --good-bg:#E7F1EB; --warn:#B07B2E; --warn-bg:#F7EFE1;
+  --r-lg:22px; --r-md:14px; --r-sm:10px;
+  --shadow:0 1px 2px rgba(40,34,20,.04), 0 10px 30px -14px rgba(40,34,20,.16);
+  --shadow-lg:0 2px 4px rgba(40,34,20,.05), 0 30px 60px -24px rgba(40,34,20,.24);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100dvh;background:var(--bg);color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;display:grid;place-items:center;padding:24px;position:relative;overflow:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E")}
+body::after{content:"";position:fixed;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,var(--accent-soft),transparent 65%);top:-160px;right:-140px;pointer-events:none;opacity:.7}
+.serif{font-family:"Instrument Serif",Georgia,serif;font-weight:400}
+.mono{font-family:"Spline Sans Mono",ui-monospace,monospace}
+a{color:var(--accent-ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+.card{width:min(440px,100%);position:relative;z-index:1}
+.brand{text-align:center;margin-bottom:22px}
+.brand .ey{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.brand .nm{font-family:"Instrument Serif",serif;font-size:34px;line-height:1;margin-top:3px}
+.brand .nm b{color:var(--accent);font-style:italic}
+.shell{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);overflow:hidden}
+.shell-in{padding:30px 30px 26px}
+h1{font-family:"Instrument Serif",serif;font-weight:400;font-size:27px;line-height:1.12;text-wrap:balance}
+.sub{color:var(--ink-2);margin-top:7px;font-size:14px;text-wrap:pretty}
+form{margin-top:22px;display:flex;flex-direction:column;gap:12px}
+label{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+input[type=email]{border:1px solid var(--line);background:var(--bg-2);border-radius:var(--r-sm);padding:13px 14px;font-size:15px;font-family:inherit;color:var(--ink);outline:none;transition:border-color .15s,box-shadow .15s}
+input[type=email]:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);background:var(--panel)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:1px solid var(--accent);background:var(--accent);color:#fff;padding:13px 18px;border-radius:var(--r-sm);font-weight:600;font-size:15px;font-family:inherit;cursor:pointer;transition:background .15s,transform .12s}
+.btn:hover{background:var(--accent-ink)}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.6;cursor:default}
+.btn svg{width:17px;height:17px}
+.msg{margin-top:14px;font-size:13.5px;padding:12px 14px;border-radius:var(--r-sm);display:none;align-items:flex-start;gap:9px;line-height:1.5}
+.msg.show{display:flex}
+.msg.err{background:var(--bad-bg);color:var(--bad)}
+.msg.ok{background:var(--good-bg);color:var(--accent-ink)}
+.msg.warn{background:var(--warn-bg);color:#7c5510}
+.msg svg{width:17px;height:17px;flex:none;margin-top:1px}
+.sent{display:none;text-align:center;padding:8px 0 2px}
+.sent.show{display:block}
+.sent .ic{width:54px;height:54px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;margin:0 auto 16px}
+.sent .ic svg{width:26px;height:26px;color:var(--accent)}
+.sent h2{font-family:"Instrument Serif",serif;font-weight:400;font-size:24px}
+.sent p{color:var(--ink-2);font-size:14px;margin-top:8px;text-wrap:pretty}
+.sent b{color:var(--ink)}
+.sent .again{margin-top:18px;background:none;border:none;color:var(--accent-ink);font-weight:600;font-size:13.5px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;font-family:inherit}
+.foot{padding:15px 30px;border-top:1px solid var(--line-2);background:var(--bg-2);font-size:12.5px;color:var(--ink-3);text-align:center}
+.tagline{text-align:center;margin-top:18px;font-size:13px;color:var(--ink-3);font-style:italic}
+.config{display:none}
+.config.show{display:block}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand"><div class="ey">Strategy Architect</div><div class="nm serif">The <b>Spine</b></div></div>
+
+  <div class="shell">
+    <div class="shell-in">
+      <!-- form state -->
+      <div id="formState">
+        <h1>Sign in to your spine</h1>
+        <p class="sub">We'll email you a one-time link. No password to remember.</p>
+        <form id="loginForm">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label for="email">Email address</label>
+            <input type="email" id="email" name="email" placeholder="you@work.com" autocomplete="email" required />
+          </div>
+          <button class="btn" id="submitBtn" type="submit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z" opacity="0"/><path d="M22 6 12 13 2 6"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+            <span id="submitLabel">Send me a magic link</span>
+          </button>
+        </form>
+        <div class="msg err" id="errMsg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span id="errText"></span></div>
+        <div class="msg warn" id="fileWarn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span>This page is open from a file. Magic links need it served over <b>http</b> — run a static server (e.g. <span class="mono">npx serve</span>) or host the folder, then open it from that URL.</span></div>
+      </div>
+
+      <!-- sent state -->
+      <div class="sent" id="sentState">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6 12 13 2 6"/></svg></div>
+        <h2>Check your inbox</h2>
+        <p>We sent a sign-in link to <b id="sentEmail"></b>. Open it on this device and you're in. The link expires shortly.</p>
+        <button class="again" id="againBtn">Use a different email</button>
+      </div>
+
+      <!-- config-needed state -->
+      <div class="config" id="configState">
+        <h1>Backend not connected</h1>
+        <p class="sub">Add your Supabase URL and anon key to <span class="mono">spine-config.js</span>, then reload. Full steps are in <span class="mono">Backend Setup — Supabase.md</span>.</p>
+      </div>
+    </div>
+    <div class="foot">New here? Signing in creates your account automatically.</div>
+  </div>
+  <div class="tagline">Most strategies die on the page. This one gets followed.</div>
+</div>
+
+<script>
+"use strict";
+const APP = "app.html";
+const $ = s => document.querySelector(s);
+function configReady(){
+  const c = window.SPINE_CONFIG;
+  return c && c.SUPABASE_URL && c.SUPABASE_ANON_KEY && !/YOUR-PROJECT|YOUR-ANON/i.test(c.SUPABASE_URL + c.SUPABASE_ANON_KEY);
+}
+function show(id,on){ const n=$(id); if(n) n.classList.toggle("show",on); }
+function showErr(t){ $("#errText").textContent=t; show("#errMsg",true); }
+
+(async function init(){
+  if(typeof supabase==="undefined" || !configReady()){
+    $("#formState").style.display="none"; show("#configState",true); return;
+  }
+  if(location.protocol==="file:") show("#fileWarn",true);
+
+  const SB = supabase.createClient(window.SPINE_CONFIG.SUPABASE_URL, window.SPINE_CONFIG.SUPABASE_ANON_KEY);
+
+  // already signed in (or just returned from a magic link) → go to app
+  const { data:{ session } } = await SB.auth.getSession();
+  if(session){ location.replace(APP); return; }
+  SB.auth.onAuthStateChange((_e,s)=>{ if(s) location.replace(APP); });
+
+  const form=$("#loginForm"), btn=$("#submitBtn"), lbl=$("#submitLabel");
+  form.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    show("#errMsg",false);
+    const email=$("#email").value.trim();
+    if(!email) return;
+    btn.disabled=true; lbl.textContent="Sending…";
+    const { error } = await SB.auth.signInWithOtp({
+      email,
+      options:{ emailRedirectTo: new URL("login.html", location.href).href }
+    });
+    btn.disabled=false; lbl.textContent="Send me a magic link";
+    if(error){ showErr(error.message || "Couldn't send the link. Try again."); return; }
+    $("#sentEmail").textContent=email;
+    $("#formState").style.display="none";
+    show("#sentState",true);
+  });
+  $("#againBtn").onclick=()=>{ show("#sentState",false); $("#formState").style.display="block"; $("#email").focus(); };
+})();
+</script>
+</body>
+</html>

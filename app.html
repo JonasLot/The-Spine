@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Spine — Strategy Operating System</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="spine-config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#F6F3EC;          /* warm paper */
+  --bg-2:#FBF9F4;        /* raised paper */
+  --panel:#FFFFFF;
+  --ink:#1C1A16;         /* off-black */
+  --ink-2:#56524A;       /* muted */
+  --ink-3:#736E63;       /* faint */
+  --line:#E4DFD3;        /* hairline */
+  --line-2:#EFEBE1;
+  --accent:#234E42;      /* deep ink-forest */
+  --accent-soft:#E6EEE9;
+  --accent-ink:#1A3B32;
+
+  /* family tints (subtle) */
+  --sense:#3A6EA5;  --sense-bg:#EAF1F8;
+  --mem:#B07B2E;    --mem-bg:#F7EFE1;
+  --align:#2E7D5B;  --align-bg:#E7F1EB;
+  --feed:#B14A6B;   --feed-bg:#F8E9EF;
+
+  /* states */
+  --good:#2E7D5B;   --good-bg:#E7F1EB;
+  --warn:#B07B2E;   --warn-bg:#F7EFE1;  --warn-line:var(--warn-line);
+  --bad:#B23A3A;    --bad-bg:#F7E7E5;   --bad-line:var(--bad-line);
+  --mute:#736E63;   --mute-bg:#EEEAE0;
+
+  --r-lg:20px; --r-md:14px; --r-sm:10px;
+  --shadow:0 1px 2px rgba(40,34,20,.04), 0 8px 24px -12px rgba(40,34,20,.14);
+  --shadow-lg:0 2px 4px rgba(40,34,20,.05), 0 24px 48px -20px rgba(40,34,20,.22);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Plus Jakarta Sans",system-ui,sans-serif;
+  font-size:14px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+body::before{ /* paper grain */
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+}
+.serif{font-family:"Instrument Serif",Georgia,serif;font-weight:400;letter-spacing:.01em}
+.mono{font-family:"Spline Sans Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:14px;color:var(--ink)}
+a{color:inherit}
+
+/* ===== Layout ===== */
+.app{display:grid;grid-template-columns:248px 1fr;min-height:100dvh;position:relative;z-index:1}
+
+/* Sidebar */
+.side{
+  border-right:1px solid var(--line);
+  padding:22px 16px;
+  display:flex;flex-direction:column;gap:6px;
+  position:sticky;top:0;height:100dvh;
+  background:linear-gradient(180deg,var(--bg-2),var(--bg));
+}
+.brand{padding:6px 10px 18px;display:flex;flex-direction:column;gap:2px}
+.brand .ey{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.brand .nm{font-size:30px;line-height:1;color:var(--ink);margin-top:3px}
+.brand .nm b{color:var(--accent);font-style:italic}
+.nav-grp{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600;padding:14px 10px 6px}
+.nav-item{
+  display:flex;align-items:center;gap:11px;
+  padding:8px 11px;border-radius:var(--r-sm);
+  color:var(--ink-2);font-weight:500;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+.nav-item:hover{background:var(--bg-2);color:var(--ink)}
+.nav-item.active{background:var(--panel);color:var(--ink);border-color:var(--line);box-shadow:var(--shadow)}
+.nav-item .ic{width:18px;height:18px;flex:none;color:currentColor;opacity:.85}
+.nav-item.active .ic{color:var(--accent);opacity:1}
+.nav-item .ct{margin-left:auto;font-size:11px;color:var(--ink-3);background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:0 7px;line-height:18px;min-width:20px;text-align:center}
+.nav-item.active .ct{background:var(--accent-soft);border-color:var(--accent-soft);color:var(--accent-ink)}
+.side .foot{margin-top:auto;padding:12px 10px 2px;font-size:11.5px;color:var(--ink-3);line-height:1.5}
+.side .foot .tag{font-style:italic;color:var(--ink-2)}
+.acct{padding:10px 11px;margin-bottom:12px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--panel)}
+.acct-email{font-size:12px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct-out{margin-top:8px;display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--ink-2);background:var(--bg-2);border:1px solid var(--line);border-radius:7px;padding:6px 10px;cursor:pointer;width:100%;justify-content:center}
+.acct-out:hover{border-color:var(--ink-3);color:var(--ink)}
+.acct-out svg{width:14px;height:14px}
+.sync{display:inline-flex;align-items:center;min-height:20px}
+.sync.badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* Main */
+.main{display:flex;flex-direction:column;min-width:0}
+.topbar{
+  position:sticky;top:0;z-index:5;
+  display:flex;align-items:center;gap:14px;
+  padding:14px 30px;border-bottom:1px solid var(--line);
+  background:color-mix(in srgb,var(--bg) 86%,transparent);
+  backdrop-filter:blur(8px);
+}
+.crumb{font-size:12px;color:var(--ink-3)}
+.crumb b{color:var(--ink-2);font-weight:600}
+.topbar .spacer{flex:1}
+.field{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 11px;box-shadow:var(--shadow)}
+.field svg{width:15px;height:15px;color:var(--ink-3)}
+.field input{border:none;outline:none;background:none;width:170px}
+.field select{border:none;outline:none;background:none;font-weight:600;color:var(--ink);cursor:pointer}
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  border:1px solid var(--line);background:var(--panel);color:var(--ink);
+  padding:8px 13px;border-radius:var(--r-sm);font-weight:600;font-size:13px;
+  box-shadow:var(--shadow);transition:transform .12s cubic-bezier(.2,.8,.2,1),border-color .15s;
+}
+.btn:hover{border-color:var(--ink-3)}
+.btn:active{transform:translateY(1px)}
+.btn svg{width:15px;height:15px}
+.btn.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.pri:hover{background:var(--accent-ink);border-color:var(--accent-ink)}
+
+.view{padding:30px;max-width:1180px;width:100%;animation:fade .4s cubic-bezier(.2,.8,.2,1)}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.view-head{margin-bottom:22px}
+.view-head h1{font-family:"Instrument Serif",serif;font-size:40px;line-height:1.05;letter-spacing:.01em;font-weight:400;text-wrap:balance}
+.view-head p{color:var(--ink-2);max-width:62ch;margin-top:6px;text-wrap:pretty}
+
+/* Cards / panels */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--shadow)}
+.panel-pad{padding:20px}
+.grid{display:grid;gap:16px}
+
+/* KPI */
+.kpis{grid-template-columns:repeat(4,1fr)}
+.kpi{padding:18px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+.kpi .lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.kpi .num{font-family:"Spline Sans Mono",monospace;font-size:38px;line-height:1;color:var(--ink);letter-spacing:-.02em}
+.kpi .sub{font-size:12px;color:var(--ink-2)}
+.kpi .rail{position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px}
+.kpi.k-bad .num{color:var(--bad)} .kpi.k-bad .rail{background:var(--bad)}
+.kpi.k-warn .num{color:var(--warn)} .kpi.k-warn .rail{background:var(--warn)}
+.kpi.k-good .num{color:var(--good)} .kpi.k-good .rail{background:var(--good)}
+.kpi.k-acc .num{color:var(--accent)} .kpi.k-acc .rail{background:var(--accent)}
+
+.sect-h{display:flex;align-items:baseline;gap:10px;margin:30px 0 14px}
+.sect-h h2{font-family:"Instrument Serif",serif;font-weight:400;font-size:24px}
+.sect-h .hint{font-size:12.5px;color:var(--ink-3)}
+.sect-h .spacer{flex:1}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:20px;line-height:18px;white-space:nowrap}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.b-good{color:var(--good);background:var(--good-bg)}
+.b-warn{color:var(--warn);background:var(--warn-bg)}
+.b-bad{color:var(--bad);background:var(--bad-bg)}
+.b-mute{color:var(--mute);background:var(--mute-bg)}
+.b-acc{color:var(--accent-ink);background:var(--accent-soft)}
+.chip{display:inline-flex;font-size:11px;font-weight:600;padding:1px 8px;border-radius:6px;border:1px solid var(--line);color:var(--ink-2);background:var(--bg-2)}
+.chip.lo{color:var(--ink-3)} .chip.hi{color:var(--accent-ink);border-color:var(--accent-soft);background:var(--accent-soft)}
+
+/* Tables */
+.tbl{width:100%;border-collapse:separate;border-spacing:0}
+.tbl th{
+  text-align:left;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:600;padding:0 16px 11px;border-bottom:1px solid var(--line)
+}
+.tbl td{padding:18px 16px;border-bottom:1px solid var(--line-2);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr.row{transition:background .15s}
+.tbl tbody tr.row:hover{background:var(--bg-2);cursor:pointer}
+.tbl .stmt{font-weight:600;color:var(--ink);max-width:42ch;text-wrap:pretty}
+.tbl .meta{font-size:12px;color:var(--ink-3);margin-top:4px;line-height:1.45}
+.tbl .stmt{line-height:1.5}
+.tbl .strat{font-size:12px;color:var(--ink-2);font-weight:500}
+.matrix{font-family:"Spline Sans Mono",monospace;font-size:12px;color:var(--ink-2)}
+
+.empty{padding:48px 20px;text-align:center;color:var(--ink-3)}
+.empty .serif{font-size:22px;color:var(--ink-2);display:block;margin-bottom:4px}
+
+/* Detail drawer */
+.scrim{position:fixed;inset:0;background:rgba(28,26,22,.32);backdrop-filter:blur(2px);z-index:40;opacity:0;pointer-events:none;transition:opacity .25s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{
+  position:fixed;top:0;right:0;height:100dvh;width:min(520px,94vw);z-index:50;
+  background:var(--bg-2);border-left:1px solid var(--line);box-shadow:var(--shadow-lg);
+  transform:translateX(102%);transition:transform .32s cubic-bezier(.2,.85,.25,1);
+  display:flex;flex-direction:column;
+}
+.drawer.on{transform:none}
+.drawer-h{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
+.drawer-h .x{margin-left:auto;border:1px solid var(--line);background:var(--panel);border-radius:8px;width:30px;height:30px;display:grid;place-items:center;color:var(--ink-2);flex:none}
+.drawer-h .x:hover{border-color:var(--ink-3)}
+.drawer-b{padding:22px 24px;overflow:auto}
+.drawer-b h3{font-family:"Instrument Serif",serif;font-weight:400;font-size:27px;line-height:1.12;text-wrap:pretty;margin-bottom:10px}
+.kv{display:grid;grid-template-columns:128px 1fr;gap:6px 14px;margin:16px 0;font-size:13px}
+.kv dt{color:var(--ink-3);font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding-top:2px}
+.kv dd{color:var(--ink)}
+.note{font-size:13.5px;color:var(--ink-2);line-height:1.65;text-wrap:pretty;border-left:2px solid var(--line);padding-left:14px;margin:14px 0}
+.link-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.linkc{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;padding:6px 11px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.linkc:hover{border-color:var(--ink-3)}
+.linkc .tk{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3)}
+.logitem{display:flex;gap:11px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.logitem .d{font-family:"Spline Sans Mono",monospace;font-size:11.5px;color:var(--ink-3);flex:none;width:84px}
+.drawer-foot{margin-top:auto;padding:16px 24px;border-top:1px solid var(--line);display:flex;gap:10px}
+.btn.danger{color:var(--bad);border-color:var(--line)}
+.btn.danger:hover{border-color:var(--bad);background:var(--bad-bg)}
+
+/* Modal form */
+.modal{
+  position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:24px;
+  opacity:0;pointer-events:none;transition:opacity .22s
+}
+.modal.on{opacity:1;pointer-events:auto}
+.modal .sheet{
+  width:min(560px,100%);max-height:90dvh;overflow:auto;background:var(--bg-2);
+  border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);
+  transform:translateY(10px) scale(.99);transition:transform .25s cubic-bezier(.2,.85,.25,1)
+}
+.modal.on .sheet{transform:none}
+.sheet-h{padding:20px 24px 4px}
+.sheet-h .ey{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.sheet-h h3{font-family:"Instrument Serif",serif;font-weight:400;font-size:26px;margin-top:2px}
+.sheet-b{padding:14px 24px 4px;display:grid;gap:14px}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fg label{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.fg input,.fg select,.fg textarea{
+  border:1px solid var(--line);background:var(--panel);border-radius:var(--r-sm);
+  padding:9px 11px;outline:none;transition:border-color .15s,box-shadow .15s;width:100%
+}
+.fg textarea{resize:vertical;min-height:64px;line-height:1.55}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.fg .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 12px;font-weight:600;font-size:12.5px;color:var(--ink-2)}
+.seg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.sheet-f{padding:16px 24px 22px;display:flex;gap:10px;justify-content:flex-end}
+
+/* Flywheel */
+.wheel-wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+.spine-flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+.spine-step{flex:1;min-width:120px;padding:16px;border:1px solid var(--line);background:var(--panel);position:relative}
+.spine-step:first-child{border-top-left-radius:var(--r-md);border-bottom-left-radius:var(--r-md)}
+.spine-step:last-child{border-top-right-radius:var(--r-md);border-bottom-right-radius:var(--r-md)}
+.spine-step + .spine-step{border-left:none}
+.spine-step .n{font-family:"Spline Sans Mono",monospace;font-size:11px;color:var(--ink-3)}
+.spine-step .t{font-family:"Instrument Serif",serif;font-size:21px;margin:3px 0 5px}
+.spine-step .d{font-size:12px;color:var(--ink-2)}
+.spine-step .ar{position:absolute;right:-9px;top:50%;transform:translateY(-50%);z-index:2;background:var(--bg);border:1px solid var(--line);border-radius:50%;width:18px;height:18px;display:grid;place-items:center;color:var(--accent)}
+.fam{padding:16px;border-radius:var(--r-md);border:1px solid var(--line)}
+.fam h4{font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:8px}
+.fam .sd{font-size:12px;color:var(--ink-2);margin-bottom:12px}
+.fam .sys{display:flex;align-items:center;gap:9px;padding:7px 0;border-top:1px dashed var(--line);font-size:13px}
+.fam .sys .reg{margin-left:auto;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+.dotm{width:9px;height:9px;border-radius:50%;flex:none}
+.fam-grid{grid-template-columns:1fr 1fr}
+
+/* systems ref cards */
+.sys-grid{grid-template-columns:1fr 1fr}
+.sys-card{padding:18px}
+.sys-card .top{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.sys-card .top .nm{font-weight:700;font-size:15px}
+.sys-card .dies{font-size:12.5px;color:var(--ink-2);text-wrap:pretty}
+.sys-card .feeds{font-size:11px;color:var(--ink-3);margin-top:9px}
+
+.wheel-loop{display:flex;flex-direction:column;gap:10px}
+.loop-step{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-sm)}
+.loop-step .ix{font-family:"Spline Sans Mono",monospace;font-size:12px;color:#fff;background:var(--accent);width:24px;height:24px;border-radius:50%;display:grid;place-items:center;flex:none}
+.loop-step .tx b{color:var(--ink)} .loop-step .tx{font-size:13px;color:var(--ink-2);text-wrap:pretty}
+
+/* matrix */
+.matrix-wrap{display:grid;grid-template-columns:26px 1fr;grid-template-rows:1fr 26px;gap:8px}
+.m-ylabel{grid-column:1;grid-row:1;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.m-grid{grid-column:2;grid-row:1;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,minmax(86px,1fr));gap:8px}
+.m-xlabel{grid-column:2;grid-row:2;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:600;align-items:center}
+.m-cell{border:1px solid var(--line);border-radius:var(--r-sm);background:var(--bg-2);padding:9px;display:flex;flex-direction:column;gap:6px;min-height:86px}
+.m-cell .ct{font-family:"Spline Sans Mono",monospace;font-size:11px;color:var(--ink-3)}
+.m-cell.danger{background:var(--bad-bg);border-color:var(--bad-line)}
+.m-cell.danger .ct{color:var(--bad)}
+.m-cell.warm{background:var(--warn-bg);border-color:var(--warn-line)}
+.m-dot{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:3px 7px;cursor:pointer;line-height:1.2}
+.m-dot:hover{border-color:var(--ink-3)}
+.m-dot .dot{width:6px;height:6px;border-radius:50%}
+.m-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:11.5px;color:var(--ink-2)}
+.m-legend span{display:inline-flex;align-items:center;gap:6px}
+.m-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+/* review ritual */
+.rev-banner{display:flex;gap:13px;align-items:flex-start;padding:16px 18px;border-radius:var(--r-md);background:var(--accent-soft);border:1px solid #CFE0D8;margin-bottom:6px}
+.rev-banner svg{width:20px;height:20px;color:var(--accent);flex:none;margin-top:2px}
+.rev-banner b{color:var(--accent-ink)}
+.rev-card{padding:16px 18px;display:flex;flex-direction:column;gap:11px}
+.rev-card .rh{display:flex;gap:10px;align-items:flex-start}
+.rev-card .rh .stmt{font-weight:600;flex:1;text-wrap:pretty}
+.rev-card .ctrl{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.rev-card .ctrl input{flex:1;min-width:180px;border:1px solid var(--line);background:var(--panel);border-radius:var(--r-sm);padding:8px 10px;outline:none}
+.rev-card .ctrl input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.rev-card .lbl{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.rev-step{margin:26px 0 12px;display:flex;align-items:baseline;gap:10px}
+.rev-step .num{font-family:"Spline Sans Mono",monospace;font-size:12px;color:#fff;background:var(--accent);width:22px;height:22px;border-radius:50%;display:inline-grid;place-items:center;flex:none}
+.rev-step h2{font-family:"Instrument Serif",serif;font-weight:400;font-size:22px}
+.rev-step .hint{font-size:12.5px;color:var(--ink-3)}
+.saved-flash{font-size:11.5px;color:var(--good);font-weight:600;opacity:0;transition:opacity .3s}
+.saved-flash.on{opacity:1}
+
+/* strategies */
+.strat-grid{grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+.strat-card{padding:20px;cursor:pointer;transition:transform .14s cubic-bezier(.2,.8,.2,1),box-shadow .18s,border-color .18s;display:flex;flex-direction:column;gap:10px}
+.strat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--ink-3)}
+.sc-top{display:flex;align-items:center}
+.strat-card h3{font-size:24px;line-height:1.1;font-weight:400;text-wrap:pretty}
+.sc-ch{font-size:13px;color:var(--ink-2);line-height:1.55;text-wrap:pretty}
+.sc-meta{font-size:11.5px;color:var(--ink-3);font-weight:500}
+.sc-stats{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);border-top:1px solid var(--line-2);padding-top:11px;margin-top:2px}
+.sc-stats b{font-family:"Spline Sans Mono",monospace;color:var(--ink);font-weight:500}
+.sc-stats .flash{color:var(--bad)} .sc-stats .flash b{color:var(--bad)}
+.sc-stats .ok{color:var(--good);font-weight:600;margin-left:auto}
+.onepage{padding:6px 26px}
+.op-sec{padding:20px 0;border-bottom:1px solid var(--line-2)}
+.op-sec:last-child{border-bottom:none}
+.op-h{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:9px}
+.op-sec p{font-size:15px;line-height:1.6;color:var(--ink);max-width:68ch;text-wrap:pretty}
+.op-list{margin:0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:8px;max-width:68ch}
+.op-list li{position:relative;padding-left:30px;font-size:14.5px;line-height:1.5;color:var(--ink);text-wrap:pretty}
+.op-list.ol{counter-reset:m}
+.op-list.ol li{counter-increment:m}
+.op-list.ol li::before{content:counter(m);position:absolute;left:0;top:0;font-family:"Spline Sans Mono",monospace;font-size:11px;color:#fff;background:var(--accent);width:20px;height:20px;border-radius:50%;display:grid;place-items:center}
+.op-list.ul li::before{content:"";position:absolute;left:7px;top:9px;width:6px;height:6px;border-radius:50%;background:var(--ink-3)}
+.strat-link-grid{grid-template-columns:repeat(3,1fr)}
+.mini{padding:14px 16px}
+.mini-h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:700;display:flex;justify-content:space-between;margin-bottom:8px}
+.mini-h span{font-family:"Spline Sans Mono",monospace;color:var(--ink-2)}
+.mini-row{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px dashed var(--line);cursor:pointer}
+.mini-row:hover .mini-main{color:var(--accent)}
+.mini-main{flex:1;font-size:12.5px;color:var(--ink);line-height:1.4;text-wrap:pretty}
+.mini-row .badge{flex:none}
+.mini-empty{font-size:12px;color:var(--ink-3);padding:8px 0}
+@media(max-width:900px){.strat-link-grid{grid-template-columns:1fr}.onepage{padding:6px 18px}}
+
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;z-index:30;width:248px;transform:translateX(-102%);transition:transform .3s}
+  .side.open{transform:none}
+  .kpis{grid-template-columns:1fr 1fr}
+  .wheel-wrap,.fam-grid,.sys-grid{grid-template-columns:1fr}
+  .field input{width:120px}
+}
+.menu-btn{display:none;border:1px solid var(--line);background:var(--panel);border-radius:8px;width:34px;height:34px;place-items:center;color:var(--ink-2)}
+@media(max-width:900px){.menu-btn{display:grid}.view{padding:20px}}
+
+/* a11y: visible keyboard focus */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:5px}
+.tbl tbody tr.row:focus-visible{outline-offset:-2px}
+[role=button]{cursor:pointer}
+[role=button]:focus:not(:focus-visible){outline:none}
+
+/* a11y: larger touch targets on small screens */
+@media(max-width:900px){
+  .nav-item{padding:12px 11px}
+  .drawer-h .x{width:40px;height:40px}
+  .menu-btn{width:40px;height:40px}
+}
+
+/* respect reduced motion */
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+  .view{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="side" id="side">
+    <div class="brand">
+      <span class="ey">Strategy Architect</span>
+      <span class="nm serif">The <b>Spine</b></span>
+    </div>
+    <a class="nav-item" data-view="dashboard">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12l2-2 4 4 5-6 4 4 3-3"/><path d="M3 19h18" opacity=".4"/></svg>
+      <span>Dashboard</span></a>
+    <a class="nav-item" data-view="strategies">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="M12 3v18M4 7.5l8 4.5 8-4.5" opacity=".5"/></svg>
+      <span>Strategies</span><span class="ct" id="stratCt">0</span></a>
+
+    <div class="nav-grp">Registers</div>
+    <a class="nav-item" data-view="insights">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.3 1 2.1h6c0-.8.4-1.5 1-2.1A6 6 0 0 0 12 3Z"/></svg>
+      <span>Insights</span><span class="ct" data-count="insights">0</span></a>
+    <a class="nav-item" data-view="decisions">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span>Decisions</span><span class="ct" data-count="decisions">0</span></a>
+    <a class="nav-item" data-view="assumptions">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>Assumptions</span><span class="ct" data-count="assumptions">0</span></a>
+    <a class="nav-item" data-view="signals">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 14a8 8 0 0 1 8-8M4 18a4 4 0 0 1 4-4"/><circle cx="5" cy="19" r="1.4" fill="currentColor" stroke="none"/><path d="M14 4a14 14 0 0 1 6 6" opacity=".5"/></svg>
+      <span>Signals</span><span class="ct" data-count="signals">0</span></a>
+
+    <div class="nav-grp">Apparatus</div>
+    <a class="nav-item" data-view="review">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <span>Operating Rhythm</span><span class="ct" id="reviewCt">0</span></a>
+    <a class="nav-item" data-view="flywheel">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+      <span>The Flywheel</span></a>
+    <a class="nav-item" data-view="systems">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span>Standing Systems</span></a>
+
+    <div class="foot">
+      <div class="acct" id="account"></div>
+      <div class="tag">“Most strategies die on the page.<br>This one gets followed.”</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-label="Menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <div class="crumb">Spine OS · <b id="crumb">Dashboard</b></div>
+      <span class="sync" id="syncStatus"></span>
+      <div class="spacer"></div>
+      <div class="field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        <select id="strategyFilter"><option value="*">All strategies</option></select>
+      </div>
+      <div class="field" id="searchField">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="search" placeholder="Search registers…" aria-label="Search registers" />
+      </div>
+      <button class="btn pri" id="addBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span id="addLabel">New entry</span></button>
+    </div>
+    <div id="root"></div>
+  </div>
+</div>
+
+<!-- DRAWER -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-h" id="drawerH"></div>
+  <div class="drawer-b" id="drawerB"></div>
+  <div class="drawer-foot" id="drawerF"></div>
+</aside>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="sheet">
+    <div class="sheet-h"><span class="ey" id="mEy">Register</span><h3 id="mTitle">New entry</h3></div>
+    <div class="sheet-b" id="mBody"></div>
+    <div class="sheet-f">
+      <button class="btn" id="mCancel">Cancel</button>
+      <button class="btn pri" id="mSave">Save entry</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   Spine — Strategy Operating System  (single-file prototype)
+   ============================================================ */
+
+/* ---- seed data (English; adapted from a real worked example) ---- */
+const SEED = {
+  strategies: [
+    {id:"st1", name:"Tet Vedtak — Case Platform", framework:"kernel", status:"committed", owner:"Jonas", review:"2026-07-15", version:3,
+      challenge:"150+ municipalities run school transport on legacy systems (FSkyss/Voyager) that can neither automate nor isolate tenant data — and ~90% of appeals are overturned, signalling systemic rule-application errors rather than caseworker discretion.",
+      approach:"Build one multi-tenant case platform with a transparent, traceable rule engine — so the same decision logic runs everywhere, automates the routine, and makes every outcome auditable.",
+      moves:["Verify the rule engine against 30+ historical appeals (M1 checkpoint)","Clear the DPIA gate before any automated decision (Gate 1)","Per-tenant configuration, never per-tenant code","A separate processing flow for confidential addresses"],
+      notDoing:["Extending FSkyss/Voyager","Buying off-the-shelf in this phase","Automating non-routine or discretionary cases"],
+      howKnow:["Appeal-overturn rate falls as the pilot rolls out","≥60% of ordinary cases fully automated at quality","Zero statutory-deadline breaches"]},
+    {id:"st2", name:"TØFF Migration", framework:"premortem", status:"reviewed", owner:"Jonas", review:"2026-09-01", version:1,
+      challenge:"CMP is decommissioned on 31.12.2026; the TØFF migration must complete inside a fixed window with no break in statutory service delivery.",
+      approach:"Sequence the migration into increment T2 with a clean rollback path, validating statutory flows in a shadow run before cutover.",
+      moves:["Establish a pre-migration baseline","Stage the cutover with a tested rollback","Validate statutory deadlines in a shadow run"],
+      notDoing:["Deferring to T3","A big-bang cutover with no fallback"],
+      howKnow:["No measurable service interruption in the window","All statutory deadlines met during cutover"]},
+    {id:"st3", name:"On-Demand Transit Planning", framework:"one-pager", status:"draft", owner:"Jonas", review:"2026-08-10", version:1,
+      challenge:"School admins drop off during onboarding and lean on support calls, capping how fast on-demand planning can scale.",
+      approach:"Make onboarding fully self-serve with guided setup, so a new admin reaches first value without a support call.",
+      moves:["Guided first-run setup","In-product help at the known drop-off points"],
+      notDoing:["Hiring more onboarding support to mask the gap"],
+      howKnow:["≥80% of admins self-onboard by week 4","Support tickets per new admin stay below 2"]}
+  ],
+  insights: [
+    {id:"i1", claim:"~90% of school-transport appeals are overturned — qualitative findings point to rule-application errors in today's practice (inconsistent nearest-school interpretation, no traceability, uneven hazardous-route assessment), not caseworker discretion.", evidence:"Discovery M0 final report (2026-05-09), open question H5; qualitative interviews in the quick-wins track.", confidence:"medium", theme:"Casework quality", captured:"2026-05-09", source:"Discovery M0 §4.4", feeds:"a1"},
+    {id:"i2", claim:"Multi-tenancy is a privacy requirement, not just an architecture preference — keeping 150+ municipalities' data separated is what makes a shared platform legally defensible.", evidence:"DPIA pre-assessment; legal review of data-controller boundaries.", confidence:"high", theme:"Privacy & architecture", captured:"2026-05-02", source:"Legal note §2", feeds:"a3"},
+    {id:"i3", claim:"Build beats buy for this domain: Norwegian school-transport law is narrow and rule-heavy, and off-the-shelf systems support neither the automation level nor per-tenant configuration the ambition needs.", evidence:"Vendor scan + capability gap analysis.", confidence:"high", theme:"Make vs buy", captured:"2026-04-12", source:"Make/Buy memo", feeds:"a1"},
+    {id:"i4", claim:"The accountability gap is between the data-controller (municipality) and the system operator — until decision authority is named, automation cannot ship.", evidence:"Stakeholder interviews; data-responsibility workshop.", confidence:"medium", theme:"Governance", captured:"2026-05-20", source:"Workshop notes", feeds:"a5"},
+    {id:"i5", claim:"The sharpest privacy risk is sensitive data (confidential addresses), which needs a separate processing flow rather than the standard pipeline.", evidence:"DPIA threat-modelling session.", confidence:"high", theme:"Privacy", captured:"2026-06-04", source:"DPIA draft", feeds:""},
+  ],
+  decisions: [
+    {id:"d1", title:"Build a bespoke case-management system (Tet Vedtak) instead of extending FSkyss/Voyager", decided:"2026-04-15", owner:"Jonas", door:"one-way", area:"School transport", strategy:"Tet Vedtak — Case Platform",
+     reasoning:"Tied to company O1 ('one platform, many users, same experience') and the goal of up to 60% full automation. Legacy systems support neither multi-tenancy nor automation at the level the ambition requires.",
+     rejected:"Extend FSkyss/Voyager — rejected: low automation, no multi-tenancy. Buy off-the-shelf — not chosen this phase; domain is narrow and rule-heavy.",
+     rests:["a1"], trigger:"Gate 2 (concept approval in Owner Forum), or if the pilot shows the automation gain fails to materialise."},
+    {id:"d2", title:"Adopt per-tenant configuration as the multi-tenancy model", decided:"2026-05-06", owner:"Jonas", door:"two-way", area:"Architecture", strategy:"Tet Vedtak — Case Platform",
+     reasoning:"Per-tenant config keeps municipalities' data and rules isolated while sharing one codebase — the only model that satisfies both the privacy requirement and the shared-platform economics.",
+     rejected:"Single shared tenant with row-level filtering — rejected on privacy-defensibility grounds.",
+     rests:["a3"], trigger:"If onboarding cost per tenant exceeds budget, or a tenant needs rules the config model can't express."},
+    {id:"d3", title:"Conditional GO on milestone M1, gated on DPIA approval", decided:"2026-06-11", owner:"Jonas", door:"two-way", area:"School transport", strategy:"Tet Vedtak — Case Platform",
+     reasoning:"Momentum matters, but automated processing cannot start before the DPIA is approved. GO on build work; HOLD on anything touching automated decisions until Gate 1 clears.",
+     rejected:"Full GO including automation — rejected: legal exposure. Full HOLD — rejected: stalls the whole programme.",
+     rests:["a2"], trigger:"DPIA approval (clears the gate) or rejection (re-open scope)."},
+    {id:"d4", title:"Prioritise the TØFF migration in increment T2", decided:"2026-05-28", owner:"Jonas", door:"two-way", area:"Platform", strategy:"TØFF Migration",
+     reasoning:"CMP is decommissioned on 31.12.2026; the migration window is fixed and leaves little slack. Sequencing it into T2 protects statutory service delivery.",
+     rejected:"Defer to T3 — rejected: collides with the CMP decommission deadline.",
+     rests:["a4"], trigger:"Any measurable break in statutory service during the migration window."},
+  ],
+  assumptions: [
+    {id:"a1", strategy:"Tet Vedtak — Case Platform", statement:"Up to 60% of ordinary school-transport cases can be fully automated at sufficient decision quality.", confidence:"low", consequence:"high", kill_signal:"The appeals analysis (M0) shows overturns are driven mainly by rule interpretation, not applicant quality — meaning ordinary cases are less rule-clear than assumed.", state:"shaky", watchedBy:"s1", note:"The entire business case rests on this number (M3 ambition). The open M0 question — what drives the overturn rate? — is in practice the test of this bet."},
+    {id:"a2", strategy:"Tet Vedtak — Case Platform", statement:"The DPIA is approved in time for automated processing to start in M2.", confidence:"medium", consequence:"high", kill_signal:"DPIA still unapproved at the planned M2 start date.", state:"shaky", watchedBy:"s2", note:"Active blocker on the critical path. A new DPIA is underway with new counsel engaged."},
+    {id:"a3", strategy:"Tet Vedtak — Case Platform", statement:"Per-tenant configuration scales to 150+ municipalities without per-tenant engineering effort.", confidence:"medium", consequence:"medium", kill_signal:"Onboarding a new tenant repeatedly requires code changes, not just configuration.", state:"holding", watchedBy:"", note:"Underpins the shared-platform economics."},
+    {id:"a4", strategy:"TØFF Migration", statement:"The TØFF migration in T2 can be completed without a break in statutory service delivery.", confidence:"low", consequence:"high", kill_signal:"A measurable interruption in application/decision flow, or a missed statutory deadline during the migration window.", state:"shaky", watchedBy:"s3", note:"Identified as an organisational risk: temporary degradation during migration could break statutory service. Deadline 31.12.2026 leaves little slack; migration not yet started."},
+    {id:"a5", strategy:"Tet Vedtak — Case Platform", statement:"A transparent rule engine with traceable decision basis will reduce appeal volume.", confidence:"medium", consequence:"medium", kill_signal:"Rule verification against 30+ historical appeals fails to reproduce correct outcomes.", state:"holding", watchedBy:"s1", note:"Good news for a1 if true. Not yet measured — rule verification is the M1 checkpoint."},
+    {id:"a6", strategy:"On-Demand Transit Planning", statement:"School admins will self-serve onboarding without support calls.", confidence:"low", consequence:"high", kill_signal:"Support tickets per new admin stays above 2 after week 4.", state:"holding", watchedBy:"s4", note:"Carried over from the On-Demand pilot; the riskiest bet of that strategy."},
+  ],
+  signals: [
+    {id:"s1", strategy:"Tet Vedtak — Case Platform", signal:"Appeal-overturn rate on school-transport decisions, and the understood cause", watches:"a1", expected_shape:"Cause understood in M0; rate falls as the Tet Vedtak pilot rolls out.", owner:"Jonas", state:"disagreeing", last_reading:"~90% overturn — cause (decision error / rule interpretation / applicant quality) not yet understood (M0)",
+     log:[{d:"2026-05-13", t:"~90% overturn rate documented but not yet understood. Appeals analysis in progress. High rate is a red flag against the automation assumption."}]},
+    {id:"s2", strategy:"Tet Vedtak — Case Platform", signal:"DPIA approval status for automated casework", watches:"a2", expected_shape:"Approved by the data-protection officer before the planned M2 start.", owner:"Jonas", state:"drifting", last_reading:"In progress — new DPIA started, new counsel engaged, real-time-location info submitted (2026-06-11)",
+     log:[{d:"2026-06-11", t:"New school-transport DPIA started, new counsel engaged. Still not approved → blocks Gate 1."},{d:"2026-05-13", t:"DPIA not advanced/approved. Active blocker on the critical path."}]},
+    {id:"s3", strategy:"TØFF Migration", signal:"Service interruption during the TØFF migration window", watches:"a4", expected_shape:"Zero statutory-service breaks; all deadlines met.", owner:"Jonas", state:"agreeing", last_reading:"No migration activity yet — baseline clean (2026-06-01)",
+     log:[{d:"2026-06-01", t:"Pre-migration baseline established. No interruptions. Migration not yet started."}]},
+    {id:"s4", strategy:"On-Demand Transit Planning", signal:"New admins self-onboarding without a support call", watches:"a6", expected_shape:"≥80% self-onboard by week 4.", owner:"Jonas", state:"drifting", last_reading:"62% at week 4 — below the ≥80% expected shape (2026-06-12)",
+     log:[{d:"2026-06-12", t:"62% at week 4. Drifting below the ≥80% expected shape."},{d:"2026-05-29", t:"71% at week 2. On track."}]},
+    {id:"s5", strategy:"Tet Vedtak — Case Platform", signal:"Rule-engine verification against historical appeals", watches:"a5", expected_shape:"Reproduces correct outcomes on ≥30 historical appeal cases.", owner:"Jonas", state:"agreeing", last_reading:"Verification set being assembled — 18 of 30 cases loaded (2026-06-18)",
+     log:[{d:"2026-06-18", t:"18 of 30 historical appeals loaded into the verification set. Early reproductions matching."}]},
+  ]
+};
+
+/* ---- standing systems reference ---- */
+const SYSTEMS = [
+  {name:"Insight Repository", fam:"Sensing", feeds:"Understand", reg:"Insights", dies:"Strategy built on whoever shouted loudest, not what's true."},
+  {name:"Environmental Radar", fam:"Sensing", feeds:"Understand", reg:"", dies:"You discover the shift after it's already cost you."},
+  {name:"Decision Log", fam:"Memory", feeds:"Whole loop", reg:"Decisions", dies:"Endless re-litigation; nobody remembers why."},
+  {name:"Assumption Register", fam:"Memory", feeds:"Develop ↔ Track", reg:"Assumptions", dies:"The bets that fail are never noticed failing."},
+  {name:"Canonical Strategy Artifact", fam:"Alignment", feeds:"Communicate", reg:"", dies:"Five versions of the strategy, all slightly wrong."},
+  {name:"Operating Rhythm", fam:"Alignment", feeds:"Communicate", reg:"", dies:"Strategy is set, then quietly drifts, unexamined."},
+  {name:"Decision Rights", fam:"Alignment", feeds:"Communicate", reg:"", dies:"Strategy stalls in execution on 'who decides this?'"},
+  {name:"Signals Ledger", fam:"Feedback", feeds:"Track", reg:"Signals", dies:"The signals you designed are never actually watched."},
+  {name:"Resource Allocation", fam:"Feedback", feeds:"Track", reg:"", dies:"A strategy no budget moves toward — a wishlist."},
+  {name:"Learning Loop", fam:"Feedback", feeds:"Track → Understand", reg:"", dies:"Every strategy starts from zero; the org never compounds."},
+];
+const FAM = {
+  Sensing:{c:"var(--sense)", bg:"var(--sense-bg)", feeds:"feeds Understand"},
+  Memory:{c:"var(--mem)", bg:"var(--mem-bg)", feeds:"spans the loop"},
+  Alignment:{c:"var(--align)", bg:"var(--align-bg)", feeds:"feeds Communicate"},
+  Feedback:{c:"var(--feed)", bg:"var(--feed-bg)", feeds:"Track → Understand"},
+};
+
+/* ---- state ---- */
+let SB = null;        // Supabase client
+let USER = null;      // signed-in user
+let DB = { strategies:[], insights:[], decisions:[], assumptions:[], signals:[] };
+let view = "dashboard";
+let q = "";
+let stratF = "*";
+let currentStrategy = null; // strategy id when viewing a single strategy
+
+const COLLS=["strategies","insights","decisions","assumptions","signals"];
+function stratNames(){ return DB.strategies.map(s=>s.name); }
+function stratByName(n){ return DB.strategies.find(s=>s.name===n); }
+const STRAT_FW={kernel:"Strategy Kernel",cascade:"Playing-to-Win Cascade",wardley:"Wardley Map",premortem:"Pre-mortem","one-pager":"One-Page Strategy"};
+const STRAT_STATUS={draft:["b-mute","Draft"],reviewed:["b-warn","In review"],committed:["b-good","Committed"],archived:["b-mute","Archived"]};
+
+/* ---- backend: Supabase write-through data layer ---- */
+function setSync(state){
+  const n=$("#syncStatus"); if(!n) return;
+  const map={saving:["b-warn","Saving…"],saved:["b-good","Saved"],error:["b-bad","Offline — retrying"]};
+  const m=map[state]; if(!m){ n.innerHTML=""; n.className="sync"; return; }
+  n.className="badge "+m[0]; n.innerHTML=`<span class="dot"></span>${m[1]}`;
+}
+let _pushTimer=null,_pushing=false,_pushAgain=false;
+function save(){ if(!SB||!USER) return; setSync("saving"); clearTimeout(_pushTimer); _pushTimer=setTimeout(pushAll,400); }
+function saveData(){ save(); }
+async function pushAll(){
+  if(!SB||!USER) return;
+  if(_pushing){ _pushAgain=true; return; }
+  _pushing=true;
+  try{
+    for(const coll of COLLS){
+      const rows=DB[coll].map(o=>({id:o.id,user_id:USER.id,data:o,updated_at:new Date().toISOString()}));
+      if(rows.length){ const {error}=await SB.from(coll).upsert(rows); if(error) throw error; }
+      const ids=DB[coll].map(o=>o.id);
+      let del=SB.from(coll).delete().eq("user_id",USER.id);
+      if(ids.length) del=del.not("id","in","("+ids.map(i=>'"'+i+'"').join(",")+")");
+      const {error:e2}=await del; if(e2) throw e2;
+    }
+    setSync("saved");
+  }catch(err){ console.error("Spine sync failed:",err); setSync("error"); }
+  _pushing=false;
+  if(_pushAgain){ _pushAgain=false; pushAll(); }
+}
+async function loadAll(){
+  const out={strategies:[],insights:[],decisions:[],assumptions:[],signals:[]};
+  for(const coll of COLLS){ const {data,error}=await SB.from(coll).select("id,data"); if(error) throw error; out[coll]=(data||[]).map(r=>r.data); }
+  if(COLLS.every(c=>out[c].length===0)){ DB=structuredClone(SEED); await pushAll(); }   // first sign-in: seed demo data
+  else DB=out;
+}
+function uid(p){ return p + Math.random().toString(36).slice(2,7); }
+
+/* ---- helpers ---- */
+const $ = s => document.querySelector(s);
+const el = (t,c,h)=>{const n=document.createElement(t);if(c)n.className=c;if(h!=null)n.innerHTML=h;return n;};
+const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+// make a non-button element behave like a button for keyboard + AT users
+function clickable(node,fn,label){
+  node.onclick=fn;
+  node.setAttribute("role","button");
+  node.setAttribute("tabindex","0");
+  if(label) node.setAttribute("aria-label",label);
+  node.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); fn(e); } });
+  return node;
+}
+
+const STATE_MAP = {
+  holding:["b-good","Holding"], agreeing:["b-good","Agreeing"],
+  shaky:["b-warn","Shaky"], drifting:["b-warn","Drifting"],
+  broken:["b-bad","Broken"], disagreeing:["b-bad","Disagreeing"],
+  retired:["b-mute","Retired"]
+};
+function stateBadge(s){ const m=STATE_MAP[s]||["b-mute",s]; return `<span class="badge ${m[0]}"><span class="dot"></span>${m[1]}</span>`; }
+function lvlChip(l){ const cls = l==="high"?"hi":l==="low"?"lo":""; return `<span class="chip ${cls}">${esc(l)}</span>`; }
+function matchStrat(s){ return stratF==="*" || s===stratF; }
+function matchQ(txt){ return !q || (txt||"").toLowerCase().includes(q); }
+
+function byId(coll,id){ return DB[coll].find(x=>x.id===id); }
+
+/* ============================================================ VIEWS */
+function render(){
+  $("#crumb").textContent = ({dashboard:"Dashboard",strategies:"Strategies",insights:"Insights",decisions:"Decisions",assumptions:"Assumptions",signals:"Signals",review:"Operating Rhythm",flywheel:"The Flywheel",systems:"Standing Systems"})[view];
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active", n.dataset.view===view));
+  const isRegister = ["insights","decisions","assumptions","signals"].includes(view);
+  const showAdd = ["strategies","insights","decisions","assumptions","signals"].includes(view) && !currentStrategy;
+  $("#addBtn").style.display = showAdd ? "inline-flex":"none";
+  $("#searchField").style.display = isRegister ? "flex":"none";
+  $("#addLabel").textContent = showAdd ? (view==="strategies"?"New strategy":"New "+view.slice(0,-1)) : "New";
+  updateCounts();
+  const r = $("#root"); r.innerHTML="";
+  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,flywheel:vFlywheel,systems:vSystems}[view])());
+}
+function reviewDueCount(){
+  return DB.signals.filter(s=>(s.state==="disagreeing"||s.state==="drifting")).length
+       + DB.assumptions.filter(a=>(a.state==="shaky"||a.state==="broken")).length;
+}
+function updateCounts(){
+  document.querySelectorAll("[data-count]").forEach(n=>{ n.textContent = DB[n.dataset.count].length; });
+  const rc=$("#reviewCt"); if(rc) rc.textContent = reviewDueCount();
+  const sc=$("#stratCt"); if(sc) sc.textContent = DB.strategies.length;
+}
+
+/* ---------- Dashboard ---------- */
+function vDashboard(){
+  const w = el("div","view");
+  const riskyBets = DB.assumptions.filter(a=>a.state!=="retired" && a.confidence==="low" && a.consequence==="high" && matchStrat(a.strategy));
+  const broken = DB.assumptions.filter(a=>a.state==="broken" && matchStrat(a.strategy));
+  const disag = DB.signals.filter(s=>s.state==="disagreeing" && matchStrat(s.strategy));
+  const attention = [
+    ...DB.signals.filter(s=>(s.state==="disagreeing"||s.state==="drifting") && matchStrat(s.strategy)).map(s=>({k:"signal",o:s})),
+    ...DB.assumptions.filter(a=>(a.state==="broken"||a.state==="shaky") && matchStrat(a.strategy)).map(a=>({k:"assumption",o:a})),
+  ];
+  const order = {disagreeing:0,broken:1,drifting:2,shaky:3};
+  attention.sort((x,y)=>(order[x.o.state]??9)-(order[y.o.state]??9));
+  const strategies = stratF==="*"?DB.strategies:[stratF];
+
+  w.innerHTML = `<div class="view-head">
+    <h1>Am I moving toward the goal?</h1>
+    <p>One read of the whole apparatus. The bets the strategy rests on, the signals watching them, and what disagrees with you right now.</p>
+  </div>`;
+
+  const kpis = el("div","grid kpis");
+  kpis.innerHTML = `
+    ${kpiCard("Active strategies", strategies.length, "k-acc", "tracked in the spine")}
+    ${kpiCard("Riskiest bets", riskyBets.length, "k-warn", "low confidence · high consequence")}
+    ${kpiCard("Signals disagreeing", disag.length, "k-bad", "reality is pushing back")}
+    ${kpiCard("Broken assumptions", broken.length, broken.length?"k-bad":"k-good", "re-open the diagnosis")}`;
+  w.appendChild(kpis);
+
+  // strategy review radar
+  w.appendChild(el("div","sect-h",`<h2>Strategy review radar</h2><span class="hint">Who's due — overdue and committed first</span>`));
+  w.appendChild(reviewRadarPanel());
+
+  // spine flow
+  const sh = el("div","sect-h",`<h2>The spine</h2><span class="hint">What you do per strategy — flow, not loop</span>`);
+  w.appendChild(sh);
+  w.appendChild(spineFlow());
+
+  // needs attention
+  const ah = el("div","sect-h",`<h2>Needs attention</h2><span class="hint">Agenda items for the next review — not footnotes</span>`);
+  w.appendChild(ah);
+  const panel = el("div","panel");
+  if(!attention.length){
+    panel.innerHTML = `<div class="empty"><span class="serif">All quiet.</span>No drifting signals or shaky bets in view. A signal that only ever confirms is decoration — keep designing sharper ones.</div>`;
+  }else{
+    const tb = el("table","tbl");
+    tb.innerHTML = `<thead><tr><th>What</th><th>Type</th><th>State</th><th>Reading / kill-signal</th></tr></thead>`;
+    const body = el("tbody");
+    attention.forEach(({k,o})=>{
+      const tr = el("tr","row");
+      const main = k==="signal"?o.signal:o.statement;
+      const sub  = k==="signal"?o.last_reading:o.kill_signal;
+      tr.innerHTML = `<td><div class="stmt">${esc(main)}</div><div class="strat">${esc(o.strategy)}</div></td>
+        <td><span class="chip">${k}</span></td>
+        <td>${stateBadge(o.state)}</td>
+        <td><div class="meta" style="max-width:36ch">${esc(sub||"—")}</div></td>`;
+      clickable(tr, ()=> k==="signal"?openSignal(o.id):openAssumption(o.id), "Open "+(k==="signal"?o.signal:o.statement));
+      body.appendChild(tr);
+    });
+    tb.appendChild(body); panel.appendChild(tb);
+  }
+  w.appendChild(panel);
+
+  // recent decisions
+  const dh = el("div","sect-h",`<h2>Recent decisions</h2><span class="hint">The memory that ends the re-litigation</span>`);
+  w.appendChild(dh);
+  const dp = el("div","panel");
+  const recent = DB.decisions.filter(d=>matchStrat(d.strategy)).slice().sort((a,b)=>(b.decided||"").localeCompare(a.decided||"")).slice(0,3);
+  const dt = el("table","tbl");
+  dt.innerHTML = `<thead><tr><th>Decision</th><th>Door</th><th>Decided</th></tr></thead>`;
+  const dbd = el("tbody");
+  recent.forEach(d=>{
+    const tr = el("tr","row");
+    tr.innerHTML = `<td><div class="stmt">${esc(d.title)}</div><div class="strat">${esc(d.strategy)} · ${esc(d.area||"")}</div></td>
+      <td><span class="badge ${d.door==="one-way"?"b-bad":"b-acc"}"><span class="dot"></span>${d.door}</span></td>
+      <td><span class="mono" style="font-size:12px;color:var(--ink-2)">${esc(d.decided||"")}</span></td>`;
+    clickable(tr,()=>openDecision(d.id),"Open decision: "+d.title);
+    dbd.appendChild(tr);
+  });
+  dt.appendChild(dbd); dp.appendChild(dt); w.appendChild(dp);
+  return w;
+}
+function kpiCard(lbl,num,cls,sub){
+  return `<div class="panel kpi ${cls}"><span class="rail"></span><span class="lbl">${lbl}</span><span class="num">${num}</span><span class="sub">${sub}</span></div>`;
+}
+function spineFlow(){
+  const steps = [
+    ["01","Understand","Diagnose the real problem. Fed by Insights & the Radar."],
+    ["02","Develop","Turn diagnosis into bets. Harvested into Assumptions."],
+    ["03","Communicate","One canonical artifact. Aligned by the Operating Rhythm."],
+    ["04","Track","Watch the Signals. Reality disagrees → back to Understand."],
+  ];
+  const wrap = el("div","panel panel-pad");
+  const flow = el("div","spine-flow");
+  steps.forEach((s,i)=>{
+    const d = el("div","spine-step");
+    d.innerHTML = `<div class="n">${s[0]}</div><div class="t serif">${s[1]}</div><div class="d">${s[2]}</div>${i<3?`<div class="ar"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>`:""}`;
+    flow.appendChild(d);
+  });
+  wrap.appendChild(flow);
+  wrap.appendChild(el("div",null,`<div style="margin-top:12px;font-size:12px;color:var(--ink-3);display:flex;align-items:center;gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg> The standing systems are what make this flow repeatable — and compound across passes.</div>`));
+  return wrap;
+}
+
+/* ---------- Strategies ---------- */
+function reviewStatus(review){
+  if(!review) return {cls:"b-mute",txt:"no date",days:null};
+  const days=Math.round((new Date(review)-new Date())/86400000);
+  if(days<0) return {cls:"b-bad",txt:Math.abs(days)+"d overdue",days};
+  if(days<=14) return {cls:"b-warn",txt:"due in "+days+"d",days};
+  return {cls:"b-good",txt:"in "+days+"d",days};
+}
+function stratStats(name){
+  const bets=DB.assumptions.filter(a=>a.strategy===name);
+  const sigs=DB.signals.filter(s=>s.strategy===name);
+  const decs=DB.decisions.filter(d=>d.strategy===name);
+  const risky=bets.filter(a=>(a.confidence==="low"&&a.consequence==="high")&&a.state!=="retired").length;
+  const flashing=sigs.filter(s=>s.state==="disagreeing"||s.state==="drifting").length + bets.filter(a=>a.state==="broken").length;
+  return {bets:bets.length,sigs:sigs.length,decs:decs.length,risky,flashing};
+}
+function reviewRadarPanel(){
+  const list=DB.strategies.filter(s=>matchStrat(s.name)&&s.status!=="archived").slice()
+    .sort((a,b)=>{ const da=reviewStatus(a.review).days, db=reviewStatus(b.review).days; return (da==null?9999:da)-(db==null?9999:db); });
+  const panel=el("div","panel");
+  if(!list.length){ panel.innerHTML=`<div class="empty"><span class="serif">No active strategies in view.</span>Add one under Strategies, or clear the filter.</div>`; return panel; }
+  const tb=el("table","tbl");
+  tb.innerHTML=`<thead><tr><th>Strategy</th><th>Status</th><th>Flashing</th><th>Review due</th></tr></thead>`;
+  const b=el("tbody");
+  list.forEach(s=>{
+    const st=STRAT_STATUS[s.status]||["b-mute",s.status]; const rev=reviewStatus(s.review); const k=stratStats(s.name);
+    const tr=el("tr","row");
+    tr.innerHTML=`<td><div class="stmt">${esc(s.name)}</div><div class="strat">${esc(STRAT_FW[s.framework]||s.framework)} · v${esc(s.version||1)} · ${esc(s.owner||"—")}</div></td>
+      <td><span class="badge ${st[0]}"><span class="dot"></span>${st[1]}</span></td>
+      <td>${k.flashing?`<span class="badge b-bad"><span class="dot"></span>${k.flashing} flashing</span>`:`<span class="badge b-good"><span class="dot"></span>clear</span>`}</td>
+      <td><span class="badge ${rev.cls}"><span class="dot"></span>${rev.txt}</span></td>`;
+    clickable(tr,()=>{ currentStrategy=s.id; view="strategies"; render(); },"Open strategy: "+s.name);
+    b.appendChild(tr);
+  });
+  tb.appendChild(b); panel.appendChild(tb); return panel;
+}
+function vStrategies(){
+  if(currentStrategy) return vStrategyDetail(currentStrategy);
+  const w=el("div","view");
+  w.appendChild(el("div","view-head",`<div><h1>Strategies</h1><p>The canonical artifacts — the single authoritative statement of each strategy that everything else points to. Each one carries a one-page kernel and owns its bets, signals and decisions. This is what the registers orbit.</p></div>`));
+  if(!DB.strategies.length){ const p=el("div","panel"); return emptyInto(w,p,"No strategies yet.","Create one — name it, pick a framework, and write the one-page artifact."); }
+  const grid=el("div","grid strat-grid");
+  DB.strategies.forEach(s=>{
+    const st=STRAT_STATUS[s.status]||["b-mute",s.status];
+    const rev=reviewStatus(s.review);
+    const k=stratStats(s.name);
+    const card=el("div","panel strat-card");
+    card.innerHTML=`
+      <div class="sc-top">
+        <span class="badge ${st[0]}"><span class="dot"></span>${st[1]}</span>
+        <span class="badge ${rev.cls}" style="margin-left:auto"><span class="dot"></span>${rev.txt}</span>
+      </div>
+      <h3 class="serif">${esc(s.name)}</h3>
+      <p class="sc-ch">${esc((s.challenge||"No diagnosis written yet.").slice(0,150))}${(s.challenge||"").length>150?"…":""}</p>
+      <div class="sc-meta">${esc(STRAT_FW[s.framework]||s.framework)} · v${esc(s.version||1)} · ${esc(s.owner||"unowned")}</div>
+      <div class="sc-stats">
+        <span title="Assumptions"><b>${k.bets}</b> bets</span>
+        <span title="Signals"><b>${k.sigs}</b> signals</span>
+        <span title="Decisions"><b>${k.decs}</b> decisions</span>
+        ${k.flashing?`<span class="flash" title="Drifting/disagreeing signals & broken bets"><b>${k.flashing}</b> flashing</span>`:`<span class="ok">on track</span>`}
+      </div>`;
+    clickable(card,()=>{ currentStrategy=s.id; render(); },"Open strategy: "+s.name);
+    grid.appendChild(card);
+  });
+  w.appendChild(grid);
+  return w;
+}
+function vStrategyDetail(id){
+  const s=DB.strategies.find(x=>x.id===id);
+  if(!s){ currentStrategy=null; return vStrategies(); }
+  const w=el("div","view");
+  const st=STRAT_STATUS[s.status]||["b-mute",s.status];
+  const rev=reviewStatus(s.review);
+  const back=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M15 18l-6-6 6-6"/></svg>All strategies`);
+  back.style.marginBottom="16px"; back.onclick=()=>{ currentStrategy=null; render(); };
+  w.appendChild(back);
+
+  const head=el("div","view-head");
+  head.style.display="flex"; head.style.justifyContent="space-between"; head.style.alignItems="flex-start"; head.style.gap="20px";
+  head.innerHTML=`<div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <span class="badge ${st[0]}"><span class="dot"></span>${st[1]}</span>
+        <span class="badge ${rev.cls}"><span class="dot"></span>review ${rev.txt}</span>
+        <span class="chip">${esc(STRAT_FW[s.framework]||s.framework)}</span>
+      </div>
+      <h1>${esc(s.name)}</h1>
+      <p>Canonical artifact · v${esc(s.version||1)} · owner ${esc(s.owner||"—")} · derived from the ${esc(STRAT_FW[s.framework]||s.framework)}. Everything else cites this.</p>
+    </div>`;
+  const actions=el("div",null);
+  actions.style.cssText="display:flex;gap:8px;flex:none;margin-top:8px";
+  const eb=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit`);
+  eb.onclick=()=>editEntry("strategies",s.id);
+  const xb=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>Export .md`);
+  xb.onclick=()=>exportStrategy(s);
+  actions.appendChild(eb); actions.appendChild(xb);
+  head.appendChild(actions);
+  w.appendChild(head);
+
+  // one-page artifact
+  const op=el("div","panel onepage");
+  op.innerHTML=`
+    ${opSection("1 · The challenge",`<p>${esc(s.challenge||"—")}</p>`)}
+    ${opSection("2 · Our approach",`<p>${esc(s.approach||"—")}</p>`)}
+    ${opSection("3 · The big moves",opList(s.moves,"ol"))}
+    ${opSection("4 · What we are NOT doing",opList(s.notDoing,"ul"))}
+    ${opSection("5 · How we'll know it's working",opList(s.howKnow,"ul"))}`;
+  w.appendChild(op);
+
+  // linked registers
+  w.appendChild(el("div","sect-h",`<h2>What rests on it</h2><span class="hint">The bets, signals and decisions this strategy owns</span>`));
+  const cols=el("div","grid strat-link-grid");
+  cols.appendChild(miniList("Assumptions", DB.assumptions.filter(a=>a.strategy===s.name), a=>({main:a.statement,badge:stateBadge(a.state),click:()=>openAssumption(a.id)})));
+  cols.appendChild(miniList("Signals", DB.signals.filter(x=>x.strategy===s.name), x=>({main:x.signal,badge:stateBadge(x.state),click:()=>openSignal(x.id)})));
+  cols.appendChild(miniList("Decisions", DB.decisions.filter(d=>d.strategy===s.name), d=>({main:d.title,badge:`<span class="badge ${d.door==="one-way"?"b-bad":"b-acc"}"><span class="dot"></span>${d.door}</span>`,click:()=>openDecision(d.id)})));
+  w.appendChild(cols);
+  return w;
+}
+function opSection(t,inner){ return `<div class="op-sec"><div class="op-h">${t}</div>${inner}</div>`; }
+function opList(arr,kind){
+  if(!arr||!arr.length) return `<p style="color:var(--ink-3)">—</p>`;
+  const tag=kind==="ol"?"ol":"ul";
+  return `<${tag} class="op-list ${kind}">`+arr.map(x=>`<li>${esc(x)}</li>`).join("")+`</${tag}>`;
+}
+function miniList(title,rows,mapper){
+  const p=el("div","panel mini");
+  let body=`<div class="mini-h">${title}<span>${rows.length}</span></div>`;
+  if(!rows.length){ body+=`<div class="mini-empty">None yet</div>`; }
+  p.innerHTML=body;
+  rows.forEach(r=>{ const m=mapper(r); const it=el("div","mini-row"); it.innerHTML=`<span class="mini-main">${esc(m.main)}</span>${m.badge}`; clickable(it,m.click,"Open: "+m.main); p.appendChild(it); });
+  return p;
+}
+function exportStrategy(s){
+  const md=`---\ntype: strategy\nstrategy: ${yamlStr(s.name)}\nframework: ${s.framework}\nstatus: ${s.status}\nowner: ${yamlStr(s.owner)}\nreview: ${s.review||""}\nversion: ${s.version||1}\ncanonical: true\ntags: [strategy]\n---\n\n# ${s.name}\n**Version:** ${s.version||1} · **Owner:** ${s.owner||"—"} · **Review:** ${s.review||"—"}\n\n## 1 · The challenge\n${s.challenge||""}\n\n## 2 · Our approach\n${s.approach||""}\n\n## 3 · The big moves\n${(s.moves||[]).map((m,i)=>`${i+1}. ${m}`).join("\n")}\n\n## 4 · What we are NOT doing\n${(s.notDoing||[]).map(m=>`- ${m}`).join("\n")}\n\n## 5 · How we'll know it's working\n${(s.howKnow||[]).map(m=>`- ${m}`).join("\n")}\n`;
+  downloadFile(`Strategy — ${s.name}.md`, md);
+}
+
+/* ---------- Insights ---------- */
+function vInsights(){
+  const w = el("div","view");
+  w.appendChild(headWithExport("Insights","The stock of what's true. Each claim carries its evidence and a confidence — so strategy rests on what's known, not on whoever shouted loudest. A falsified bet downgrades the insight it rested on.","insights"));
+  const rows = DB.insights.filter(x=>matchStrat(x.strategy ?? "*") || true).filter(x=>matchQ(x.claim+x.theme+x.evidence));
+  const panel = el("div","panel");
+  if(!rows.length) return emptyInto(w,panel,"No insights yet.","Capture what you've learned — one claim, its evidence, a confidence level.");
+  const tb = el("table","tbl");
+  tb.innerHTML = `<thead><tr><th>Claim</th><th>Theme</th><th>Confidence</th><th>Captured</th><th>Feeds</th></tr></thead>`;
+  const b = el("tbody");
+  rows.forEach(x=>{
+    const tr = el("tr","row");
+    const bet = x.feeds?byId("assumptions",x.feeds):null;
+    tr.innerHTML = `<td><div class="stmt">${esc(x.claim)}</div><div class="meta">${esc(x.source||"")}</div></td>
+      <td><span class="chip">${esc(x.theme||"—")}</span></td>
+      <td>${lvlChip(x.confidence)}</td>
+      <td><span class="mono" style="font-size:12px;color:var(--ink-2)">${esc(x.captured||"")}</span></td>
+      <td>${bet?`<span class="meta" style="max-width:18ch">→ ${esc(bet.statement.slice(0,46))}…</span>`:'<span class="meta">—</span>'}</td>`;
+    clickable(tr,()=>openInsight(x.id),"Open insight");
+    b.appendChild(tr);
+  });
+  tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
+  return w;
+}
+
+/* ---------- Decisions ---------- */
+function vDecisions(){
+  const w = el("div","view");
+  w.appendChild(headWithExport("Decisions","Append-only memory. Every decision records the options rejected and the assumptions it rests on — so nobody re-litigates, and a broken bet tells you which decision to revisit.","decisions"));
+  const rows = DB.decisions.filter(x=>matchStrat(x.strategy)).filter(x=>matchQ(x.title+x.area+x.reasoning));
+  const panel = el("div","panel");
+  if(!rows.length) return emptyInto(w,panel,"No decisions logged.","Log the next real choice — what was decided, and what you rejected.");
+  const tb = el("table","tbl");
+  tb.innerHTML = `<thead><tr><th>Decision</th><th>Door</th><th>Rests on</th><th>Owner</th><th>Decided</th></tr></thead>`;
+  const b = el("tbody");
+  rows.slice().sort((a,c)=>(c.decided||"").localeCompare(a.decided||"")).forEach(d=>{
+    const tr = el("tr","row");
+    tr.innerHTML = `<td><div class="stmt">${esc(d.title)}</div><div class="strat">${esc(d.strategy)} · ${esc(d.area||"")}</div></td>
+      <td><span class="badge ${d.door==="one-way"?"b-bad":"b-acc"}"><span class="dot"></span>${d.door==="one-way"?"One-way":"Two-way"}</span></td>
+      <td>${(d.rests||[]).map(id=>{const a=byId("assumptions",id);return a?`<span class="meta">${esc(a.statement.slice(0,30))}…</span>`:""}).join("<br>")||'<span class="meta">—</span>'}</td>
+      <td><span class="meta">${esc(d.owner||"")}</span></td>
+      <td><span class="mono" style="font-size:12px;color:var(--ink-2)">${esc(d.decided||"")}</span></td>`;
+    clickable(tr,()=>openDecision(d.id),"Open decision: "+d.title);
+    b.appendChild(tr);
+  });
+  tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
+  return w;
+}
+
+/* ---------- Assumptions ---------- */
+function vAssumptions(){
+  const w = el("div","view");
+  w.appendChild(headWithExport("Assumptions","The motor of the re-loop. Every strategy is a stack of bets — rate each on confidence × consequence, give each a kill-signal, and re-rate them on the rhythm. The riskiest sit at the top.","assumptions"));
+  const all = DB.assumptions.filter(x=>matchStrat(x.strategy)).filter(x=>matchQ(x.statement+x.kill_signal));
+  // confidence × consequence matrix
+  w.appendChild(el("div","sect-h",`<h2>Confidence × consequence</h2><span class="hint">The top-left cell is where strategies quietly die — watch those first</span>`));
+  w.appendChild(matrixPanel(all));
+  w.appendChild(el("div","sect-h",`<h2>All bets</h2><span class="hint">Riskiest first</span>`));
+  const rank = a => (a.confidence==="low"&&a.consequence==="high")?0 : (a.consequence==="high")?1 : (a.confidence==="low")?2:3;
+  const rows = all.slice().sort((a,b)=>rank(a)-rank(b));
+  const panel = el("div","panel");
+  if(!rows.length) return emptyInto(w,panel,"No assumptions yet.","Harvest bets from your diagnosis and pre-mortem failure modes.");
+  const tb = el("table","tbl");
+  tb.innerHTML = `<thead><tr><th>Assumption</th><th>Conf × Cons</th><th>State</th><th>Kill-signal</th><th>Watched by</th></tr></thead>`;
+  const b = el("tbody");
+  rows.forEach(a=>{
+    const tr = el("tr","row");
+    const sig = a.watchedBy?byId("signals",a.watchedBy):null;
+    const risky = a.confidence==="low"&&a.consequence==="high";
+    tr.innerHTML = `<td><div class="stmt">${risky?'<span class="badge b-bad" style="margin-right:6px"><span class="dot"></span>riskiest</span>':""}${esc(a.statement)}</div><div class="strat">${esc(a.strategy)}</div></td>
+      <td><span class="matrix">${esc(a.confidence)} × ${esc(a.consequence)}</span></td>
+      <td>${stateBadge(a.state)}</td>
+      <td><div class="meta" style="max-width:30ch">${esc(a.kill_signal||"—")}</div></td>
+      <td>${sig?`<span class="meta">${stateBadge(sig.state)}</span>`:'<span class="badge b-mute"><span class="dot"></span>unwatched</span>'}</td>`;
+    clickable(tr,()=>openAssumption(a.id),"Open assumption: "+a.statement);
+    b.appendChild(tr);
+  });
+  tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
+  return w;
+}
+
+/* ---------- Signals ---------- */
+function vSignals(){
+  const w = el("div","view");
+  w.appendChild(headWithExport("Signals","Each signal watches a named assumption, has an expected shape, an owner, and a latest reading. A signal with no expected shape can't disagree with you. When one disagrees, it must change something.","signals"));
+  const all = DB.signals.filter(x=>matchStrat(x.strategy)).filter(x=>matchQ(x.signal+x.last_reading));
+  const ord={disagreeing:0,drifting:1,agreeing:2,retired:3};
+  const rows = all.slice().sort((a,b)=>(ord[a.state]??9)-(ord[b.state]??9));
+  const panel = el("div","panel");
+  if(!rows.length) return emptyInto(w,panel,"No signals yet.","Design 3–5 per strategy. Each watches one assumption.");
+  const tb = el("table","tbl");
+  tb.innerHTML = `<thead><tr><th>Signal</th><th>Watches</th><th>State</th><th>Latest reading</th><th>Owner</th></tr></thead>`;
+  const b = el("tbody");
+  rows.forEach(s=>{
+    const tr = el("tr","row");
+    const a = s.watches?byId("assumptions",s.watches):null;
+    tr.innerHTML = `<td><div class="stmt">${esc(s.signal)}</div><div class="strat">${esc(s.strategy)}</div></td>
+      <td>${a?`<span class="meta" style="max-width:20ch">${esc(a.statement.slice(0,42))}…</span>`:'<span class="meta">—</span>'}</td>
+      <td>${stateBadge(s.state)}</td>
+      <td><div class="meta" style="max-width:28ch">${esc(s.last_reading||"—")}</div></td>
+      <td><span class="meta">${esc(s.owner||"")}</span></td>`;
+    clickable(tr,()=>openSignal(s.id),"Open signal: "+s.signal);
+    b.appendChild(tr);
+  });
+  tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
+  return w;
+}
+
+function emptyInto(w,panel,title,sub){
+  panel.innerHTML = `<div class="empty"><span class="serif">${esc(title)}</span>${esc(sub)}</div>`;
+  w.appendChild(panel); return w;
+}
+
+/* head with export button */
+function headWithExport(title,desc,coll){
+  const h = el("div","view-head");
+  h.style.display="flex"; h.style.justifyContent="space-between"; h.style.alignItems="flex-start"; h.style.gap="20px";
+  h.innerHTML = `<div><h1>${esc(title)}</h1><p>${esc(desc)}</p></div>`;
+  const btn = el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>Export .md`);
+  btn.style.flex="none"; btn.style.marginTop="8px";
+  btn.onclick=()=>exportRegister(coll);
+  h.appendChild(btn);
+  return h;
+}
+
+/* ---------- Confidence × consequence matrix ---------- */
+function matrixPanel(rows){
+  const panel = el("div","panel panel-pad");
+  const levels=["low","medium","high"];
+  const cons=["high","medium","low"]; // top to bottom
+  const cell=(c,k)=>rows.filter(a=>a.confidence===c && a.consequence===k && a.state!=="retired");
+  const wrap=el("div","matrix-wrap");
+  const yl=el("div","m-ylabel","Consequence →");
+  const grid=el("div","m-grid");
+  cons.forEach(k=>{
+    levels.forEach(c=>{
+      const items=cell(c,k);
+      const danger=(c==="low"&&k==="high");
+      const warm=(!danger)&&((k==="high")||(c==="low"&&k==="medium")||(c==="medium"&&k==="high"));
+      const cl=el("div","m-cell"+(danger?" danger":warm?" warm":""));
+      cl.innerHTML=`<span class="ct">${items.length||""}</span>`;
+      items.forEach(a=>{
+        const m=STATE_MAP[a.state]||["b-mute"];
+        const colr=m[0]==="b-bad"?"var(--bad)":m[0]==="b-warn"?"var(--warn)":m[0]==="b-good"?"var(--good)":"var(--mute)";
+        const d=el("span","m-dot",`<span class="dot" style="background:${colr}"></span>${esc(a.statement.slice(0,22))}…`);
+        d.title=a.statement; clickable(d,()=>openAssumption(a.id),"Open assumption: "+a.statement);
+        cl.appendChild(d);
+      });
+      grid.appendChild(cl);
+    });
+  });
+  const xl=el("div","m-xlabel",`<div>low</div><div>medium</div><div>high</div>`);
+  wrap.appendChild(yl); wrap.appendChild(grid); wrap.appendChild(xl);
+  panel.appendChild(wrap);
+  panel.appendChild(el("div",null,`<div style="text-align:right;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:6px;padding-right:2px">Confidence →</div>`));
+  panel.appendChild(el("div","m-legend",`<span><i style="background:var(--bad-bg);border:1px solid var(--bad-line)"></i>danger zone — fund a signal here first</span><span><i style="background:var(--warn-bg);border:1px solid var(--warn-line)"></i>watch</span><span><i style="background:var(--bg-2);border:1px solid var(--line)"></i>safer</span>`));
+  return panel;
+}
+
+/* ---------- Operating Rhythm (the review ritual) ---------- */
+function vReview(){
+  const w=el("div","view");
+  w.innerHTML=`<div class="view-head"><h1>Operating Rhythm</h1><p>The heartbeat. Read the signals, re-rate the bets, and end in a decision — otherwise the review is theatre. Everything you change here is logged.</p></div>`;
+  const sigs=DB.signals.filter(s=>matchStrat(s.strategy)&&(s.state==="disagreeing"||s.state==="drifting"));
+  const asmp=DB.assumptions.filter(a=>matchStrat(a.strategy)&&(a.state==="shaky"||a.state==="broken"));
+
+  const banner=el("div","rev-banner");
+  banner.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+    <div><b>${sigs.length} signal${sigs.length!==1?"s":""}</b> drifting or disagreeing · <b>${asmp.length} bet${asmp.length!==1?"s":""}</b> to re-rate${stratF!=="*"?` · in <b>${esc(stratF)}</b>`:""}.
+    <div style="font-size:12.5px;color:var(--accent-ink);margin-top:3px">A disagreeing signal must change something. Close the review by logging the decision it produced.</div></div>`;
+  w.appendChild(banner);
+
+  // Step 1 — read signals
+  w.appendChild(el("div","rev-step",`<span class="num">1</span><h2>Read the signals</h2><span class="hint">Append a fresh reading; set the new state</span>`));
+  const sp=el("div","grid"); sp.style.gap="12px";
+  if(!sigs.length){ sp.appendChild(el("div","panel",`<div class="empty"><span class="serif">Nothing drifting.</span>No signal is disagreeing in this view. Keep the readings flowing on the rhythm anyway.</div>`)); }
+  sigs.forEach(s=>sp.appendChild(reviewSignalCard(s)));
+  w.appendChild(sp);
+
+  // Step 2 — re-rate bets
+  w.appendChild(el("div","rev-step",`<span class="num">2</span><h2>Re-rate the bets</h2><span class="hint">Has confidence moved? Is it broken?</span>`));
+  const ap=el("div","grid"); ap.style.gap="12px";
+  if(!asmp.length){ ap.appendChild(el("div","panel",`<div class="empty"><span class="serif">All bets steady.</span>No shaky or broken assumptions in this view.</div>`)); }
+  asmp.forEach(a=>ap.appendChild(reviewAssumptionCard(a)));
+  w.appendChild(ap);
+
+  // Step 3 — end in a decision
+  w.appendChild(el("div","rev-step",`<span class="num">3</span><h2>End in a decision</h2><span class="hint">If nothing changed, it was theatre</span>`));
+  const dp=el("div","panel panel-pad");
+  dp.style.display="flex"; dp.style.justifyContent="space-between"; dp.style.alignItems="center"; dp.style.gap="16px"; dp.style.flexWrap="wrap";
+  dp.innerHTML=`<div style="max-width:52ch;color:var(--ink-2);font-size:13.5px">Capture the call this review produced — a HOLD, a re-scope, a resource move, a kill. It lands in the <b style="color:var(--ink)">Decision Log</b> with the bets it rests on.</div>`;
+  const dbtn=el("button","btn pri",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Log the decision`);
+  dbtn.onclick=()=>{ view="decisions"; render(); newEntry(); };
+  dp.appendChild(dbtn);
+  w.appendChild(dp);
+  return w;
+}
+function reviewSignalCard(s){
+  const c=el("div","panel rev-card");
+  const a=s.watches?byId("assumptions",s.watches):null;
+  c.innerHTML=`<div class="rh"><div class="stmt">${esc(s.signal)}</div>${stateBadge(s.state)}</div>
+    <div style="font-size:12.5px;color:var(--ink-2)">Expected: ${esc(s.expected_shape||"—")}${a?` · watches <b>${esc(a.statement.slice(0,40))}…</b>`:""}</div>
+    <div style="font-size:12px;color:var(--ink-3)">Latest: ${esc(s.last_reading||"—")}</div>`;
+  const ctrl=el("div","ctrl");
+  const inp=el("input"); inp.placeholder="New reading, e.g. 58% at week 6…";
+  const seg=el("div","seg");
+  ["agreeing","drifting","disagreeing","retired"].forEach(o=>{ const b=el("button",o===s.state?"on":""); b.type="button"; b.textContent=o; b.onclick=()=>{seg.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); seg.dataset.val=o;}; seg.appendChild(b); });
+  seg.dataset.val=s.state;
+  const save=el("button","btn pri","Log reading");
+  const flash=el("span","saved-flash","✓ logged");
+  save.onclick=()=>{
+    const today=new Date().toISOString().slice(0,10);
+    const txt=inp.value.trim();
+    s.state=seg.dataset.val;
+    if(txt){ s.last_reading=txt+" ("+today+")"; (s.log=s.log||[]).unshift({d:today,t:txt}); inp.value=""; }
+    saveData(); flash.classList.add("on"); setTimeout(()=>{ render(); },650);
+  };
+  ctrl.appendChild(inp); ctrl.appendChild(seg); ctrl.appendChild(save); ctrl.appendChild(flash);
+  c.appendChild(ctrl);
+  return c;
+}
+function reviewAssumptionCard(a){
+  const c=el("div","panel rev-card");
+  c.innerHTML=`<div class="rh"><div class="stmt">${esc(a.statement)}</div>${stateBadge(a.state)}</div>
+    <div style="font-size:12px;color:var(--ink-3)">${esc(a.confidence)} confidence × ${esc(a.consequence)} consequence · kill: ${esc((a.kill_signal||"—").slice(0,60))}…</div>`;
+  const ctrl=el("div","ctrl");
+  const wrapConf=el("div",null,`<div class="lbl" style="margin-bottom:4px">Confidence</div>`);
+  const segC=el("div","seg");
+  ["low","medium","high"].forEach(o=>{ const b=el("button",o===a.confidence?"on":""); b.type="button"; b.textContent=o; b.onclick=()=>{segC.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); segC.dataset.val=o;}; segC.appendChild(b); });
+  segC.dataset.val=a.confidence; wrapConf.appendChild(segC);
+  const wrapState=el("div",null,`<div class="lbl" style="margin-bottom:4px">State</div>`);
+  const segS=el("div","seg");
+  ["holding","shaky","broken","retired"].forEach(o=>{ const b=el("button",o===a.state?"on":""); b.type="button"; b.textContent=o; b.onclick=()=>{segS.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); segS.dataset.val=o;}; segS.appendChild(b); });
+  segS.dataset.val=a.state; wrapState.appendChild(segS);
+  const save=el("button","btn pri","Re-rate"); save.style.alignSelf="flex-end";
+  const flash=el("span","saved-flash","✓ saved"); flash.style.alignSelf="flex-end";
+  save.onclick=()=>{ a.confidence=segC.dataset.val; a.state=segS.dataset.val; saveData(); flash.classList.add("on"); setTimeout(()=>render(),650); };
+  ctrl.style.alignItems="flex-end";
+  ctrl.appendChild(wrapConf); ctrl.appendChild(wrapState); ctrl.appendChild(save); ctrl.appendChild(flash);
+  c.appendChild(ctrl);
+  return c;
+}
+
+/* ---------- Markdown export (vault register format) ---------- */
+function yamlStr(s){ return '"'+String(s==null?"":s).replace(/"/g,'\\"')+'"'; }
+function mdInsight(x){
+  return `---\ntype: insight\nclaim: ${yamlStr(x.claim)}\nevidence: ${yamlStr(x.evidence)}\nconfidence: ${x.confidence||"medium"}\ntheme: ${yamlStr(x.theme)}\ncaptured: ${x.captured||""}\nsource: ${yamlStr(x.source)}\ntags: [insight]\n---\n`;
+}
+function mdDecision(d){
+  const rests=(d.rests||[]).map(id=>{const a=byId("assumptions",id);return a?`\n- [[Assumption — ${a.statement.slice(0,40)}]]`:"";}).join("");
+  return `---\ntype: decision\ntitle: ${yamlStr(d.title)}\ndecided: ${d.decided||""}\nowner: ${yamlStr(d.owner)}\ndoor: ${d.door||"two-way"}\narea: ${yamlStr(d.area)}\ntags: [decision]\n---\n\n## Decision\n${d.title||""}\n\n## Reasoning\n${d.reasoning||""}\n\n## Options rejected\n${d.rejected||""}\n\n## Assumptions it rests on${rests||"\n- —"}\n\n## Review trigger\n${d.trigger||""}\n`;
+}
+function mdAssumption(a){
+  const sig=a.watchedBy?byId("signals",a.watchedBy):null;
+  return `---\ntype: assumption\nstrategy: ${yamlStr(a.strategy)}\nstatement: ${yamlStr(a.statement)}\nconfidence: ${a.confidence||"medium"}\nconsequence: ${a.consequence||"medium"}\nkill_signal: ${yamlStr(a.kill_signal)}\nstate: ${a.state||"holding"}\ntags: [assumption]\n---\n\n${a.note||""}\n${sig?`\nWatches → [[Signal — ${sig.signal.slice(0,40)}]]\n`:""}`;
+}
+function mdSignal(s){
+  const a=s.watches?byId("assumptions",s.watches):null;
+  const log=(s.log||[]).map(r=>`- ${r.d} — ${r.t}`).join("\n");
+  return `---\ntype: signal\nstrategy: ${yamlStr(s.strategy)}\nsignal: ${yamlStr(s.signal)}\nwatches_assumption: ${yamlStr(a?a.statement:"")}\nexpected_shape: ${yamlStr(s.expected_shape)}\nowner: ${yamlStr(s.owner)}\nstate: ${s.state||"agreeing"}\nlast_reading: ${yamlStr(s.last_reading)}\ntags: [signal]\n---\n\n## Reading log\n${log||"- (no readings yet)"}\n`;
+}
+const MD_FN={insights:mdInsight,decisions:mdDecision,assumptions:mdAssumption,signals:mdSignal};
+const MD_TITLE={insights:x=>"Insight — "+x.claim.slice(0,46), decisions:d=>"Decision — "+d.title.slice(0,46), assumptions:a=>"Assumption — "+a.statement.slice(0,46), signals:s=>"Signal — "+s.signal.slice(0,46)};
+function exportRegister(coll){
+  // insights carry no strategy field → always export all; others honour the strategy filter
+  const list = coll==="insights" ? DB.insights.slice() : DB[coll].filter(x=>matchStrat(x.strategy));
+  if(!list.length){ alert("Nothing to export in this view."); return; }
+  const parts=list.map(x=>`> ${MD_TITLE[coll](x)}\n\n${MD_FN[coll](x)}`);
+  const doc=`# ${coll[0].toUpperCase()+coll.slice(1)} — exported from Spine OS\n_Each block below is a ready-to-drop Obsidian note. Split into one file per entry, named by its title line._\n\n${parts.join("\n\n———\n\n")}`;
+  downloadFile(`Spine — ${coll}.md`, doc);
+}
+function downloadFile(name,text){
+  const blob=new Blob([text],{type:"text/markdown"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },300);
+}
+
+/* ---------- Flywheel ---------- */
+function vFlywheel(){
+  const w = el("div","view");
+  w.innerHTML = `<div class="view-head"><h1>The Flywheel</h1><p>The spine is flow — done once per strategy. The standing systems are reservoirs and loops: they accumulate and feed back, so the organisation gets smarter on every pass instead of starting cold.</p></div>`;
+  w.appendChild(spineFlow());
+
+  const sh = el("div","sect-h",`<h2>The four families</h2><span class="hint">Ten systems · four live registers</span>`);
+  w.appendChild(sh);
+  const grid = el("div","grid fam-grid");
+  Object.keys(FAM).forEach(fk=>{
+    const f = FAM[fk];
+    const card = el("div","fam");
+    card.style.background = f.bg;
+    card.style.borderColor = "transparent";
+    const sysList = SYSTEMS.filter(s=>s.fam===fk).map(s=>`<div class="sys"><span class="dotm" style="background:${f.c}"></span>${esc(s.name)}${s.reg?`<span class="reg">${esc(s.reg)} register</span>`:""}</div>`).join("");
+    card.innerHTML = `<h4 style="color:${f.c}"><span class="dotm" style="background:${f.c}"></span>${fk}</h4><div class="sd">${f.feeds}</div>${sysList}`;
+    grid.appendChild(card);
+  });
+  w.appendChild(grid);
+
+  const lh = el("div","sect-h",`<h2>The register loop</h2><span class="hint">How the four registers actually talk to each other</span>`);
+  w.appendChild(lh);
+  const loop = el("div","panel panel-pad");
+  const steps = [
+    ["Insights feed the diagnosis in Understand."],
+    ["The diagnosis produces Assumptions — the bets the strategy rests on."],
+    ["Each Signal watches a named assumption; each Decision records the bets it rests on."],
+    ["When a signal disagrees or an assumption breaks, you're sent back to the diagnosis."],
+    ["The Learning Loop writes the lesson from a broken bet back into Insights — and downgrades the falsified one. That's what makes it a flywheel, not a one-off."],
+  ];
+  const lw = el("div","wheel-loop");
+  steps.forEach((s,i)=>{ lw.appendChild(el("div","loop-step",`<div class="ix">${i+1}</div><div class="tx">${s[0]}</div>`)); });
+  loop.appendChild(lw);
+  w.appendChild(loop);
+  return w;
+}
+
+/* ---------- Systems reference ---------- */
+function vSystems(){
+  const w = el("div","view");
+  w.innerHTML = `<div class="view-head"><h1>Standing Systems</h1><p>The ten systems that make strategy repeatable. Four run as live registers in this app; the other six are the drivetrain around them — reading, re-rating, gating and promoting. Each card names what dies without it.</p></div>`;
+  const grid = el("div","grid sys-grid");
+  SYSTEMS.forEach(s=>{
+    const f = FAM[s.fam];
+    const c = el("div","panel sys-card");
+    c.innerHTML = `<div class="top"><span class="dotm" style="background:${f.c}"></span><span class="nm">${esc(s.name)}</span>${s.reg?`<span class="badge b-acc" style="margin-left:auto"><span class="dot"></span>live register</span>`:`<span class="chip" style="margin-left:auto">${s.fam}</span>`}</div>
+      <div class="dies"><b style="color:var(--bad)">Without it:</b> ${esc(s.dies)}</div>
+      <div class="feeds">Family: ${esc(s.fam)} · Feeds ${esc(s.feeds)}</div>`;
+    if(s.reg){ clickable(c,()=>{ view = s.reg.toLowerCase(); render(); },"Open "+s.reg+" register"); }
+    grid.appendChild(c);
+  });
+  w.appendChild(grid);
+  return w;
+}
+
+/* ============================================================ DRAWERS */
+function openDrawer(){ $("#scrim").classList.add("on"); $("#drawer").classList.add("on"); }
+function closeDrawer(){ $("#scrim").classList.remove("on"); $("#drawer").classList.remove("on"); }
+function drawerShell(eyebrow,badge,title){
+  $("#drawerH").innerHTML = `<div><div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:600">${eyebrow}</div>${badge||""}</div><button class="x" onclick="closeDrawer()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
+}
+function drawerFoot(coll,id){
+  $("#drawerF").innerHTML = `<button class="btn" onclick="editEntry('${coll}','${id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button><button class="btn danger" onclick="delEntry('${coll}','${id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>Delete</button>`;
+}
+function openInsight(id){
+  const x = byId("insights",id); if(!x) return;
+  drawerShell("Insight · Sensing", lvlChipBadge(x.confidence));
+  const bet = x.feeds?byId("assumptions",x.feeds):null;
+  $("#drawerB").innerHTML = `<h3>${esc(x.claim)}</h3>
+    <dl class="kv"><dt>Theme</dt><dd>${esc(x.theme||"—")}</dd><dt>Confidence</dt><dd>${esc(x.confidence)}</dd><dt>Captured</dt><dd class="mono">${esc(x.captured||"—")}</dd><dt>Source</dt><dd>${esc(x.source||"—")}</dd></dl>
+    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:6px">Evidence</div>
+    <div class="note">${esc(x.evidence||"—")}</div>
+    ${bet?`<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">Feeds the bet</div><div class="link-row"><a class="linkc" onclick="openAssumption('${bet.id}')"><span class="tk">assumption</span>${esc(bet.statement.slice(0,40))}…</a></div>`:""}`;
+  drawerFoot("insights",id); openDrawer();
+}
+function openDecision(id){
+  const d = byId("decisions",id); if(!d) return;
+  drawerShell("Decision · Memory", `<span class="badge ${d.door==="one-way"?"b-bad":"b-acc"}" style="margin-top:6px"><span class="dot"></span>${d.door==="one-way"?"One-way door":"Two-way door"}</span>`);
+  $("#drawerB").innerHTML = `<h3>${esc(d.title)}</h3>
+    <dl class="kv"><dt>Strategy</dt><dd>${esc(d.strategy)}</dd><dt>Area</dt><dd>${esc(d.area||"—")}</dd><dt>Owner</dt><dd>${esc(d.owner||"—")}</dd><dt>Decided</dt><dd class="mono">${esc(d.decided||"—")}</dd></dl>
+    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">Reasoning</div><div class="note">${esc(d.reasoning||"—")}</div>
+    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">Options rejected</div><div class="note">${esc(d.rejected||"—")}</div>
+    ${(d.rests&&d.rests.length)?`<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">Rests on assumptions</div><div class="link-row">${d.rests.map(aid=>{const a=byId("assumptions",aid);return a?`<a class="linkc" onclick="openAssumption('${a.id}')"><span class="tk">${a.state}</span>${esc(a.statement.slice(0,38))}…</a>`:""}).join("")}</div>`:""}
+    ${d.trigger?`<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:14px">Review trigger</div><div class="note">${esc(d.trigger)}</div>`:""}`;
+  drawerFoot("decisions",id); openDrawer();
+}
+function openAssumption(id){
+  const a = byId("assumptions",id); if(!a) return;
+  drawerShell("Assumption · Memory", `<div style="margin-top:6px">${stateBadge(a.state)}</div>`);
+  const sig = a.watchedBy?byId("signals",a.watchedBy):null;
+  const deps = DB.decisions.filter(d=>(d.rests||[]).includes(id));
+  $("#drawerB").innerHTML = `<h3>${esc(a.statement)}</h3>
+    <dl class="kv"><dt>Strategy</dt><dd>${esc(a.strategy)}</dd><dt>Confidence</dt><dd>${esc(a.confidence)}</dd><dt>Consequence</dt><dd>${esc(a.consequence)}</dd><dt>State</dt><dd>${esc(a.state)}</dd></dl>
+    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">Kill-signal — what would prove this false</div><div class="note">${esc(a.kill_signal||"—")}</div>
+    ${a.note?`<div class="note" style="border-color:var(--accent-soft)">${esc(a.note)}</div>`:""}
+    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">Watched by</div>
+    <div class="link-row">${sig?`<a class="linkc" onclick="openSignal('${sig.id}')"><span class="tk">signal · ${sig.state}</span>${esc(sig.signal.slice(0,36))}…</a>`:`<span class="badge b-mute"><span class="dot"></span>unwatched — a blind spot</span>`}</div>
+    ${deps.length?`<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:14px">Decisions resting on it</div><div class="link-row">${deps.map(d=>`<a class="linkc" onclick="openDecision('${d.id}')"><span class="tk">decision</span>${esc(d.title.slice(0,34))}…</a>`).join("")}</div>`:""}`;
+  drawerFoot("assumptions",id); openDrawer();
+}
+function openSignal(id){
+  const s = byId("signals",id); if(!s) return;
+  drawerShell("Signal · Feedback", `<div style="margin-top:6px">${stateBadge(s.state)}</div>`);
+  const a = s.watches?byId("assumptions",s.watches):null;
+  const log = (s.log||[]).map(r=>`<div class="logitem"><span class="d">${esc(r.d)}</span><span>${esc(r.t)}</span></div>`).join("");
+  $("#drawerB").innerHTML = `<h3>${esc(s.signal)}</h3>
+    <dl class="kv"><dt>Strategy</dt><dd>${esc(s.strategy)}</dd><dt>Owner</dt><dd>${esc(s.owner||"—")}</dd><dt>Expected shape</dt><dd>${esc(s.expected_shape||"—")}</dd><dt>Latest reading</dt><dd>${esc(s.last_reading||"—")}</dd></dl>
+    ${a?`<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">Watches assumption</div><div class="link-row"><a class="linkc" onclick="openAssumption('${a.id}')"><span class="tk">${a.state}</span>${esc(a.statement.slice(0,38))}…</a></div>`:""}
+    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:16px">Reading log</div>
+    <div style="margin-top:4px">${log||'<div class="note">No readings yet.</div>'}</div>`;
+  drawerFoot("signals",id); openDrawer();
+}
+function lvlChipBadge(l){ const cls=l==="high"?"b-good":l==="low"?"b-mute":"b-warn"; return `<span class="badge ${cls}" style="margin-top:6px"><span class="dot"></span>${esc(l)} confidence</span>`; }
+
+/* ============================================================ FORMS */
+let editing = null; // {coll,id} or {coll}
+const FIELDS = {
+  strategies:[
+    {k:"name",l:"Strategy name",t:"text",req:1,ph:"The display name of this effort"},
+    {k:"framework",l:"Framework",t:"seg",opts:["kernel","cascade","wardley","premortem","one-pager"]},
+    {k:"status",l:"Status",t:"seg",opts:["draft","reviewed","committed","archived"]},
+    {k:"owner",l:"Owner",t:"text"},
+    {k:"review",l:"Next review",t:"date"},
+    {k:"version",l:"Version",t:"text",ph:"e.g. 1"},
+    {k:"challenge",l:"1 · The challenge",t:"textarea",ph:"Two honest sentences. From the kernel diagnosis."},
+    {k:"approach",l:"2 · Our approach",t:"textarea",ph:"The guiding policy, in words a new hire understands."},
+    {k:"moves",l:"3 · The big moves (3–5)",t:"lines",ph:"One per line"},
+    {k:"notDoing",l:"4 · What we are NOT doing",t:"lines",ph:"One per line"},
+    {k:"howKnow",l:"5 · How we'll know it's working",t:"lines",ph:"One per line — visible signals"},
+  ],
+  insights:[
+    {k:"claim",l:"Claim",t:"textarea",req:1,ph:"What you now believe is true…"},
+    {k:"evidence",l:"Evidence",t:"textarea",ph:"What supports this claim"},
+    {k:"theme",l:"Theme",t:"text",ph:"e.g. Governance"},
+    {k:"confidence",l:"Confidence",t:"seg",opts:["low","medium","high"]},
+    {k:"captured",l:"Captured",t:"date"},
+    {k:"source",l:"Source",t:"text",ph:"Where it came from"},
+    {k:"feeds",l:"Feeds assumption",t:"ref",ref:"assumptions"},
+  ],
+  decisions:[
+    {k:"title",l:"Decision",t:"textarea",req:1,ph:"What was decided"},
+    {k:"strategy",l:"Strategy",t:"strat"},
+    {k:"area",l:"Area",t:"text"},
+    {k:"owner",l:"Owner",t:"text"},
+    {k:"door",l:"Door",t:"seg",opts:["two-way","one-way"]},
+    {k:"decided",l:"Decided",t:"date"},
+    {k:"reasoning",l:"Reasoning",t:"textarea"},
+    {k:"rejected",l:"Options rejected",t:"textarea"},
+    {k:"trigger",l:"Review trigger",t:"textarea"},
+    {k:"rests",l:"Rests on assumptions",t:"multiref",ref:"assumptions"},
+  ],
+  assumptions:[
+    {k:"statement",l:"Assumption",t:"textarea",req:1,ph:"What must be true for the strategy to work"},
+    {k:"strategy",l:"Strategy",t:"strat"},
+    {k:"confidence",l:"Confidence",t:"seg",opts:["low","medium","high"]},
+    {k:"consequence",l:"Consequence",t:"seg",opts:["low","medium","high"]},
+    {k:"kill_signal",l:"Kill-signal",t:"textarea",ph:"The observation that would prove this false"},
+    {k:"state",l:"State",t:"seg",opts:["holding","shaky","broken","retired"]},
+    {k:"note",l:"Note",t:"textarea"},
+    {k:"watchedBy",l:"Watched by signal",t:"ref",ref:"signals"},
+  ],
+  signals:[
+    {k:"signal",l:"Signal",t:"textarea",req:1,ph:"What you'll observe over time"},
+    {k:"strategy",l:"Strategy",t:"strat"},
+    {k:"watches",l:"Watches assumption",t:"ref",ref:"assumptions"},
+    {k:"expected_shape",l:"Expected shape",t:"text",ph:"e.g. ≥80% by week 4"},
+    {k:"owner",l:"Owner",t:"text"},
+    {k:"state",l:"State",t:"seg",opts:["agreeing","drifting","disagreeing","retired"]},
+    {k:"last_reading",l:"Latest reading",t:"text"},
+  ],
+};
+const SING = {strategies:"Strategy",insights:"Insight",decisions:"Decision",assumptions:"Assumption",signals:"Signal"};
+
+function newEntry(){ if(!FIELDS[view]) return; editing={coll:view,id:null,data:{}}; buildForm(); }
+function editEntry(coll,id){ closeDrawer(); editing={coll,id,data:structuredClone(byId(coll,id))}; buildForm(); }
+function buildForm(){
+  const {coll,id,data} = editing;
+  $("#mEy").textContent = SING[coll];
+  $("#mTitle").textContent = id?("Edit "+SING[coll].toLowerCase()):("New "+SING[coll].toLowerCase());
+  const body = $("#mBody"); body.innerHTML="";
+  FIELDS[coll].forEach(f=>{
+    const fg = el("div","fg");
+    fg.appendChild(el("label",null,f.l+(f.req?' <span style="color:var(--bad)">*</span>':"")));
+    let inp;
+    if(f.t==="textarea"){ inp=el("textarea"); inp.value=data[f.k]||""; inp.placeholder=f.ph||""; }
+    else if(f.t==="seg"){
+      inp=el("div","seg"); inp.dataset.k=f.k;
+      const cur=data[f.k]||f.opts[0]; data[f.k]=cur;
+      f.opts.forEach(o=>{ const b=el("button",o===cur?"on":""); b.textContent=o; b.type="button";
+        b.onclick=()=>{ data[f.k]=o; inp.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x.textContent===o)); };
+        inp.appendChild(b); });
+    }
+    else if(f.t==="strat"){
+      inp=el("select"); stratNames().forEach(s=>{const o=el("option");o.value=s;o.textContent=s;if(data[f.k]===s)o.selected=true;inp.appendChild(o);});
+      if(!data[f.k]) data[f.k]=stratNames()[0]||"";
+      inp.onchange=()=>data[f.k]=inp.value;
+    }
+    else if(f.t==="lines"){
+      inp=el("textarea"); inp.value=(data[f.k]||[]).join("\n"); inp.placeholder=f.ph||"One per line"; inp.rows=4;
+      inp.oninput=()=>data[f.k]=inp.value.split("\n").map(x=>x.trim()).filter(Boolean);
+    }
+    else if(f.t==="ref"||f.t==="multiref"){
+      inp=el("select"); if(f.t==="multiref") inp.multiple=true, inp.size=Math.min(4,DB[f.ref].length+1);
+      if(f.t==="ref"){ const o=el("option");o.value="";o.textContent="— none —";inp.appendChild(o); }
+      DB[f.ref].forEach(r=>{ const o=el("option"); o.value=r.id; o.textContent=(r.statement||r.signal||r.title||r.id).slice(0,52);
+        if(f.t==="multiref"){ if((data[f.k]||[]).includes(r.id)) o.selected=true; } else if(data[f.k]===r.id) o.selected=true;
+        inp.appendChild(o); });
+      inp.onchange=()=>{ data[f.k]= f.t==="multiref"?Array.from(inp.selectedOptions).map(o=>o.value):inp.value; };
+    }
+    else { inp=el("input"); inp.type=f.t==="date"?"text":"text"; inp.value=data[f.k]||""; inp.placeholder=f.ph||(f.t==="date"?"YYYY-MM-DD":""); }
+    if(!["seg","strat","ref","multiref","lines"].includes(f.t)){ inp.oninput=()=>data[f.k]=inp.value; }
+    inp.dataset.field=f.k;
+    fg.appendChild(inp); body.appendChild(fg);
+  });
+  $("#modal").classList.add("on");
+}
+function saveForm(){
+  const {coll,id,data} = editing;
+  const reqF = FIELDS[coll].find(f=>f.req);
+  if(reqF && !(data[reqF.k]||"").trim()){ const node=$("#mBody").querySelector(`[data-field="${reqF.k}"]`); node.focus(); node.style.borderColor="var(--bad)"; return; }
+  if(id){
+    const i=DB[coll].findIndex(x=>x.id===id);
+    if(coll==="strategies"){
+      const oldN=DB.strategies[i].name, newN=(data.name||"").trim();
+      if(oldN && newN && oldN!==newN){
+        ["assumptions","signals","decisions"].forEach(c=>DB[c].forEach(x=>{ if(x.strategy===oldN) x.strategy=newN; }));
+        if(stratF===oldN) stratF=newN;
+      }
+    }
+    DB[coll][i]={...DB[coll][i],...data};
+  }
+  else { data.id=uid(coll[0]); if(coll==="signals"&&!data.log) data.log=[]; DB[coll].push(data); }
+  save(); $("#modal").classList.remove("on"); editing=null;
+  syncStrategyFilter(); render();
+}
+function delEntry(coll,id){
+  if(!confirm("Delete this "+SING[coll].toLowerCase()+"? This can't be undone.")) return;
+  DB[coll]=DB[coll].filter(x=>x.id!==id);
+  // clean cross-refs
+  DB.signals.forEach(s=>{ if(s.watches===id) s.watches=""; });
+  DB.assumptions.forEach(a=>{ if(a.watchedBy===id) a.watchedBy=""; });
+  DB.insights.forEach(i=>{ if(i.feeds===id) i.feeds=""; });
+  DB.decisions.forEach(d=>{ if(d.rests) d.rests=d.rests.filter(r=>r!==id); });
+  if(coll==="strategies") currentStrategy=null;
+  save(); closeDrawer(); syncStrategyFilter(); render();
+}
+
+/* ============================================================ WIRE */
+function syncStrategyFilter(){
+  const sel = $("#strategyFilter"); const cur=sel.value;
+  const names = stratNames();
+  sel.innerHTML = `<option value="*">All strategies</option>` + names.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join("");
+  sel.value = (names.includes(cur)||cur==="*")?cur:"*";
+}
+document.querySelectorAll(".nav-item").forEach(n=> n.onclick=()=>{ view=n.dataset.view; currentStrategy=null; $("#side").classList.remove("open"); render(); });
+$("#strategyFilter").onchange = e=>{ stratF=e.target.value; render(); };
+$("#search").oninput = e=>{ q=e.target.value.trim().toLowerCase(); if(["insights","decisions","assumptions","signals"].includes(view)) render(); };
+$("#addBtn").onclick = newEntry;
+$("#scrim").onclick = closeDrawer;
+$("#mCancel").onclick = ()=>{ $("#modal").classList.remove("on"); editing=null; };
+$("#mSave").onclick = saveForm;
+$("#menuBtn").onclick = ()=> $("#side").classList.toggle("open");
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ closeDrawer(); $("#modal").classList.remove("on"); } });
+window.openInsight=openInsight; window.openDecision=openDecision; window.openAssumption=openAssumption; window.openSignal=openSignal;
+window.closeDrawer=closeDrawer; window.editEntry=editEntry; window.delEntry=delEntry;
+
+/* ============================================================ AUTH / BOOT */
+const LOGIN_PAGE = "login.html";
+function configReady(){
+  const c = window.SPINE_CONFIG;
+  return c && c.SUPABASE_URL && c.SUPABASE_ANON_KEY
+    && !/YOUR-PROJECT|YOUR-ANON/i.test(c.SUPABASE_URL + c.SUPABASE_ANON_KEY);
+}
+function setAccount(){
+  const n=$("#account"); if(!n||!USER) return;
+  n.innerHTML = `<div class="acct-email" title="${esc(USER.email||"")}">${esc(USER.email||"Signed in")}</div>
+    <button class="acct-out" id="signOutBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>Sign out</button>`;
+  $("#signOutBtn").onclick=signOut;
+}
+async function signOut(){ try{ if(SB) await SB.auth.signOut(); }catch(e){} location.replace(LOGIN_PAGE); }
+function showSetupNeeded(){
+  $("#searchField").style.display="none"; $("#addBtn").style.display="none";
+  $("#root").innerHTML = `<div class="view"><div class="view-head"><h1>Connect your backend</h1>
+    <p>This app is wired for Supabase but no project keys are set yet. Add your Supabase URL and anon key to <span class="mono">spine-config.js</span>, then reload. The full walkthrough is in <span class="mono">Backend Setup — Supabase.md</span>.</p></div>
+    <div class="panel panel-pad" style="max-width:620px">
+      <ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;line-height:1.5">
+        <li>Create a free project at <b>supabase.com</b>.</li>
+        <li>Open <b>SQL Editor</b> → run <span class="mono">supabase-schema.sql</span>.</li>
+        <li>In <b>Authentication → Providers</b>, keep <b>Email</b> on (magic link).</li>
+        <li>Copy <b>Project URL</b> + <b>anon key</b> (Settings → API) into <span class="mono">spine-config.js</span>.</li>
+        <li>Serve the folder over http (a static host, or <span class="mono">npx serve</span>) and reload.</li>
+      </ol></div></div>`;
+}
+async function boot(){
+  if(typeof supabase==="undefined" || !configReady()){ showSetupNeeded(); return; }
+  SB = supabase.createClient(window.SPINE_CONFIG.SUPABASE_URL, window.SPINE_CONFIG.SUPABASE_ANON_KEY);
+  const { data:{ session } } = await SB.auth.getSession();
+  if(!session){ location.replace(LOGIN_PAGE); return; }
+  USER = session.user;
+  setAccount();
+  SB.auth.onAuthStateChange((_e,s)=>{ if(!s) location.replace(LOGIN_PAGE); });
+  try{ await loadAll(); }
+  catch(err){ console.error("Load failed:",err); setSync("error"); }
+  syncStrategyFilter();
+  render();
+}
+boot();
+</script>
+</body>
+</html>

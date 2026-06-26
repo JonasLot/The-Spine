@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Strategy Spine — Most strategies die on the page. This one gets followed.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#F6F3EC; --bg-2:#FBF9F4; --panel:#FFFFFF;
+  --ink:#1C1A16; --ink-2:#56524A; --ink-3:#8C877C;
+  --line:#E4DFD3; --line-2:#EFEBE1;
+  --accent:#234E42; --accent-soft:#E6EEE9; --accent-ink:#1A3B32;
+  --sense:#3A6EA5; --mem:#B07B2E; --align:#2E7D5B; --feed:#B14A6B;
+  --bad:#B23A3A; --warn:#B07B2E; --good:#2E7D5B;
+  --r-lg:24px; --r-md:16px; --r-sm:10px;
+  --shadow:0 1px 2px rgba(40,34,20,.04), 0 10px 30px -14px rgba(40,34,20,.16);
+  --shadow-lg:0 2px 4px rgba(40,34,20,.05), 0 30px 60px -24px rgba(40,34,20,.24);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;position:relative;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E")}
+.serif{font-family:"Instrument Serif",Georgia,serif;font-weight:400}
+.mono{font-family:"Spline Sans Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px;position:relative;z-index:1}
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:600}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:13px 20px;border-radius:var(--r-sm);font-weight:600;font-size:15px;box-shadow:var(--shadow);transition:transform .14s cubic-bezier(.2,.8,.2,1),border-color .15s,background .15s}
+.btn:hover{border-color:var(--ink-3);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn svg{width:17px;height:17px}
+.btn.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.pri:hover{background:var(--accent-ink);border-color:var(--accent-ink)}
+.btn.lg{padding:15px 26px;font-size:16px}
+
+/* nav */
+nav{position:sticky;top:0;z-index:20;backdrop-filter:blur(10px);background:color-mix(in srgb,var(--bg) 84%,transparent);border-bottom:1px solid transparent;transition:border-color .3s}
+nav.scrolled{border-color:var(--line)}
+.nav-in{display:flex;align-items:center;gap:18px;padding:15px 28px;max-width:1080px;margin:0 auto}
+.brand{display:flex;flex-direction:column;line-height:1}
+.brand .ey{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.brand .nm{font-family:"Instrument Serif",serif;font-size:24px;margin-top:2px}
+.brand .nm b{color:var(--accent);font-style:italic}
+.nav-links{margin-left:auto;display:flex;align-items:center;gap:26px}
+.nav-links a{font-size:14px;font-weight:500;color:var(--ink-2)}
+.nav-links a:hover{color:var(--ink)}
+@media(max-width:720px){.nav-links a.hideable{display:none}}
+
+/* hero */
+.hero{padding:74px 0 30px;text-align:center}
+.hero .tag{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--accent-ink);background:var(--accent-soft);padding:6px 14px;border-radius:30px;margin-bottom:26px}
+.hero .tag .dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.hero h1{font-family:"Instrument Serif",serif;font-weight:400;font-size:clamp(44px,7vw,82px);line-height:1.02;letter-spacing:-.01em;text-wrap:balance;max-width:16ch;margin:0 auto}
+.hero h1 em{font-style:italic;color:var(--accent)}
+.hero .sub{font-size:clamp(17px,2.2vw,21px);color:var(--ink-2);max-width:56ch;margin:22px auto 0;text-wrap:pretty}
+.hero .cta{display:flex;gap:13px;justify-content:center;margin-top:34px;flex-wrap:wrap}
+.hero .micro{margin-top:18px;font-size:13px;color:var(--ink-3)}
+
+/* spine ribbon */
+.ribbon{margin:50px auto 0;max-width:920px}
+.ribbon-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);padding:10px}
+.ribbon-inner{border:1px solid var(--line-2);border-radius:calc(var(--r-lg) - 8px);background:linear-gradient(180deg,var(--bg-2),var(--panel));padding:26px 24px}
+.flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+.fstep{flex:1;min-width:130px;padding:6px 16px;position:relative;text-align:left}
+.fstep + .fstep{border-left:1px solid var(--line-2)}
+.fstep .n{font-family:"Spline Sans Mono",monospace;font-size:11px;color:var(--ink-3)}
+.fstep .t{font-family:"Instrument Serif",serif;font-size:25px;margin:2px 0 4px}
+.fstep .d{font-size:13px;color:var(--ink-2);line-height:1.45}
+.loopline{margin-top:18px;display:flex;align-items:center;gap:9px;font-size:13px;color:var(--accent-ink);justify-content:center}
+.loopline svg{width:16px;height:16px;color:var(--accent)}
+
+/* sections */
+section{padding:80px 0;position:relative;z-index:1}
+.sec-head{max-width:62ch}
+.sec-head h2{font-family:"Instrument Serif",serif;font-weight:400;font-size:clamp(30px,4.5vw,46px);line-height:1.06;letter-spacing:-.01em;text-wrap:balance}
+.sec-head p{color:var(--ink-2);margin-top:14px;font-size:17px;text-wrap:pretty}
+.divider{height:1px;background:var(--line);max-width:1080px;margin:0 auto}
+
+/* enemy */
+.enemy{background:var(--ink);color:#F1EEE6;border-radius:var(--r-lg);padding:clamp(34px,6vw,64px);position:relative;overflow:hidden}
+.enemy::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 100% 0%,rgba(178,58,58,.14),transparent 60%);pointer-events:none}
+.enemy .eyebrow{color:#D98C8C}
+.enemy h2{font-family:"Instrument Serif",serif;font-weight:400;font-size:clamp(30px,5vw,52px);line-height:1.05;margin-top:14px;max-width:18ch;text-wrap:balance}
+.enemy h2 em{font-style:italic;color:#E9A6A6}
+.enemy p{color:#C9C4B8;margin-top:18px;max-width:60ch;font-size:17px}
+.enemy .list{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.enemy .list span{font-size:13.5px;font-weight:500;color:#E6E1D6;border:1px solid rgba(241,238,230,.18);border-radius:30px;padding:7px 15px}
+
+/* apparatus grid */
+.fam-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:36px}
+.fam{padding:20px;border-radius:var(--r-md);border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow)}
+.fam .dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+.fam h4{font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;margin:9px 0 4px;display:flex;align-items:center;gap:8px}
+.fam .feeds{font-size:12px;color:var(--ink-3);margin-bottom:12px}
+.fam ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+.fam li{font-size:13.5px;color:var(--ink);display:flex;align-items:center;gap:8px}
+.fam li .reg{margin-left:auto;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent-soft);border-radius:5px;padding:1px 6px;font-weight:600}
+.reg-line{margin-top:18px;font-size:14px;color:var(--ink-2);display:flex;align-items:center;gap:10px}
+.reg-line b{color:var(--ink)}
+
+/* differentiators */
+.diff-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:38px}
+.diff{padding:24px;border-radius:var(--r-md);border:1px solid var(--line);background:var(--bg-2);transition:transform .16s,box-shadow .18s,border-color .18s}
+.diff:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--ink-3)}
+.diff .ix{font-family:"Spline Sans Mono",monospace;font-size:12px;color:var(--accent);font-weight:500}
+.diff h3{font-size:18px;margin:10px 0 7px;line-height:1.2;letter-spacing:-.01em}
+.diff p{font-size:14px;color:var(--ink-2);line-height:1.55;text-wrap:pretty}
+
+/* proof */
+.proof{display:grid;grid-template-columns:.95fr 1.05fr;gap:34px;align-items:center}
+.proof-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);overflow:hidden}
+.proof-card .ph{padding:16px 20px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink-3)}
+.proof-card .ph .d{width:9px;height:9px;border-radius:50%}
+.proof-card .pb{padding:8px 20px 18px}
+.prow{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-bottom:1px dashed var(--line)}
+.prow:last-child{border-bottom:none}
+.prow .badge{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:20px;white-space:nowrap;margin-top:2px}
+.b-bad{color:var(--bad);background:#F7E7E5}.b-warn{color:var(--warn);background:#F7EFE1}.b-good{color:var(--good);background:#E7F1EB}
+.prow .pt{font-size:13.5px;color:var(--ink)}
+.prow .pm{font-size:12px;color:var(--ink-3);margin-top:2px}
+
+/* pricing */
+.price-wrap{display:flex;justify-content:center;margin-top:40px}
+.price{width:min(560px,100%);background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);overflow:hidden}
+.price .pt{padding:28px 30px 22px;border-bottom:1px solid var(--line-2);background:linear-gradient(180deg,var(--bg-2),var(--panel))}
+.price .pt .tier{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.price .pt .amt{display:flex;align-items:baseline;gap:11px;margin-top:8px}
+.price .pt .amt .now{font-family:"Instrument Serif",serif;font-size:60px;line-height:1}
+.price .pt .amt .was{font-size:18px;color:var(--ink-3);text-decoration:line-through}
+.price .pt .amt .after{font-size:13.5px;color:var(--ink-2)}
+.price .pt .note{font-size:13.5px;color:var(--ink-2);margin-top:8px}
+.price .pl{padding:22px 30px 8px;display:grid;gap:11px}
+.price .pl .row{display:flex;gap:11px;align-items:flex-start;font-size:14.5px}
+.price .pl .row svg{width:18px;height:18px;color:var(--accent);flex:none;margin-top:2px}
+.price .pl .row b{font-weight:600}
+.price .pf{padding:18px 30px 28px}
+.price .pf .btn{width:100%;justify-content:center}
+.price .pf .micro{text-align:center;font-size:12.5px;color:var(--ink-3);margin-top:12px}
+
+/* final cta */
+.final{text-align:center;background:linear-gradient(180deg,var(--bg-2),var(--accent-soft));border-radius:var(--r-lg);padding:clamp(40px,7vw,80px) 28px;border:1px solid var(--line)}
+.final h2{font-family:"Instrument Serif",serif;font-weight:400;font-size:clamp(32px,5vw,56px);line-height:1.03;text-wrap:balance;max-width:18ch;margin:0 auto}
+.final p{color:var(--ink-2);margin-top:16px;font-size:18px}
+.final .cta{margin-top:30px;display:flex;gap:13px;justify-content:center;flex-wrap:wrap}
+
+footer{padding:46px 0 60px;border-top:1px solid var(--line);margin-top:60px}
+.foot-in{display:flex;gap:18px;align-items:center;flex-wrap:wrap;color:var(--ink-3);font-size:13px}
+.foot-in .brand .nm{font-size:20px}
+.foot-in .sp{flex:1}
+
+@media(max-width:860px){.fam-row{grid-template-columns:1fr 1fr}.diff-grid{grid-template-columns:1fr 1fr}.proof{grid-template-columns:1fr;gap:24px}}
+@media(max-width:560px){.fam-row{grid-template-columns:1fr}.diff-grid{grid-template-columns:1fr}.fstep + .fstep{border-left:none;border-top:1px solid var(--line-2);margin-top:4px;padding-top:14px}}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .7s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+</style>
+</head>
+<body>
+<nav id="nav">
+  <div class="nav-in">
+    <div class="brand"><span class="ey">Strategy Architect</span><span class="nm serif">The <b>Spine</b></span></div>
+    <div class="nav-links">
+      <a href="#apparatus" class="hideable">The apparatus</a>
+      <a href="#why" class="hideable">Why it's different</a>
+      <a href="#pricing">Pricing</a>
+      <a class="btn pri" href="login.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Launch the app</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero wrap">
+  <span class="tag"><span class="dot"></span>A working method for people who already know the theory</span>
+  <h1>Most strategies die on the page. <em>This one gets followed.</em></h1>
+  <p class="sub">You know Rumelt, Wardley, Playing to Win. The hard part was never the theory — it's turning it into one coherent choice your team actually executes. The Strategy Spine is the instrument that carries strategy from diagnosis to tracked execution, and learns on every pass.</p>
+  <div class="cta">
+    <a class="btn pri lg" href="login.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Launch the app</a>
+    <a class="btn lg" href="#apparatus">See how it works</a>
+  </div>
+  <div class="micro">No setup · runs in your browser · seeded with a real worked example</div>
+
+  <div class="ribbon reveal">
+    <div class="ribbon-card"><div class="ribbon-inner">
+      <div class="flow">
+        <div class="fstep"><div class="n">01</div><div class="t serif">Understand</div><div class="d">Diagnose the real problem — fed by what you've learned and what's shifting.</div></div>
+        <div class="fstep"><div class="n">02</div><div class="t serif">Develop</div><div class="d">Turn the diagnosis into the bets the strategy rests on.</div></div>
+        <div class="fstep"><div class="n">03</div><div class="t serif">Communicate</div><div class="d">One canonical artifact everyone points to. No drifting copies.</div></div>
+        <div class="fstep"><div class="n">04</div><div class="t serif">Track</div><div class="d">Watch the signals. When reality disagrees, you go back to Understand.</div></div>
+      </div>
+      <div class="loopline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg> A feedback spine, not a one-off plan — the loop is the point.</div>
+    </div></div>
+  </div>
+</header>
+
+<div class="divider"></div>
+
+<section>
+  <div class="wrap reveal">
+    <div class="enemy">
+      <span class="eyebrow">What we stand against</span>
+      <h2>Strategy <em>nobody follows.</em></h2>
+      <p>A strategy nobody understands changes no behaviour — and therefore produces nothing. Most tools stop at the decision. This one owns the whole chain: better understanding → better strategy → better communication → self-motivated execution.</p>
+      <div class="list">
+        <span>Goals with adjectives</span>
+        <span>Framework soup</span>
+        <span>Jargon as a moat</span>
+        <span>Strategy &amp; communication as separate jobs</span>
+        <span>Plans that never meet reality</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="apparatus">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">The apparatus</span>
+      <h2>Ten standing systems. Four live registers. One loop.</h2>
+      <p>The spine is what you do once per strategy. The standing systems are the reservoirs and loops that make it repeatable — so the organisation gets smarter on every pass instead of starting cold. Four of them run as live registers in the app.</p>
+    </div>
+    <div class="fam-row reveal">
+      <div class="fam">
+        <h4><span class="dot" style="background:var(--sense)"></span>Sensing</h4>
+        <div class="feeds">Feeds Understand</div>
+        <ul>
+          <li>Insight Repository<span class="reg">Insights</span></li>
+          <li>Environmental Radar</li>
+        </ul>
+      </div>
+      <div class="fam">
+        <h4><span class="dot" style="background:var(--mem)"></span>Memory</h4>
+        <div class="feeds">Spans the loop</div>
+        <ul>
+          <li>Decision Log<span class="reg">Decisions</span></li>
+          <li>Assumption Register<span class="reg">Assumptions</span></li>
+        </ul>
+      </div>
+      <div class="fam">
+        <h4><span class="dot" style="background:var(--align)"></span>Alignment</h4>
+        <div class="feeds">Feeds Communicate</div>
+        <ul>
+          <li>Canonical Artifact</li>
+          <li>Operating Rhythm</li>
+          <li>Decision Rights</li>
+        </ul>
+      </div>
+      <div class="fam">
+        <h4><span class="dot" style="background:var(--feed)"></span>Feedback</h4>
+        <div class="feeds">Track → Understand</div>
+        <ul>
+          <li>Signals Ledger<span class="reg">Signals</span></li>
+          <li>Resource Allocation</li>
+          <li>Learning Loop</li>
+        </ul>
+      </div>
+    </div>
+    <div class="reg-line reveal"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg> <span><b>How the loop closes:</b> insights feed the diagnosis · the diagnosis becomes bets · each signal watches a bet · a broken bet re-opens the diagnosis and downgrades the insight it rested on.</span></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="why">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Why it's different</span>
+      <h2>An instrument, not a library.</h2>
+      <p>Built for doing, not reading. Six things separate it from every strategy deck and framework collection you've already been disappointed by.</p>
+    </div>
+    <div class="diff-grid reveal">
+      <div class="diff"><div class="ix">01</div><h3>Built for doing</h3><p>One spine and a router that sends you to the <em>one</em> framework the problem needs — not all seven. The app is the instrument played, not described.</p></div>
+      <div class="diff"><div class="ix">02</div><h3>Communication gets equal weight</h3><p>Most strategy products stop at the decision. This one carries it to behaviour — one canonical artifact, kept true, that people can actually hold in their heads.</p></div>
+      <div class="diff"><div class="ix">03</div><h3>Frameworks stripped to working parts</h3><p>Each lens reduced to its operative anatomy, each with a "failure smell" that tells you when you're doing it wrong. No jargon-as-moat.</p></div>
+      <div class="diff"><div class="ix">04</div><h3>Problem-first, not framework-first</h3><p>Lenses, not answers. You start from the situation and reach for the right tool, instead of forcing every problem through a favourite model.</p></div>
+      <div class="diff"><div class="ix">05</div><h3>AI-native</h3><p>The vault doubles as a context pack. Point your assistant at it and it challenges the work against the frameworks' own quality bars — not generic strategy soup.</p></div>
+      <div class="diff"><div class="ix">06</div><h3>A feedback spine</h3><p>Track → reality disagrees → back to Understand. A method for continuous strategy work, where every broken bet makes the next strategy sharper.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="wrap">
+    <div class="proof">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Proof, not promises</span>
+        <h2>Watch a strategy push back in real time.</h2>
+        <p>The app ships seeded with a full worked example — a public-sector platform migration. The riskiest bets, the signals watching them, and exactly what's disagreeing with the strategy right now. This is the "needs attention" queue you open at every review.</p>
+        <div style="margin-top:24px"><a class="btn pri" href="login.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Open the worked example</a></div>
+      </div>
+      <div class="proof-card reveal">
+        <div class="ph"><span class="d" style="background:var(--bad)"></span>Needs attention · 4 items · Tet Vedtak — Case Platform</div>
+        <div class="pb">
+          <div class="prow"><span class="badge b-bad">disagreeing</span><div><div class="pt">Appeal-overturn rate on school-transport decisions</div><div class="pm">~90% overturn — cause not yet understood. Red flag against the automation bet.</div></div></div>
+          <div class="prow"><span class="badge b-bad">riskiest</span><div><div class="pt">Up to 60% of ordinary cases can be fully automated</div><div class="pm">low confidence × high consequence — the whole business case rests here</div></div></div>
+          <div class="prow"><span class="badge b-warn">drifting</span><div><div class="pt">DPIA approval status for automated casework</div><div class="pm">Still unapproved — blocks Gate 1 on the critical path.</div></div></div>
+          <div class="prow"><span class="badge b-warn">shaky</span><div><div class="pt">TØFF migration without a break in statutory service</div><div class="pm">Fixed deadline, no slack, migration not yet started.</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin:0 auto;text-align:center">
+      <span class="eyebrow">Pricing</span>
+      <h2>One package. Everything in.</h2>
+      <p style="margin-left:auto;margin-right:auto">The vault, the book, the AI layer, and the operating-system app. No tiers, no upsell — the whole chain from diagnosis to tracked execution.</p>
+    </div>
+    <div class="price-wrap reveal">
+      <div class="price">
+        <div class="pt">
+          <div class="tier">Founding member</div>
+          <div class="amt"><span class="now serif">$79</span><span class="was">$97</span><span class="after">/ then $97</span></div>
+          <div class="note">Founding members keep $79 forever, get every update included, and shape what gets built next.</div>
+        </div>
+        <div class="pl">
+          <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg><div><b>The Spine OS app</b> — strategies, four live registers, the operating-rhythm review, and the flywheel.</div></div>
+          <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg><div><b>The vault</b> — 25 interconnected notes, seven frameworks stripped to their working parts, six fillable templates with self-tests.</div></div>
+          <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg><div><b>The book</b> — the on-ramp that explains the method behind the instrument.</div></div>
+          <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg><div><b>The AI layer</b> — clip-ready prompts plus a wiring guide, so your assistant challenges the work against real quality bars.</div></div>
+          <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg><div><b>A worked example</b> — the full instrument played end to end, not just described.</div></div>
+        </div>
+        <div class="pf">
+          <a class="btn pri lg" href="login.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Launch the app</a>
+          <div class="micro">Try the live instrument first — no account needed.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap reveal">
+    <div class="final">
+      <h2>Give your strategy a spine.</h2>
+      <p>Stop rebuilding the scaffolding. Start tracking the bets.</p>
+      <div class="cta">
+        <a class="btn pri lg" href="login.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Launch the app</a>
+        <a class="btn lg" href="#apparatus">Revisit the apparatus</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-in">
+    <div class="brand"><span class="ey">Strategy Architect</span><span class="nm serif">The <b>Spine</b></span></div>
+    <span class="sp"></span>
+    <span>Most strategies die on the page. This one gets followed.</span>
+  </div>
+</footer>
+
+<script>
+const nav=document.getElementById("nav");
+addEventListener("scroll",()=>nav.classList.toggle("scrolled",scrollY>8),{passive:true});
+const io=new IntersectionObserver((es)=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target);} }),{threshold:.12});
+document.querySelectorAll(".reveal").forEach(n=>io.observe(n));
+</script>
+</body>
+</html>
