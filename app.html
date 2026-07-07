@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Spine — Strategy Operating System</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="spine-config.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -373,6 +374,23 @@ a{color:inherit}
   .view{animation:none}
 }
 
+/* Strategy map */
+.map-wrap{position:relative;overflow:hidden;min-height:380px}
+.map-wrap svg{display:block;width:100%;height:auto;border-radius:var(--r-md)}
+.mapnode{cursor:pointer}
+.mapnode text{font-family:"Plus Jakarta Sans",sans-serif;pointer-events:none;paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}
+.map-legend{position:absolute;left:14px;bottom:12px;display:flex;gap:12px;flex-wrap:wrap;font-size:11px;font-weight:500;color:var(--ink-2);background:color-mix(in srgb,var(--panel) 90%,transparent);border:1px solid var(--line);border-radius:8px;padding:6px 11px;backdrop-filter:blur(4px);pointer-events:none}
+.map-legend span{display:inline-flex;align-items:center;gap:5px}
+.map-legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.map-legend .ln{width:16px;height:0;border-top:2px solid var(--ink-3);display:inline-block}
+.map-legend .ln.dash{border-top-style:dashed}
+.map-hint{position:absolute;left:0;right:0;top:14px;text-align:center;font-size:12px;color:var(--ink-3);pointer-events:none}
+.map-expand{position:absolute;right:12px;top:10px}
+.rel-row{display:flex;gap:8px;align-items:center}
+.rel-row select{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:var(--r-sm);padding:8px 10px;outline:none}
+.rel-del{border:1px solid var(--line);background:var(--panel);border-radius:8px;width:32px;height:32px;display:grid;place-items:center;color:var(--ink-3);flex:none;font-size:16px;line-height:1}
+.rel-del:hover{color:var(--bad);border-color:var(--bad)}
+
 /* Profile */
 .avatar{width:64px;height:64px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:26px;font-family:"Instrument Serif",serif;flex:none;letter-spacing:.02em}
 .profile-grid{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:start;max-width:640px}
@@ -404,6 +422,9 @@ a{color:inherit}
     <a class="nav-item" data-view="strategies">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="M12 3v18M4 7.5l8 4.5 8-4.5" opacity=".5"/></svg>
       <span>Strategies</span><span class="ct" id="stratCt">0</span></a>
+    <a class="nav-item" data-view="map">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="5" cy="12" r="2.2"/><circle cx="18" cy="5" r="2.2"/><circle cx="18" cy="19" r="2.2"/><path d="M7.1 11l8.7-4.8M7.1 13l8.7 4.8" opacity=".6"/></svg>
+      <span>Strategy Map</span></a>
 
     <div class="nav-grp">Registers</div>
     <a class="nav-item" data-view="insights">
@@ -498,6 +519,7 @@ const SEED = {
       notDoing:["Extending FSkyss/Voyager","Buying off-the-shelf in this phase","Automating non-routine or discretionary cases"],
       howKnow:["Appeal-overturn rate falls as the pilot rolls out","≥60% of ordinary cases fully automated at quality","Zero statutory-deadline breaches"]},
     {id:"st2", name:"TØFF Migration", framework:"premortem", status:"reviewed", owner:"Jonas", review:"2026-09-01", version:1,
+      relations:[{to:"st1", type:"enables"}],
       challenge:"CMP is decommissioned on 31.12.2026; the TØFF migration must complete inside a fixed window with no break in statutory service delivery.",
       approach:"Sequence the migration into increment T2 with a clean rollback path, validating statutory flows in a shadow run before cutover.",
       moves:["Establish a pre-migration baseline","Stage the cutover with a tested rollback","Validate statutory deadlines in a shadow run"],
@@ -586,6 +608,7 @@ let view = "dashboard";
 let q = "";
 let stratF = "*";
 let currentStrategy = null; // strategy id when viewing a single strategy
+let mapFocus = null;        // strategy id when the map is in focus mode
 
 const COLLS=["strategies","insights","decisions","assumptions","signals"];
 function stratNames(){ return DB.strategies.map(s=>s.name); }
@@ -658,7 +681,7 @@ function byId(coll,id){ return DB[coll].find(x=>x.id===id); }
 
 /* ============================================================ VIEWS */
 function render(){
-  $("#crumb").textContent = ({dashboard:"Dashboard",strategies:"Strategies",insights:"Insights",decisions:"Decisions",assumptions:"Assumptions",signals:"Signals",review:"Operating Rhythm",flywheel:"The Flywheel",systems:"Standing Systems",profile:"Profile"})[view];
+  $("#crumb").textContent = ({dashboard:"Dashboard",strategies:"Strategies",map:"Strategy Map",insights:"Insights",decisions:"Decisions",assumptions:"Assumptions",signals:"Signals",review:"Operating Rhythm",flywheel:"The Flywheel",systems:"Standing Systems",profile:"Profile"})[view];
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active", n.dataset.view===view));
   const isRegister = ["insights","decisions","assumptions","signals"].includes(view);
   const showAdd = ["strategies","insights","decisions","assumptions","signals","profile"].includes(view) && !currentStrategy;
@@ -668,7 +691,7 @@ function render(){
   else $("#addLabel").textContent = showAdd ? (view==="strategies"?"New strategy":"New "+view.slice(0,-1)) : "New";
   updateCounts();
   const r = $("#root"); r.innerHTML="";
-  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
+  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
 }
 function reviewDueCount(){
   return DB.signals.filter(s=>(s.state==="disagreeing"||s.state==="drifting")).length
@@ -889,6 +912,19 @@ function vStrategyDetail(id){
     ${opSection("4 · What we are NOT doing",opList(s.notDoing,"ul"))}
     ${opSection("5 · How we'll know it's working",opList(s.howKnow,"ul"))}`;
   w.appendChild(op);
+
+  // influence map
+  w.appendChild(el("div","sect-h",`<h2>Influence map</h2><span class="hint">Insights feed the bets, signals watch them, decisions rest on them</span>`));
+  const mp=el("div","panel map-wrap");
+  renderGraph(mp, buildGraph("focus",s.id), {h:380, mini:true, onNode:n=>{
+    if(n.kind==="strategy"&&n.id!==s.id){ currentStrategy=n.id; render(); }
+    else openFromMap(n);
+  }});
+  const ex=el("button","btn map-expand",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Expand`);
+  ex.onclick=()=>{ currentStrategy=null; mapFocus=s.id; view="map"; render(); };
+  mp.appendChild(ex);
+  mp.appendChild(mapLegend("focus"));
+  w.appendChild(mp);
 
   // linked registers
   w.appendChild(el("div","sect-h",`<h2>What rests on it</h2><span class="hint">The bets, signals and decisions this strategy owns</span>`));
@@ -1161,6 +1197,222 @@ function reviewAssumptionCard(a){
   return c;
 }
 
+/* ============================================================ STRATEGY MAP */
+const REL_TYPES = {
+  "depends-on":{label:"depends on", dir:true},
+  "enables":{label:"enables", dir:true},
+  "tension":{label:"in tension with", dir:false},
+  "related":{label:"related to", dir:false},
+};
+const KIND_COLOR = {
+  strategy:{c:"var(--accent)", bg:"var(--accent-soft)"},
+  insight:{c:"var(--sense)", bg:"var(--sense-bg)"},
+  decision:{c:"var(--mem)", bg:"var(--mem-bg)"},
+  assumption:{c:"var(--align)", bg:"var(--align-bg)"},
+  signal:{c:"var(--feed)", bg:"var(--feed-bg)"},
+};
+function stateColor(state){
+  const m=STATE_MAP[state]; if(!m) return "var(--line)";
+  return m[0]==="b-bad"?"var(--bad)":m[0]==="b-warn"?"var(--warn)":m[0]==="b-good"?"var(--good)":"var(--mute)";
+}
+function trunc(s,n){ s=String(s||""); return s.length>n?s.slice(0,n-1)+"…":s; }
+
+/* every register-object id attached to a strategy — used to derive shared-underpinning links */
+function stratObjectSet(s){
+  const set=new Set();
+  DB.assumptions.forEach(a=>{ if(a.strategy===s.name) set.add(a.id); });
+  DB.signals.forEach(g=>{ if(g.strategy===s.name){ set.add(g.id); if(g.watches) set.add(g.watches); } });
+  DB.decisions.forEach(d=>{ if(d.strategy===s.name){ set.add(d.id); (d.rests||[]).forEach(r=>set.add(r)); } });
+  DB.insights.forEach(i=>{ if(i.feeds){ const a=byId("assumptions",i.feeds); if(a&&a.strategy===s.name) set.add(i.id); } });
+  return set;
+}
+
+/* pure graph builder — returns {nodes,links}; no rendering */
+function buildGraph(mode, focusId){
+  const nodes=[], links=[];
+  if(mode==="portfolio"){
+    const strats=DB.strategies.filter(s=>s.status!=="archived");
+    strats.forEach(s=>{
+      const k=stratStats(s.name);
+      nodes.push({id:s.id, kind:"strategy", label:s.name, flashing:k.flashing,
+        r:24+Math.min(16,(k.bets+k.sigs+k.decs)*1.4),
+        dim:stratF!=="*"&&s.name!==stratF,
+        sub:`${k.bets} bets · ${k.sigs} signals · ${k.decs} decisions`});
+    });
+    const have=new Set(strats.map(s=>s.id));
+    strats.forEach(s=>(s.relations||[]).forEach(r=>{
+      if(have.has(r.to)) links.push({source:s.id, target:r.to, kind:"explicit", label:(REL_TYPES[r.type]||{}).label||r.type, dir:(REL_TYPES[r.type]||{}).dir});
+    }));
+    for(let i=0;i<strats.length;i++) for(let j=i+1;j<strats.length;j++){
+      const A=stratObjectSet(strats[i]), B=stratObjectSet(strats[j]);
+      let n=0; A.forEach(x=>{ if(B.has(x)) n++; });
+      const already=links.some(l=>(l.source===strats[i].id&&l.target===strats[j].id)||(l.source===strats[j].id&&l.target===strats[i].id));
+      if(n>0&&!already) links.push({source:strats[i].id, target:strats[j].id, kind:"derived", label:`shares ${n}`});
+    }
+  } else {
+    const s=byId("strategies",focusId); if(!s) return {nodes,links};
+    nodes.push({id:s.id, kind:"strategy", label:s.name, r:32, center:true});
+    const asmp=DB.assumptions.filter(a=>a.strategy===s.name);
+    asmp.forEach(a=>{ nodes.push({id:a.id, kind:"assumption", label:a.statement, state:a.state, r:11});
+      links.push({source:a.id, target:s.id, kind:"spoke", state:a.state}); });
+    const inSet=new Set(asmp.map(a=>a.id));
+    DB.insights.forEach(i=>{ if(i.feeds&&inSet.has(i.feeds)){
+      nodes.push({id:i.id, kind:"insight", label:i.claim, r:9, sub:i.confidence+" confidence"});
+      links.push({source:i.id, target:i.feeds, kind:"feeds"}); } });
+    DB.signals.forEach(g=>{ if(g.strategy===s.name){
+      nodes.push({id:g.id, kind:"signal", label:g.signal, state:g.state, r:9});
+      links.push({source:g.id, target:(g.watches&&inSet.has(g.watches))?g.watches:s.id, kind:"watches", state:g.state}); } });
+    DB.decisions.forEach(d=>{ if(d.strategy===s.name){
+      nodes.push({id:d.id, kind:"decision", label:d.title, r:10, sub:d.door+" door"});
+      let tied=false; (d.rests||[]).forEach(r=>{ if(inSet.has(r)){ links.push({source:d.id, target:r, kind:"rests"}); tied=true; } });
+      if(!tied) links.push({source:d.id, target:s.id, kind:"rests"}); } });
+    DB.strategies.forEach(o=>{ if(o.id===s.id) return;
+      const rel=(s.relations||[]).find(r=>r.to===o.id)||(o.relations||[]).find(r=>r.to===s.id);
+      if(rel){ nodes.push({id:o.id, kind:"strategy", label:o.name, r:15, dim:true});
+        links.push({source:s.id, target:o.id, kind:"explicit", label:(REL_TYPES[rel.type]||{}).label||rel.type}); } });
+  }
+  return {nodes,links};
+}
+
+/* D3-force renderer — one code path for the Map view and the strategy-detail mini map */
+function renderGraph(host, graph, opts={}){
+  const {nodes,links}=graph;
+  host.classList.add("map-wrap");
+  if(typeof d3==="undefined"){ host.innerHTML=`<div class="empty"><span class="serif">Map unavailable.</span>The D3 library did not load — check the connection and reload.</div>`; return; }
+  if(!nodes.length){ host.innerHTML=`<div class="empty"><span class="serif">Nothing to map yet.</span>Add a strategy first — the registers will orbit it here.</div>`; return; }
+  const W=opts.w||1100, H=opts.h||620, mk="arw"+(opts.mini?"m":"f");
+  const svg=d3.select(host).append("svg").attr("viewBox",`0 0 ${W} ${H}`).attr("preserveAspectRatio","xMidYMid meet");
+  svg.append("defs").append("marker").attr("id",mk).attr("viewBox","0 -5 10 10").attr("refX",9)
+    .attr("markerWidth",7).attr("markerHeight",7).attr("orient","auto")
+    .append("path").attr("d","M0,-5L10,0L0,5").attr("fill","var(--ink-3)");
+  const g=svg.append("g");
+  if(!opts.mini) svg.call(d3.zoom().scaleExtent([0.35,2.5]).filter(e=>e.type!=="dblclick").on("zoom",e=>g.attr("transform",e.transform)));
+
+  nodes.forEach((n,i)=>{ const ang=2*Math.PI*i/nodes.length;
+    n.x=W/2+Math.cos(ang)*180; n.y=H/2+Math.sin(ang)*130;
+    if(n.center){ n.fx=W/2; n.fy=H/2; } });
+
+  const sim=d3.forceSimulation(nodes)
+    .force("link",d3.forceLink(links).id(d=>d.id)
+      .distance(l=>l.kind==="feeds"?60:l.kind==="watches"||l.kind==="rests"?85:l.kind==="spoke"?125:180)
+      .strength(l=>l.kind==="derived"?0.25:0.55))
+    .force("charge",d3.forceManyBody().strength(opts.mini?-240:-360))
+    .force("center",d3.forceCenter(W/2,H/2))
+    .force("collide",d3.forceCollide(d=>d.r+(d.kind==="strategy"?36:20)))
+    .force("x",d3.forceX(W/2).strength(0.05))
+    .force("y",d3.forceY(H/2).strength(0.08));
+
+  const link=g.append("g").selectAll("g").data(links).join("g");
+  const line=link.append("line")
+    .attr("stroke",l=>l.state?stateColor(l.state):l.kind==="explicit"?"var(--ink-3)":"var(--line)")
+    .attr("stroke-width",l=>l.kind==="explicit"?1.8:1.4)
+    .attr("stroke-dasharray",l=>l.kind==="derived"?"5 5":l.kind==="feeds"?"2 4":null)
+    .attr("marker-end",l=>l.dir?`url(#${mk})`:null)
+    .attr("opacity",.85);
+  const ltext=link.filter(l=>l.label).append("text")
+    .attr("text-anchor","middle").attr("font-size",10.5).attr("font-weight",600)
+    .attr("fill","var(--ink-3)").style("paint-order","stroke").style("stroke","var(--panel)").style("stroke-width","3px")
+    .text(l=>l.label);
+
+  const node=g.append("g").selectAll("g").data(nodes).join("g").attr("class","mapnode");
+  node.append("circle").attr("r",d=>d.r)
+    .attr("fill",d=>KIND_COLOR[d.kind].bg)
+    .attr("stroke",d=>d.state?stateColor(d.state):KIND_COLOR[d.kind].c)
+    .attr("stroke-width",d=>d.kind==="strategy"?2:1.7)
+    .attr("opacity",d=>d.dim?.5:1);
+  node.filter(d=>d.flashing).append("circle").attr("r",d=>d.r+5)
+    .attr("fill","none").attr("stroke","var(--bad)").attr("stroke-width",1.4).attr("stroke-dasharray","3 4");
+  node.filter(d=>d.kind!=="strategy").append("text")
+    .attr("text-anchor","middle").attr("dy","0.35em").attr("font-size",9).attr("font-weight",700)
+    .attr("fill",d=>KIND_COLOR[d.kind].c)
+    .text(d=>({insight:"I",decision:"D",assumption:"A",signal:"S"})[d.kind]);
+  node.append("text").attr("text-anchor","middle")
+    .attr("font-size",d=>d.kind==="strategy"?12.5:10.5)
+    .attr("font-weight",d=>d.kind==="strategy"?700:500)
+    .attr("fill","var(--ink)").attr("dy",d=>d.r+14)
+    .text(d=>trunc(d.label,d.kind==="strategy"?34:30));
+  node.append("title").text(d=>d.label+(d.sub?`\n${d.sub}`:"")+(d.state?`\nstate: ${d.state}`:""));
+
+  const near=(a,b)=>a===b||links.some(l=>{
+    const s=l.source.id||l.source, t=l.target.id||l.target;
+    return (s===a&&t===b)||(s===b&&t===a);
+  });
+  node.on("mouseenter",(e,d)=>{
+    node.attr("opacity",o=>near(d.id,o.id)?1:.2);
+    link.attr("opacity",l=>((l.source.id||l.source)===d.id||(l.target.id||l.target)===d.id)?1:.1);
+  }).on("mouseleave",()=>{ node.attr("opacity",1); link.attr("opacity",1); });
+
+  if(opts.onNode){
+    node.on("click",(e,d)=>{ e.stopPropagation(); opts.onNode(d); });
+    node.attr("role","button").attr("tabindex",0).attr("aria-label",d=>d.kind+": "+d.label)
+      .on("keydown",(e,d)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); opts.onNode(d); } });
+  }
+  node.call(d3.drag()
+    .on("start",(e,d)=>{ if(!e.active) sim.alphaTarget(.25).restart(); d.fx=d.x; d.fy=d.y; })
+    .on("drag",(e,d)=>{ d.fx=e.x; d.fy=e.y; })
+    .on("end",(e,d)=>{ if(!e.active) sim.alphaTarget(0); if(!d.center){ d.fx=null; d.fy=null; } }));
+
+  sim.on("tick",()=>{
+    line.attr("x1",l=>l.source.x).attr("y1",l=>l.source.y).attr("x2",l=>l.target.x).attr("y2",l=>l.target.y);
+    ltext.attr("x",l=>(l.source.x+l.target.x)/2).attr("y",l=>(l.source.y+l.target.y)/2-5);
+    node.attr("transform",d=>`translate(${d.x},${d.y})`);
+  });
+  setTimeout(()=>sim.stop(),4000); // settle, then rest
+}
+
+function mapLegend(mode){
+  const inner = mode==="portfolio"
+    ? `<span><i style="background:var(--accent)"></i>strategy</span>
+       <span><span class="ln"></span>declared relation</span>
+       <span><span class="ln dash"></span>shared underpinnings</span>
+       <span><i style="background:none;border:1.5px dashed var(--bad)"></i>flashing</span>`
+    : `<span><i style="background:var(--sense)"></i>insight</span>
+       <span><i style="background:var(--align)"></i>assumption</span>
+       <span><i style="background:var(--feed)"></i>signal</span>
+       <span><i style="background:var(--mem)"></i>decision</span>
+       <span>edge colour = state</span>`;
+  return el("div","map-legend",inner);
+}
+function openFromMap(n){
+  if(n.kind==="insight") openInsight(n.id);
+  else if(n.kind==="decision") openDecision(n.id);
+  else if(n.kind==="assumption") openAssumption(n.id);
+  else if(n.kind==="signal") openSignal(n.id);
+}
+
+function vMap(){
+  const w=el("div","view");
+  const focus=mapFocus?byId("strategies",mapFocus):null;
+  if(!focus){
+    mapFocus=null;
+    w.appendChild(el("div","view-head",`<h1>Strategy Map</h1><p>The portfolio as a network. Solid lines are relations you've declared; dashed lines appear when two strategies share insights, bets or decisions. Click a strategy to see everything that influences it.</p>`));
+    const panel=el("div","panel map-wrap");
+    const graph=buildGraph("portfolio");
+    renderGraph(panel,graph,{onNode:n=>{ if(n.kind==="strategy"){ mapFocus=n.id; render(); } }});
+    if(graph.nodes.length&&!graph.links.length) panel.appendChild(el("div","map-hint","No connections yet — declare a relation in the strategy editor, or let registers span strategies."));
+    if(graph.nodes.length) panel.appendChild(mapLegend("portfolio"));
+    w.appendChild(panel);
+  }else{
+    const back=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M15 18l-6-6 6-6"/></svg>Portfolio map`);
+    back.style.marginBottom="16px"; back.onclick=()=>{ mapFocus=null; render(); };
+    w.appendChild(back);
+    const head=el("div","view-head");
+    head.style.cssText="display:flex;justify-content:space-between;align-items:flex-start;gap:20px";
+    head.innerHTML=`<div><h1>${esc(focus.name)}</h1><p>Everything that influences this strategy — insights feed the bets, signals watch them, decisions rest on them. Edge colour shows where reality disagrees. Click any node to open it.</p></div>`;
+    const open=el("button","btn",`Open strategy`); open.style.cssText="flex:none;margin-top:8px";
+    open.onclick=()=>{ currentStrategy=focus.id; view="strategies"; render(); };
+    head.appendChild(open); w.appendChild(head);
+    const panel=el("div","panel map-wrap");
+    renderGraph(panel,buildGraph("focus",mapFocus),{onNode:n=>{
+      if(n.kind==="strategy"&&n.id!==mapFocus){ mapFocus=n.id; render(); }
+      else openFromMap(n);
+    }});
+    panel.appendChild(mapLegend("focus"));
+    w.appendChild(panel);
+  }
+  return w;
+}
+
 /* ---------- Markdown export (vault register format) ---------- */
 function yamlStr(s){ return '"'+String(s==null?"":s).replace(/"/g,'\\"')+'"'; }
 function mdInsight(x){
@@ -1398,6 +1650,7 @@ const FIELDS = {
     {k:"moves",l:"3 · The big moves (3–5)",t:"lines",ph:"One per line"},
     {k:"notDoing",l:"4 · What we are NOT doing",t:"lines",ph:"One per line"},
     {k:"howKnow",l:"5 · How we'll know it's working",t:"lines",ph:"One per line — visible signals"},
+    {k:"relations",l:"Relates to other strategies",t:"rels"},
   ],
   insights:[
     {k:"claim",l:"Claim",t:"textarea",req:1,ph:"What you now believe is true…"},
@@ -1478,6 +1731,35 @@ function buildForm(){
       inp=el("textarea"); inp.value=(data[f.k]||[]).join("\n"); inp.placeholder=f.ph||"One per line"; inp.rows=4;
       inp.oninput=()=>data[f.k]=inp.value.split("\n").map(x=>x.trim()).filter(Boolean);
     }
+    else if(f.t==="rels"){
+      inp=el("div"); inp.style.cssText="display:flex;flex-direction:column;gap:8px";
+      const list=el("div"); list.style.cssText="display:flex;flex-direction:column;gap:8px";
+      const others=()=>DB.strategies.filter(x=>x.id!==id);
+      const draw=()=>{
+        list.innerHTML="";
+        data.relations=(data.relations||[]).filter(r=>others().some(o=>o.id===r.to)||!r.to);
+        data.relations.forEach((r,ix)=>{
+          const row=el("div","rel-row");
+          const tSel=el("select"); tSel.style.cssText="max-width:150px;flex:none";
+          Object.keys(REL_TYPES).forEach(k=>{ const o=el("option"); o.value=k; o.textContent=REL_TYPES[k].label; if(r.type===k) o.selected=true; tSel.appendChild(o); });
+          tSel.onchange=()=>r.type=tSel.value;
+          const sSel=el("select");
+          others().forEach(x=>{ const o=el("option"); o.value=x.id; o.textContent=x.name; if(r.to===x.id) o.selected=true; sSel.appendChild(o); });
+          if(!r.to) r.to=(others()[0]||{}).id||"";
+          sSel.onchange=()=>r.to=sSel.value;
+          const del=el("button","rel-del","×"); del.type="button"; del.title="Remove relation";
+          del.onclick=()=>{ data.relations.splice(ix,1); draw(); };
+          row.appendChild(tSel); row.appendChild(sSel); row.appendChild(del);
+          list.appendChild(row);
+        });
+        if(!data.relations.length) list.appendChild(el("div","mini-empty","No declared relations yet."));
+      };
+      draw();
+      const add=el("button","btn","+ Add relation"); add.type="button"; add.style.alignSelf="flex-start";
+      add.onclick=()=>{ const o=others(); if(!o.length){ alert("No other strategies to relate to yet."); return; }
+        (data.relations=data.relations||[]).push({to:o[0].id,type:"related"}); draw(); };
+      inp.appendChild(list); inp.appendChild(add);
+    }
     else if(f.t==="ref"||f.t==="multiref"){
       inp=el("select"); if(f.t==="multiref") inp.multiple=true, inp.size=Math.min(4,DB[f.ref].length+1);
       if(f.t==="ref"){ const o=el("option");o.value="";o.textContent="— none —";inp.appendChild(o); }
@@ -1487,7 +1769,7 @@ function buildForm(){
       inp.onchange=()=>{ data[f.k]= f.t==="multiref"?Array.from(inp.selectedOptions).map(o=>o.value):inp.value; };
     }
     else { inp=el("input"); inp.type=f.t==="date"?"text":"text"; inp.value=data[f.k]||""; inp.placeholder=f.ph||(f.t==="date"?"YYYY-MM-DD":""); }
-    if(!["seg","strat","ref","multiref","lines"].includes(f.t)){ inp.oninput=()=>data[f.k]=inp.value; }
+    if(!["seg","strat","ref","multiref","lines","rels"].includes(f.t)){ inp.oninput=()=>data[f.k]=inp.value; }
     inp.dataset.field=f.k;
     fg.appendChild(inp); body.appendChild(fg);
   });
@@ -1525,7 +1807,11 @@ function delEntry(coll,id){
   DB.assumptions.forEach(a=>{ if(a.watchedBy===id) a.watchedBy=""; });
   DB.insights.forEach(i=>{ if(i.feeds===id) i.feeds=""; });
   DB.decisions.forEach(d=>{ if(d.rests) d.rests=d.rests.filter(r=>r!==id); });
-  if(coll==="strategies") currentStrategy=null;
+  if(coll==="strategies"){
+    currentStrategy=null;
+    if(mapFocus===id) mapFocus=null;
+    DB.strategies.forEach(s=>{ if(s.relations) s.relations=s.relations.filter(r=>r.to!==id); });
+  }
   save(); closeDrawer(); syncStrategyFilter(); render();
 }
 
@@ -1536,7 +1822,7 @@ function syncStrategyFilter(){
   sel.innerHTML = `<option value="*">All strategies</option>` + names.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join("");
   sel.value = (names.includes(cur)||cur==="*")?cur:"*";
 }
-document.querySelectorAll(".nav-item").forEach(n=> n.onclick=()=>{ view=n.dataset.view; currentStrategy=null; $("#side").classList.remove("open"); render(); });
+document.querySelectorAll(".nav-item").forEach(n=> n.onclick=()=>{ view=n.dataset.view; currentStrategy=null; mapFocus=null; $("#side").classList.remove("open"); render(); });
 $("#strategyFilter").onchange = e=>{ stratF=e.target.value; render(); };
 $("#search").oninput = e=>{ q=e.target.value.trim().toLowerCase(); if(["insights","decisions","assumptions","signals"].includes(view)) render(); };
 $("#addBtn").onclick = newEntry;
