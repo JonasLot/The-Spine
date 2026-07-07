@@ -643,6 +643,34 @@ const T = {
     "vh.assumptions.t":"Assumptions", "vh.assumptions.d":"The motor of the re-loop. Every strategy is a stack of bets — rate each on confidence × consequence, give each a kill-signal, and re-rate them on the rhythm. The riskiest sit at the top.",
     "vh.signals.t":"Signals", "vh.signals.d":"Each signal watches a named assumption, has an expected shape, an owner, and a latest reading. A signal with no expected shape can't disagree with you. When one disagrees, it must change something.",
     "export.md":"Export .md",
+    "state.holding":"Holding","state.agreeing":"Agreeing","state.shaky":"Shaky","state.drifting":"Drifting","state.broken":"Broken","state.disagreeing":"Disagreeing","state.retired":"Retired","state.unwatched":"unwatched","state.clear":"clear","state.flashing":"flashing",
+    "status.draft":"Draft","status.reviewed":"In review","status.committed":"Committed","status.archived":"Archived",
+    "fw.kernel":"Strategy Kernel","fw.cascade":"Playing-to-Win Cascade","fw.wardley":"Wardley Map","fw.premortem":"Pre-mortem","fw.one-pager":"One-Page Strategy",
+    "sync.saving":"Saving…","sync.saved":"Saved","sync.error":"Offline — retrying",
+    "level.low":"low","level.medium":"medium","level.high":"high","conf.suffix":"confidence","cons.suffix":"consequence",
+    "door.one-way":"one-way","door.two-way":"two-way",
+    "none":"None yet","radar.empty.t":"No active strategies in view.","radar.empty.d":"Add one under Strategies, or clear the filter.",
+    "review.prefix":"review","review.nodate":"no date","review.overdue":"d overdue","review.duein":"due in ","review.in":"in ",
+    "kpi.active":"Active strategies","kpi.active.s":"tracked in the spine","kpi.risky":"Riskiest bets","kpi.risky.s":"low confidence · high consequence","kpi.disag":"Signals disagreeing","kpi.disag.s":"reality is pushing back","kpi.broken":"Broken assumptions","kpi.broken.s":"re-open the diagnosis",
+    "sect.radar":"Strategy review radar","sect.radar.h":"Who's due — overdue and committed first","sect.spine":"The spine","sect.spine.h":"What you do per strategy — flow, not loop","sect.attention":"Needs attention","sect.attention.h":"Agenda items for the next review — not footnotes",
+    "empty.quiet.t":"All quiet.","empty.quiet.d":"No drifting signals or shaky bets in view. A signal that only ever confirms is decoration — keep designing sharper ones.",
+    "th.what":"What","th.type":"Type","th.state":"State","th.reading":"Reading / kill-signal","th.strategy":"Strategy","th.status":"Status","th.flashing":"Flashing","th.reviewdue":"Review due",
+    "th.claim":"Claim","th.theme":"Theme","th.confidence":"Confidence","th.captured":"Captured","th.feeds":"Feeds","th.decision":"Decision","th.door":"Door","th.rests":"Rests on","th.owner":"Owner","th.decided":"Decided","th.assumption":"Assumption","th.confcons":"Conf × Cons","th.killsignal":"Kill-signal","th.watchedby":"Watched by","th.signal":"Signal","th.watches":"Watches","th.latest":"Latest reading",
+    "empty.insights.t":"No insights yet.","empty.insights.d":"Capture what you've learned — one claim, its evidence, a confidence level.","empty.decisions.t":"No decisions logged.","empty.decisions.d":"Log the next real choice — what was decided, and what you rejected.","empty.assumptions.t":"No assumptions yet.","empty.assumptions.d":"Harvest bets from your diagnosis and pre-mortem failure modes.","empty.signals.t":"No signals yet.","empty.signals.d":"Design 3–5 per strategy. Each watches one assumption.","empty.strat.t":"No strategies yet.","empty.strat.d":"Create one — name it, pick a framework, and write the one-page artifact.",
+    "btn.back.strat":"All strategies","btn.edit":"Edit","btn.expand":"Expand",
+    "strat.canon":"Canonical artifact","strat.owner":"owner","strat.derived":"derived from the","strat.cites":"Everything else cites this.","strat.unowned":"unowned",
+    "op.1":"1 · The challenge","op.2":"2 · Our approach","op.3":"3 · The big moves","op.4":"4 · What we are NOT doing","op.5":"5 · How we'll know it's working","op.nodiag":"No diagnosis written yet.",
+    "sect.influence":"Influence map","sect.influence.h":"Insights feed the bets, signals watch them, decisions rest on them","sect.rests":"What rests on it","sect.rests.h":"The bets, signals and decisions this strategy owns",
+    "sect.matrix":"Confidence × consequence","sect.matrix.h":"The top-left cell is where strategies quietly die — watch those first",
+    "rev.1":"Read the signals","rev.1.h":"Append a fresh reading; set the new state","rev.2":"Re-rate the bets","rev.2.h":"Has confidence moved? Is it broken?","rev.3":"End in a decision","rev.3.h":"If nothing changed, it was theatre",
+    "kpi.bets":"bets","kpi.signals":"signals","kpi.decisions":"decisions","kpi.ontrack":"on track",
+    "flow.repeat":"The standing systems are what make this flow repeatable — and compound across passes.",
+    "flow.01":"Understand","flow.01d":"Diagnose the real problem. Fed by Insights & the Radar.","flow.02":"Develop","flow.02d":"Turn diagnosis into bets. Harvested into Assumptions.","flow.03":"Communicate","flow.03d":"One canonical artifact. Aligned by the Operating Rhythm.","flow.04":"Track","flow.04d":"Watch the Signals. Reality disagrees → back to Understand.",
+    "dr.eye.insight":"Insight · Sensing","dr.eye.decision":"Decision · Memory","dr.eye.assumption":"Assumption · Memory","dr.eye.signal":"Signal · Feedback",
+    "dr.oneway":"One-way door","dr.twoway":"Two-way door",
+    "dt.source":"Source","dt.area":"Area","dt.consequence":"Consequence","dt.expected":"Expected shape","dt.strategy":"Strategy",
+    "dr.evidence":"Evidence","dr.feeds":"Feeds the bet","dr.reasoning":"Reasoning","dr.rejected":"Options rejected","dr.restson":"Rests on assumptions","dr.trigger":"Review trigger","dr.kill":"Kill-signal — what would prove this false","dr.watchedby":"Watched by","dr.decresting":"Decisions resting on it","dr.watchesasm":"Watches assumption","dr.readinglog":"Reading log","dr.noreadings":"No readings yet.","dr.blindspot":"unwatched — a blind spot",
+    "tk.assumption":"assumption","tk.decision":"decision","tk.signal":"signal",
   },
   no:{
     "brand.ey":"Strategiarkitekt",
@@ -666,6 +694,34 @@ const T = {
     "vh.assumptions.t":"Antakelser", "vh.assumptions.d":"Motoren i re-løkken. Hver strategi er en stabel av bets — vurder hver på konfidens × konsekvens, gi hver et kill-signal, og revurder dem i rytmen. De risikableste ligger øverst.",
     "vh.signals.t":"Signaler", "vh.signals.d":"Hvert signal overvåker en navngitt antakelse, har en forventet form, en eier og en siste avlesning. Et signal uten forventet form kan ikke være uenig med deg. Når ett er uenig, må det endre noe.",
     "export.md":"Eksporter .md",
+    "state.holding":"Holder","state.agreeing":"Enig","state.shaky":"Vaklende","state.drifting":"Driver","state.broken":"Brutt","state.disagreeing":"Uenig","state.retired":"Pensjonert","state.unwatched":"uovervåket","state.clear":"klar","state.flashing":"blinker",
+    "status.draft":"Utkast","status.reviewed":"Til gjennomgang","status.committed":"Vedtatt","status.archived":"Arkivert",
+    "fw.kernel":"Strategikjerne","fw.cascade":"Playing-to-Win-kaskade","fw.wardley":"Wardley-kart","fw.premortem":"Pre-mortem","fw.one-pager":"Énsides strategi",
+    "sync.saving":"Lagrer…","sync.saved":"Lagret","sync.error":"Frakoblet — prøver igjen",
+    "level.low":"lav","level.medium":"middels","level.high":"høy","conf.suffix":"konfidens","cons.suffix":"konsekvens",
+    "door.one-way":"enveis","door.two-way":"toveis",
+    "none":"Ingen ennå","radar.empty.t":"Ingen aktive strategier i visningen.","radar.empty.d":"Legg til en under Strategier, eller fjern filteret.",
+    "review.prefix":"gjennomgang","review.nodate":"ingen dato","review.overdue":"d på overtid","review.duein":"om ","review.in":"om ",
+    "kpi.active":"Aktive strategier","kpi.active.s":"sporet i ryggraden","kpi.risky":"Risikableste bets","kpi.risky.s":"lav konfidens · høy konsekvens","kpi.disag":"Signaler som er uenige","kpi.disag.s":"virkeligheten presser tilbake","kpi.broken":"Brutte antakelser","kpi.broken.s":"gjenåpne diagnosen",
+    "sect.radar":"Radar for strategigjennomgang","sect.radar.h":"Hvem står for tur — på overtid og vedtatt først","sect.spine":"Ryggraden","sect.spine.h":"Det du gjør per strategi — flyt, ikke løkke","sect.attention":"Trenger oppmerksomhet","sect.attention.h":"Agendapunkter til neste gjennomgang — ikke fotnoter",
+    "empty.quiet.t":"Alt er rolig.","empty.quiet.d":"Ingen drivende signaler eller vaklende bets i visningen. Et signal som bare bekrefter er dekorasjon — fortsett å designe skarpere.",
+    "th.what":"Hva","th.type":"Type","th.state":"Tilstand","th.reading":"Avlesning / kill-signal","th.strategy":"Strategi","th.status":"Status","th.flashing":"Blinker","th.reviewdue":"Gjennomgang",
+    "th.claim":"Påstand","th.theme":"Tema","th.confidence":"Konfidens","th.captured":"Fanget","th.feeds":"Mater","th.decision":"Beslutning","th.door":"Dør","th.rests":"Hviler på","th.owner":"Eier","th.decided":"Besluttet","th.assumption":"Antakelse","th.confcons":"Konf × Kons","th.killsignal":"Kill-signal","th.watchedby":"Overvåket av","th.signal":"Signal","th.watches":"Overvåker","th.latest":"Siste avlesning",
+    "empty.insights.t":"Ingen innsikter ennå.","empty.insights.d":"Fang det du har lært — én påstand, beviset, et konfidensnivå.","empty.decisions.t":"Ingen beslutninger loggført.","empty.decisions.d":"Loggfør neste reelle valg — hva som ble besluttet, og hva du forkastet.","empty.assumptions.t":"Ingen antakelser ennå.","empty.assumptions.d":"Høst bets fra diagnosen og pre-mortem-feilmodusene.","empty.signals.t":"Ingen signaler ennå.","empty.signals.d":"Design 3–5 per strategi. Hvert overvåker én antakelse.","empty.strat.t":"Ingen strategier ennå.","empty.strat.d":"Lag én — gi den navn, velg et rammeverk, og skriv énsides-artefaktet.",
+    "btn.back.strat":"Alle strategier","btn.edit":"Rediger","btn.expand":"Utvid",
+    "strat.canon":"Kanonisk artefakt","strat.owner":"eier","strat.derived":"avledet fra","strat.cites":"Alt annet siterer denne.","strat.unowned":"ingen eier",
+    "op.1":"1 · Utfordringen","op.2":"2 · Vår tilnærming","op.3":"3 · De store trekkene","op.4":"4 · Det vi IKKE gjør","op.5":"5 · Hvordan vi vet at det virker","op.nodiag":"Ingen diagnose skrevet ennå.",
+    "sect.influence":"Påvirkningskart","sect.influence.h":"Innsikter mater bettene, signaler overvåker dem, beslutninger hviler på dem","sect.rests":"Hva som hviler på den","sect.rests.h":"Bettene, signalene og beslutningene denne strategien eier",
+    "sect.matrix":"Konfidens × konsekvens","sect.matrix.h":"Cellen øverst til venstre er der strategier stille dør — se på dem først",
+    "rev.1":"Les signalene","rev.1.h":"Legg til en fersk avlesning; sett ny tilstand","rev.2":"Revurder bettene","rev.2.h":"Har konfidensen flyttet seg? Er det brutt?","rev.3":"Avslutt med en beslutning","rev.3.h":"Hvis ingenting endret seg, var det teater",
+    "kpi.bets":"bets","kpi.signals":"signaler","kpi.decisions":"beslutninger","kpi.ontrack":"på sporet",
+    "flow.repeat":"De stående systemene er det som gjør denne flyten repeterbar — og som akkumulerer på tvers av runder.",
+    "flow.01":"Forstå","flow.01d":"Diagnostiser det reelle problemet. Matet av Innsikter og Radaren.","flow.02":"Utvikle","flow.02d":"Gjør diagnosen om til bets. Høstet inn i Antakelser.","flow.03":"Kommuniser","flow.03d":"Ett kanonisk artefakt. Samordnet av Driftsrytmen.","flow.04":"Spor","flow.04d":"Overvåk Signalene. Virkeligheten er uenig → tilbake til Forstå.",
+    "dr.eye.insight":"Innsikt · Sansing","dr.eye.decision":"Beslutning · Hukommelse","dr.eye.assumption":"Antakelse · Hukommelse","dr.eye.signal":"Signal · Tilbakekobling",
+    "dr.oneway":"Enveis dør","dr.twoway":"Toveis dør",
+    "dt.source":"Kilde","dt.area":"Område","dt.consequence":"Konsekvens","dt.expected":"Forventet form","dt.strategy":"Strategi",
+    "dr.evidence":"Bevis","dr.feeds":"Mater bettet","dr.reasoning":"Begrunnelse","dr.rejected":"Forkastede alternativer","dr.restson":"Hviler på antakelser","dr.trigger":"Gjennomgangstrigger","dr.kill":"Kill-signal — hva som ville motbevise dette","dr.watchedby":"Overvåket av","dr.decresting":"Beslutninger som hviler på den","dr.watchesasm":"Overvåker antakelse","dr.readinglog":"Avlesningslogg","dr.noreadings":"Ingen avlesninger ennå.","dr.blindspot":"uovervåket — et blindpunkt",
+    "tk.assumption":"antakelse","tk.decision":"beslutning","tk.signal":"signal",
   },
 };
 function t(k){ return (T[LANG] && T[LANG][k]) ?? T.en[k] ?? k; }
@@ -696,6 +752,36 @@ function setLang(l){
   applyChrome(); render();
   if(SB && USER) saveProfile();
 }
+/* Demo-content overlay: the seed strategies read in Norwegian when NO is
+   selected — but ONLY while a field is still the untouched seed text. Edit
+   a strategy and your own wording is shown verbatim in both languages. */
+const SEED_NO = {
+  st1:{
+    challenge:"150+ kommuner kjører skoleskyss på utdaterte systemer (FSkyss/Voyager) som verken kan automatisere eller isolere tenant-data — og ~90 % av klagene omgjøres, noe som signaliserer systematiske feil i regelanvendelsen snarere enn saksbehandlerskjønn.",
+    approach:"Bygg én multi-tenant saksplattform med en transparent, sporbar regelmotor — så samme beslutningslogikk kjører overalt, automatiserer det rutinemessige, og gjør hvert utfall etterprøvbart.",
+    moves:["Verifiser regelmotoren mot 30+ historiske klager (M1-sjekkpunkt)","Klarer DPIA-porten før noen automatisert beslutning (Gate 1)","Konfigurasjon per tenant, aldri kode per tenant","En egen behandlingsflyt for fortrolige adresser"],
+    notDoing:["Utvide FSkyss/Voyager","Kjøpe hyllevare i denne fasen","Automatisere ikke-rutinemessige eller skjønnsbaserte saker"],
+    howKnow:["Omgjøringsraten for klager faller etter hvert som piloten rulles ut","≥60 % av ordinære saker fullautomatisert med kvalitet","Null brudd på lovbestemte frister"]},
+  st2:{
+    challenge:"CMP legges ned 31.12.2026; TØFF-migreringen må fullføres innenfor et fast vindu uten brudd i lovpålagt tjenesteleveranse.",
+    approach:"Sekvensér migreringen inn i inkrement T2 med en ren rollback-sti, og valider lovpålagte flyter i en skyggekjøring før cutover.",
+    moves:["Etabler en baseline før migrering","Iscenesett cutover med en testet rollback","Valider lovbestemte frister i en skyggekjøring"],
+    notDoing:["Utsette til T3","En big-bang-cutover uten fallback"],
+    howKnow:["Ingen målbart tjenesteavbrudd i vinduet","Alle lovbestemte frister overholdt under cutover"]},
+  st3:{
+    challenge:"Skoleadministratorer faller fra under onboarding og lener seg på supporttelefoner, noe som begrenser hvor raskt on-demand-planlegging kan skaleres.",
+    approach:"Gjør onboarding fullt selvbetjent med guidet oppsett, så en ny administrator når første verdi uten en supporttelefon.",
+    moves:["Guidet førstegangsoppsett","Innebygd hjelp ved de kjente frafallspunktene"],
+    notDoing:["Ansette mer onboarding-support for å maskere gapet"],
+    howKnow:["≥80 % av administratorer selvbetjener innen uke 4","Supporthenvendelser per ny administrator holder seg under 2"]},
+};
+function L(o,f){
+  if(LANG==="no" && o && SEED_NO[o.id] && SEED_NO[o.id][f]!=null && typeof SEED!=="undefined"){
+    const orig=(SEED.strategies||[]).find(x=>x.id===o.id);
+    if(orig && JSON.stringify(o[f])===JSON.stringify(orig[f])) return SEED_NO[o.id][f];
+  }
+  return o[f];
+}
 
 const COLLS=["strategies","insights","decisions","assumptions","signals"];
 function stratNames(){ return DB.strategies.map(s=>s.name); }
@@ -706,9 +792,8 @@ const STRAT_STATUS={draft:["b-mute","Draft"],reviewed:["b-warn","In review"],com
 /* ---- backend: Supabase write-through data layer ---- */
 function setSync(state){
   const n=$("#syncStatus"); if(!n) return;
-  const map={saving:["b-warn","Saving…"],saved:["b-good","Saved"],error:["b-bad","Offline — retrying"]};
-  const m=map[state]; if(!m){ n.innerHTML=""; n.className="sync"; return; }
-  n.className="badge "+m[0]; n.innerHTML=`<span class="dot"></span>${m[1]}`;
+  const cls={saving:"b-warn",saved:"b-good",error:"b-bad"}[state]; if(!cls){ n.innerHTML=""; n.className="sync"; return; }
+  n.className="badge "+cls; n.innerHTML=`<span class="dot"></span>${esc(t("sync."+state))}`;
 }
 let _pushTimer=null,_pushing=false,_pushAgain=false;
 function save(){ if(!SB||!USER) return; setSync("saving"); clearTimeout(_pushTimer); _pushTimer=setTimeout(pushAll,400); }
@@ -759,8 +844,11 @@ const STATE_MAP = {
   broken:["b-bad","Broken"], disagreeing:["b-bad","Disagreeing"],
   retired:["b-mute","Retired"]
 };
-function stateBadge(s){ const m=STATE_MAP[s]||["b-mute",s]; return `<span class="badge ${m[0]}"><span class="dot"></span>${m[1]}</span>`; }
-function lvlChip(l){ const cls = l==="high"?"hi":l==="low"?"lo":""; return `<span class="chip ${cls}">${esc(l)}</span>`; }
+function stateBadge(s){ const m=STATE_MAP[s]||["b-mute",s]; const lab=T.en["state."+s]?t("state."+s):m[1]; return `<span class="badge ${m[0]}"><span class="dot"></span>${lab}</span>`; }
+function fwL(k){ return T.en["fw."+k]?t("fw."+k):(STRAT_FW[k]||k); }
+function statusL(k){ return T.en["status."+k]?t("status."+k):k; }
+function lvl(x){ return T.en["level."+x]?t("level."+x):x; }
+function lvlChip(l){ const cls = l==="high"?"hi":l==="low"?"lo":""; return `<span class="chip ${cls}">${esc(lvl(l))}</span>`; }
 function matchStrat(s){ return stratF==="*" || s===stratF; }
 function matchQ(txt){ return !q || (txt||"").toLowerCase().includes(q); }
 
@@ -807,37 +895,37 @@ function vDashboard(){
 
   const kpis = el("div","grid kpis");
   kpis.innerHTML = `
-    ${kpiCard("Active strategies", strategies.length, "k-acc", "tracked in the spine")}
-    ${kpiCard("Riskiest bets", riskyBets.length, "k-warn", "low confidence · high consequence")}
-    ${kpiCard("Signals disagreeing", disag.length, "k-bad", "reality is pushing back")}
-    ${kpiCard("Broken assumptions", broken.length, broken.length?"k-bad":"k-good", "re-open the diagnosis")}`;
+    ${kpiCard(t("kpi.active"), strategies.length, "k-acc", t("kpi.active.s"))}
+    ${kpiCard(t("kpi.risky"), riskyBets.length, "k-warn", t("kpi.risky.s"))}
+    ${kpiCard(t("kpi.disag"), disag.length, "k-bad", t("kpi.disag.s"))}
+    ${kpiCard(t("kpi.broken"), broken.length, broken.length?"k-bad":"k-good", t("kpi.broken.s"))}`;
   w.appendChild(kpis);
 
   // strategy review radar
-  w.appendChild(el("div","sect-h",`<h2>Strategy review radar</h2><span class="hint">Who's due — overdue and committed first</span>`));
+  w.appendChild(el("div","sect-h",`<h2>${esc(t("sect.radar"))}</h2><span class="hint">${esc(t("sect.radar.h"))}</span>`));
   w.appendChild(reviewRadarPanel());
 
   // spine flow
-  const sh = el("div","sect-h",`<h2>The spine</h2><span class="hint">What you do per strategy — flow, not loop</span>`);
+  const sh = el("div","sect-h",`<h2>${esc(t("sect.spine"))}</h2><span class="hint">${esc(t("sect.spine.h"))}</span>`);
   w.appendChild(sh);
   w.appendChild(spineFlow());
 
   // needs attention
-  const ah = el("div","sect-h",`<h2>Needs attention</h2><span class="hint">Agenda items for the next review — not footnotes</span>`);
+  const ah = el("div","sect-h",`<h2>${esc(t("sect.attention"))}</h2><span class="hint">${esc(t("sect.attention.h"))}</span>`);
   w.appendChild(ah);
   const panel = el("div","panel");
   if(!attention.length){
-    panel.innerHTML = `<div class="empty"><span class="serif">All quiet.</span>No drifting signals or shaky bets in view. A signal that only ever confirms is decoration — keep designing sharper ones.</div>`;
+    panel.innerHTML = `<div class="empty"><span class="serif">${esc(t("empty.quiet.t"))}</span>${esc(t("empty.quiet.d"))}</div>`;
   }else{
     const tb = el("table","tbl");
-    tb.innerHTML = `<thead><tr><th>What</th><th>Type</th><th>State</th><th>Reading / kill-signal</th></tr></thead>`;
+    tb.innerHTML = `<thead><tr><th>${esc(t("th.what"))}</th><th>${esc(t("th.type"))}</th><th>${esc(t("th.state"))}</th><th>${esc(t("th.reading"))}</th></tr></thead>`;
     const body = el("tbody");
     attention.forEach(({k,o})=>{
       const tr = el("tr","row");
       const main = k==="signal"?o.signal:o.statement;
       const sub  = k==="signal"?o.last_reading:o.kill_signal;
       tr.innerHTML = `<td><div class="stmt">${esc(main)}</div><div class="strat">${esc(o.strategy)}</div></td>
-        <td><span class="chip">${k}</span></td>
+        <td><span class="chip">${esc(t("th."+k))}</span></td>
         <td>${stateBadge(o.state)}</td>
         <td><div class="meta" style="max-width:36ch">${esc(sub||"—")}</div></td>`;
       clickable(tr, ()=> k==="signal"?openSignal(o.id):openAssumption(o.id), "Open "+(k==="signal"?o.signal:o.statement));
@@ -853,12 +941,12 @@ function vDashboard(){
   const dp = el("div","panel");
   const recent = DB.decisions.filter(d=>matchStrat(d.strategy)).slice().sort((a,b)=>(b.decided||"").localeCompare(a.decided||"")).slice(0,3);
   const dt = el("table","tbl");
-  dt.innerHTML = `<thead><tr><th>Decision</th><th>Door</th><th>Decided</th></tr></thead>`;
+  dt.innerHTML = `<thead><tr><th>${esc(t("th.decision"))}</th><th>${esc(t("th.door"))}</th><th>${esc(t("th.decided"))}</th></tr></thead>`;
   const dbd = el("tbody");
   recent.forEach(d=>{
     const tr = el("tr","row");
     tr.innerHTML = `<td><div class="stmt">${esc(d.title)}</div><div class="strat">${esc(d.strategy)} · ${esc(d.area||"")}</div></td>
-      <td><span class="badge ${d.door==="one-way"?"b-bad":"b-acc"}"><span class="dot"></span>${d.door}</span></td>
+      <td><span class="badge ${d.door==="one-way"?"b-bad":"b-acc"}"><span class="dot"></span>${esc(t("door."+d.door)||d.door)}</span></td>
       <td><span class="mono" style="font-size:12px;color:var(--ink-2)">${esc(d.decided||"")}</span></td>`;
     clickable(tr,()=>openDecision(d.id),"Open decision: "+d.title);
     dbd.appendChild(tr);
@@ -871,10 +959,10 @@ function kpiCard(lbl,num,cls,sub){
 }
 function spineFlow(){
   const steps = [
-    ["01","Understand","Diagnose the real problem. Fed by Insights & the Radar."],
-    ["02","Develop","Turn diagnosis into bets. Harvested into Assumptions."],
-    ["03","Communicate","One canonical artifact. Aligned by the Operating Rhythm."],
-    ["04","Track","Watch the Signals. Reality disagrees → back to Understand."],
+    ["01",t("flow.01"),t("flow.01d")],
+    ["02",t("flow.02"),t("flow.02d")],
+    ["03",t("flow.03"),t("flow.03d")],
+    ["04",t("flow.04"),t("flow.04d")],
   ];
   const wrap = el("div","panel panel-pad");
   const flow = el("div","spine-flow");
@@ -884,17 +972,17 @@ function spineFlow(){
     flow.appendChild(d);
   });
   wrap.appendChild(flow);
-  wrap.appendChild(el("div",null,`<div style="margin-top:12px;font-size:12px;color:var(--ink-3);display:flex;align-items:center;gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg> The standing systems are what make this flow repeatable — and compound across passes.</div>`));
+  wrap.appendChild(el("div",null,`<div style="margin-top:12px;font-size:12px;color:var(--ink-3);display:flex;align-items:center;gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg> ${esc(t("flow.repeat"))}</div>`));
   return wrap;
 }
 
 /* ---------- Strategies ---------- */
 function reviewStatus(review){
-  if(!review) return {cls:"b-mute",txt:"no date",days:null};
+  if(!review) return {cls:"b-mute",txt:t("review.nodate"),days:null};
   const days=Math.round((new Date(review)-new Date())/86400000);
-  if(days<0) return {cls:"b-bad",txt:Math.abs(days)+"d overdue",days};
-  if(days<=14) return {cls:"b-warn",txt:"due in "+days+"d",days};
-  return {cls:"b-good",txt:"in "+days+"d",days};
+  if(days<0) return {cls:"b-bad",txt:Math.abs(days)+t("review.overdue"),days};
+  if(days<=14) return {cls:"b-warn",txt:t("review.duein")+days+"d",days};
+  return {cls:"b-good",txt:t("review.in")+days+"d",days};
 }
 function stratStats(name){
   const bets=DB.assumptions.filter(a=>a.strategy===name);
@@ -908,16 +996,16 @@ function reviewRadarPanel(){
   const list=DB.strategies.filter(s=>matchStrat(s.name)&&s.status!=="archived").slice()
     .sort((a,b)=>{ const da=reviewStatus(a.review).days, db=reviewStatus(b.review).days; return (da==null?9999:da)-(db==null?9999:db); });
   const panel=el("div","panel");
-  if(!list.length){ panel.innerHTML=`<div class="empty"><span class="serif">No active strategies in view.</span>Add one under Strategies, or clear the filter.</div>`; return panel; }
+  if(!list.length){ panel.innerHTML=`<div class="empty"><span class="serif">${esc(t("radar.empty.t"))}</span>${esc(t("radar.empty.d"))}</div>`; return panel; }
   const tb=el("table","tbl");
-  tb.innerHTML=`<thead><tr><th>Strategy</th><th>Status</th><th>Flashing</th><th>Review due</th></tr></thead>`;
+  tb.innerHTML=`<thead><tr><th>${esc(t("th.strategy"))}</th><th>${esc(t("th.status"))}</th><th>${esc(t("th.flashing"))}</th><th>${esc(t("th.reviewdue"))}</th></tr></thead>`;
   const b=el("tbody");
   list.forEach(s=>{
     const st=STRAT_STATUS[s.status]||["b-mute",s.status]; const rev=reviewStatus(s.review); const k=stratStats(s.name);
     const tr=el("tr","row");
-    tr.innerHTML=`<td><div class="stmt">${esc(s.name)}</div><div class="strat">${esc(STRAT_FW[s.framework]||s.framework)} · v${esc(s.version||1)} · ${esc(s.owner||"—")}</div></td>
-      <td><span class="badge ${st[0]}"><span class="dot"></span>${st[1]}</span></td>
-      <td>${k.flashing?`<span class="badge b-bad"><span class="dot"></span>${k.flashing} flashing</span>`:`<span class="badge b-good"><span class="dot"></span>clear</span>`}</td>
+    tr.innerHTML=`<td><div class="stmt">${esc(s.name)}</div><div class="strat">${esc(fwL(s.framework))} · v${esc(s.version||1)} · ${esc(s.owner||"—")}</div></td>
+      <td><span class="badge ${st[0]}"><span class="dot"></span>${esc(statusL(s.status))}</span></td>
+      <td>${k.flashing?`<span class="badge b-bad"><span class="dot"></span>${k.flashing} ${esc(t("state.flashing"))}</span>`:`<span class="badge b-good"><span class="dot"></span>${esc(t("state.clear"))}</span>`}</td>
       <td><span class="badge ${rev.cls}"><span class="dot"></span>${rev.txt}</span></td>`;
     clickable(tr,()=>{ currentStrategy=s.id; view="strategies"; render(); },"Open strategy: "+s.name);
     b.appendChild(tr);
@@ -928,7 +1016,7 @@ function vStrategies(){
   if(currentStrategy) return vStrategyDetail(currentStrategy);
   const w=el("div","view");
   w.appendChild(el("div","view-head",t("vh.strategies")));
-  if(!DB.strategies.length){ const p=el("div","panel"); return emptyInto(w,p,"No strategies yet.","Create one — name it, pick a framework, and write the one-page artifact."); }
+  if(!DB.strategies.length){ const p=el("div","panel"); return emptyInto(w,p,t("empty.strat.t"),t("empty.strat.d")); }
   const grid=el("div","grid strat-grid");
   DB.strategies.forEach(s=>{
     const st=STRAT_STATUS[s.status]||["b-mute",s.status];
@@ -937,17 +1025,17 @@ function vStrategies(){
     const card=el("div","panel strat-card");
     card.innerHTML=`
       <div class="sc-top">
-        <span class="badge ${st[0]}"><span class="dot"></span>${st[1]}</span>
+        <span class="badge ${st[0]}"><span class="dot"></span>${esc(statusL(s.status))}</span>
         <span class="badge ${rev.cls}" style="margin-left:auto"><span class="dot"></span>${rev.txt}</span>
       </div>
       <h3 class="serif">${esc(s.name)}</h3>
-      <p class="sc-ch">${esc((s.challenge||"No diagnosis written yet.").slice(0,150))}${(s.challenge||"").length>150?"…":""}</p>
-      <div class="sc-meta">${esc(STRAT_FW[s.framework]||s.framework)} · v${esc(s.version||1)} · ${esc(s.owner||"unowned")}</div>
+      <p class="sc-ch">${esc((L(s,"challenge")||t("op.nodiag")).slice(0,150))}${(L(s,"challenge")||"").length>150?"…":""}</p>
+      <div class="sc-meta">${esc(fwL(s.framework))} · v${esc(s.version||1)} · ${esc(s.owner||t("strat.unowned"))}</div>
       <div class="sc-stats">
-        <span title="Assumptions"><b>${k.bets}</b> bets</span>
-        <span title="Signals"><b>${k.sigs}</b> signals</span>
-        <span title="Decisions"><b>${k.decs}</b> decisions</span>
-        ${k.flashing?`<span class="flash" title="Drifting/disagreeing signals & broken bets"><b>${k.flashing}</b> flashing</span>`:`<span class="ok">on track</span>`}
+        <span title="${esc(t("nav.assumptions"))}"><b>${k.bets}</b> ${esc(t("kpi.bets"))}</span>
+        <span title="${esc(t("nav.signals"))}"><b>${k.sigs}</b> ${esc(t("kpi.signals"))}</span>
+        <span title="${esc(t("nav.decisions"))}"><b>${k.decs}</b> ${esc(t("kpi.decisions"))}</span>
+        ${k.flashing?`<span class="flash"><b>${k.flashing}</b> ${esc(t("state.flashing"))}</span>`:`<span class="ok">${esc(t("kpi.ontrack"))}</span>`}
       </div>`;
     clickable(card,()=>{ currentStrategy=s.id; render(); },"Open strategy: "+s.name);
     grid.appendChild(card);
@@ -961,7 +1049,7 @@ function vStrategyDetail(id){
   const w=el("div","view");
   const st=STRAT_STATUS[s.status]||["b-mute",s.status];
   const rev=reviewStatus(s.review);
-  const back=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M15 18l-6-6 6-6"/></svg>All strategies`);
+  const back=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M15 18l-6-6 6-6"/></svg>${esc(t("btn.back.strat"))}`);
   back.style.marginBottom="16px"; back.onclick=()=>{ currentStrategy=null; render(); };
   w.appendChild(back);
 
@@ -969,16 +1057,16 @@ function vStrategyDetail(id){
   head.style.display="flex"; head.style.justifyContent="space-between"; head.style.alignItems="flex-start"; head.style.gap="20px";
   head.innerHTML=`<div>
       <div style="display:flex;gap:8px;margin-bottom:8px">
-        <span class="badge ${st[0]}"><span class="dot"></span>${st[1]}</span>
-        <span class="badge ${rev.cls}"><span class="dot"></span>review ${rev.txt}</span>
-        <span class="chip">${esc(STRAT_FW[s.framework]||s.framework)}</span>
+        <span class="badge ${st[0]}"><span class="dot"></span>${esc(statusL(s.status))}</span>
+        <span class="badge ${rev.cls}"><span class="dot"></span>${esc(t("review.prefix"))} ${rev.txt}</span>
+        <span class="chip">${esc(fwL(s.framework))}</span>
       </div>
       <h1>${esc(s.name)}</h1>
-      <p>Canonical artifact · v${esc(s.version||1)} · owner ${esc(s.owner||"—")} · derived from the ${esc(STRAT_FW[s.framework]||s.framework)}. Everything else cites this.</p>
+      <p>${esc(t("strat.canon"))} · v${esc(s.version||1)} · ${esc(t("strat.owner"))} ${esc(s.owner||"—")} · ${esc(t("strat.derived"))} ${esc(fwL(s.framework))}. ${esc(t("strat.cites"))}</p>
     </div>`;
   const actions=el("div",null);
   actions.style.cssText="display:flex;gap:8px;flex:none;margin-top:8px";
-  const eb=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit`);
+  const eb=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>${esc(t("btn.edit"))}`);
   eb.onclick=()=>editEntry("strategies",s.id);
   const xb=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>${esc(t("export.md"))}`);
   xb.onclick=()=>exportStrategy(s);
@@ -989,32 +1077,32 @@ function vStrategyDetail(id){
   // one-page artifact
   const op=el("div","panel onepage");
   op.innerHTML=`
-    ${opSection("1 · The challenge",`<p>${esc(s.challenge||"—")}</p>`)}
-    ${opSection("2 · Our approach",`<p>${esc(s.approach||"—")}</p>`)}
-    ${opSection("3 · The big moves",opList(s.moves,"ol"))}
-    ${opSection("4 · What we are NOT doing",opList(s.notDoing,"ul"))}
-    ${opSection("5 · How we'll know it's working",opList(s.howKnow,"ul"))}`;
+    ${opSection(t("op.1"),`<p>${esc(L(s,"challenge")||"—")}</p>`)}
+    ${opSection(t("op.2"),`<p>${esc(L(s,"approach")||"—")}</p>`)}
+    ${opSection(t("op.3"),opList(L(s,"moves"),"ol"))}
+    ${opSection(t("op.4"),opList(L(s,"notDoing"),"ul"))}
+    ${opSection(t("op.5"),opList(L(s,"howKnow"),"ul"))}`;
   w.appendChild(op);
 
   // influence map
-  w.appendChild(el("div","sect-h",`<h2>Influence map</h2><span class="hint">Insights feed the bets, signals watch them, decisions rest on them</span>`));
+  w.appendChild(el("div","sect-h",`<h2>${esc(t("sect.influence"))}</h2><span class="hint">${esc(t("sect.influence.h"))}</span>`));
   const mp=el("div","panel map-wrap");
   renderGraph(mp, buildGraph("focus",s.id), {h:380, mini:true, onNode:n=>{
     if(n.kind==="strategy"&&n.id!==s.id){ currentStrategy=n.id; render(); }
     else openFromMap(n);
   }});
-  const ex=el("button","btn map-expand",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Expand`);
+  const ex=el("button","btn map-expand",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>${esc(t("btn.expand"))}`);
   ex.onclick=()=>{ currentStrategy=null; mapFocus=s.id; view="map"; render(); };
   mp.appendChild(ex);
   mp.appendChild(mapLegend("focus"));
   w.appendChild(mp);
 
   // linked registers
-  w.appendChild(el("div","sect-h",`<h2>What rests on it</h2><span class="hint">The bets, signals and decisions this strategy owns</span>`));
+  w.appendChild(el("div","sect-h",`<h2>${esc(t("sect.rests"))}</h2><span class="hint">${esc(t("sect.rests.h"))}</span>`));
   const cols=el("div","grid strat-link-grid");
-  cols.appendChild(miniList("Assumptions", DB.assumptions.filter(a=>a.strategy===s.name), a=>({main:a.statement,badge:stateBadge(a.state),click:()=>openAssumption(a.id)})));
-  cols.appendChild(miniList("Signals", DB.signals.filter(x=>x.strategy===s.name), x=>({main:x.signal,badge:stateBadge(x.state),click:()=>openSignal(x.id)})));
-  cols.appendChild(miniList("Decisions", DB.decisions.filter(d=>d.strategy===s.name), d=>({main:d.title,badge:`<span class="badge ${d.door==="one-way"?"b-bad":"b-acc"}"><span class="dot"></span>${d.door}</span>`,click:()=>openDecision(d.id)})));
+  cols.appendChild(miniList(t("nav.assumptions"), DB.assumptions.filter(a=>a.strategy===s.name), a=>({main:a.statement,badge:stateBadge(a.state),click:()=>openAssumption(a.id)})));
+  cols.appendChild(miniList(t("nav.signals"), DB.signals.filter(x=>x.strategy===s.name), x=>({main:x.signal,badge:stateBadge(x.state),click:()=>openSignal(x.id)})));
+  cols.appendChild(miniList(t("nav.decisions"), DB.decisions.filter(d=>d.strategy===s.name), d=>({main:d.title,badge:`<span class="badge ${d.door==="one-way"?"b-bad":"b-acc"}"><span class="dot"></span>${esc(t("door."+d.door)||d.door)}</span>`,click:()=>openDecision(d.id)})));
   w.appendChild(cols);
   return w;
 }
@@ -1027,7 +1115,7 @@ function opList(arr,kind){
 function miniList(title,rows,mapper){
   const p=el("div","panel mini");
   let body=`<div class="mini-h">${title}<span>${rows.length}</span></div>`;
-  if(!rows.length){ body+=`<div class="mini-empty">None yet</div>`; }
+  if(!rows.length){ body+=`<div class="mini-empty">${esc(t("none"))}</div>`; }
   p.innerHTML=body;
   rows.forEach(r=>{ const m=mapper(r); const it=el("div","mini-row"); it.innerHTML=`<span class="mini-main">${esc(m.main)}</span>${m.badge}`; clickable(it,m.click,"Open: "+m.main); p.appendChild(it); });
   return p;
@@ -1043,9 +1131,9 @@ function vInsights(){
   w.appendChild(headWithExport(t("vh.insights.t"),t("vh.insights.d"),"insights"));
   const rows = DB.insights.filter(x=>matchStrat(x.strategy ?? "*") || true).filter(x=>matchQ(x.claim+x.theme+x.evidence));
   const panel = el("div","panel");
-  if(!rows.length) return emptyInto(w,panel,"No insights yet.","Capture what you've learned — one claim, its evidence, a confidence level.");
+  if(!rows.length) return emptyInto(w,panel,t("empty.insights.t"),t("empty.insights.d"));
   const tb = el("table","tbl");
-  tb.innerHTML = `<thead><tr><th>Claim</th><th>Theme</th><th>Confidence</th><th>Captured</th><th>Feeds</th></tr></thead>`;
+  tb.innerHTML = `<thead><tr><th>${esc(t("th.claim"))}</th><th>${esc(t("th.theme"))}</th><th>${esc(t("th.confidence"))}</th><th>${esc(t("th.captured"))}</th><th>${esc(t("th.feeds"))}</th></tr></thead>`;
   const b = el("tbody");
   rows.forEach(x=>{
     const tr = el("tr","row");
@@ -1068,9 +1156,9 @@ function vDecisions(){
   w.appendChild(headWithExport(t("vh.decisions.t"),t("vh.decisions.d"),"decisions"));
   const rows = DB.decisions.filter(x=>matchStrat(x.strategy)).filter(x=>matchQ(x.title+x.area+x.reasoning));
   const panel = el("div","panel");
-  if(!rows.length) return emptyInto(w,panel,"No decisions logged.","Log the next real choice — what was decided, and what you rejected.");
+  if(!rows.length) return emptyInto(w,panel,t("empty.decisions.t"),t("empty.decisions.d"));
   const tb = el("table","tbl");
-  tb.innerHTML = `<thead><tr><th>Decision</th><th>Door</th><th>Rests on</th><th>Owner</th><th>Decided</th></tr></thead>`;
+  tb.innerHTML = `<thead><tr><th>${esc(t("th.decision"))}</th><th>${esc(t("th.door"))}</th><th>${esc(t("th.rests"))}</th><th>${esc(t("th.owner"))}</th><th>${esc(t("th.decided"))}</th></tr></thead>`;
   const b = el("tbody");
   rows.slice().sort((a,c)=>(c.decided||"").localeCompare(a.decided||"")).forEach(d=>{
     const tr = el("tr","row");
@@ -1092,25 +1180,25 @@ function vAssumptions(){
   w.appendChild(headWithExport(t("vh.assumptions.t"),t("vh.assumptions.d"),"assumptions"));
   const all = DB.assumptions.filter(x=>matchStrat(x.strategy)).filter(x=>matchQ(x.statement+x.kill_signal));
   // confidence × consequence matrix
-  w.appendChild(el("div","sect-h",`<h2>Confidence × consequence</h2><span class="hint">The top-left cell is where strategies quietly die — watch those first</span>`));
+  w.appendChild(el("div","sect-h",`<h2>${esc(t("sect.matrix"))}</h2><span class="hint">${esc(t("sect.matrix.h"))}</span>`));
   w.appendChild(matrixPanel(all));
   w.appendChild(el("div","sect-h",`<h2>All bets</h2><span class="hint">Riskiest first</span>`));
   const rank = a => (a.confidence==="low"&&a.consequence==="high")?0 : (a.consequence==="high")?1 : (a.confidence==="low")?2:3;
   const rows = all.slice().sort((a,b)=>rank(a)-rank(b));
   const panel = el("div","panel");
-  if(!rows.length) return emptyInto(w,panel,"No assumptions yet.","Harvest bets from your diagnosis and pre-mortem failure modes.");
+  if(!rows.length) return emptyInto(w,panel,t("empty.assumptions.t"),t("empty.assumptions.d"));
   const tb = el("table","tbl");
-  tb.innerHTML = `<thead><tr><th>Assumption</th><th>Conf × Cons</th><th>State</th><th>Kill-signal</th><th>Watched by</th></tr></thead>`;
+  tb.innerHTML = `<thead><tr><th>${esc(t("th.assumption"))}</th><th>${esc(t("th.confcons"))}</th><th>${esc(t("th.state"))}</th><th>${esc(t("th.killsignal"))}</th><th>${esc(t("th.watchedby"))}</th></tr></thead>`;
   const b = el("tbody");
   rows.forEach(a=>{
     const tr = el("tr","row");
     const sig = a.watchedBy?byId("signals",a.watchedBy):null;
     const risky = a.confidence==="low"&&a.consequence==="high";
     tr.innerHTML = `<td><div class="stmt">${risky?'<span class="badge b-bad" style="margin-right:6px"><span class="dot"></span>riskiest</span>':""}${esc(a.statement)}</div><div class="strat">${esc(a.strategy)}</div></td>
-      <td><span class="matrix">${esc(a.confidence)} × ${esc(a.consequence)}</span></td>
+      <td><span class="matrix">${esc(lvl(a.confidence))} × ${esc(lvl(a.consequence))}</span></td>
       <td>${stateBadge(a.state)}</td>
       <td><div class="meta" style="max-width:30ch">${esc(a.kill_signal||"—")}</div></td>
-      <td>${sig?`<span class="meta">${stateBadge(sig.state)}</span>`:'<span class="badge b-mute"><span class="dot"></span>unwatched</span>'}</td>`;
+      <td>${sig?`<span class="meta">${stateBadge(sig.state)}</span>`:`<span class="badge b-mute"><span class="dot"></span>${esc(t("state.unwatched"))}</span>`}</td>`;
     clickable(tr,()=>openAssumption(a.id),"Open assumption: "+a.statement);
     b.appendChild(tr);
   });
@@ -1126,9 +1214,9 @@ function vSignals(){
   const ord={disagreeing:0,drifting:1,agreeing:2,retired:3};
   const rows = all.slice().sort((a,b)=>(ord[a.state]??9)-(ord[b.state]??9));
   const panel = el("div","panel");
-  if(!rows.length) return emptyInto(w,panel,"No signals yet.","Design 3–5 per strategy. Each watches one assumption.");
+  if(!rows.length) return emptyInto(w,panel,t("empty.signals.t"),t("empty.signals.d"));
   const tb = el("table","tbl");
-  tb.innerHTML = `<thead><tr><th>Signal</th><th>Watches</th><th>State</th><th>Latest reading</th><th>Owner</th></tr></thead>`;
+  tb.innerHTML = `<thead><tr><th>${esc(t("th.signal"))}</th><th>${esc(t("th.watches"))}</th><th>${esc(t("th.state"))}</th><th>${esc(t("th.latest"))}</th><th>${esc(t("th.owner"))}</th></tr></thead>`;
   const b = el("tbody");
   rows.forEach(s=>{
     const tr = el("tr","row");
@@ -1210,21 +1298,21 @@ function vReview(){
   w.appendChild(banner);
 
   // Step 1 — read signals
-  w.appendChild(el("div","rev-step",`<span class="num">1</span><h2>Read the signals</h2><span class="hint">Append a fresh reading; set the new state</span>`));
+  w.appendChild(el("div","rev-step",`<span class="num">1</span><h2>${esc(t("rev.1"))}</h2><span class="hint">${esc(t("rev.1.h"))}</span>`));
   const sp=el("div","grid"); sp.style.gap="12px";
   if(!sigs.length){ sp.appendChild(el("div","panel",`<div class="empty"><span class="serif">Nothing drifting.</span>No signal is disagreeing in this view. Keep the readings flowing on the rhythm anyway.</div>`)); }
   sigs.forEach(s=>sp.appendChild(reviewSignalCard(s)));
   w.appendChild(sp);
 
   // Step 2 — re-rate bets
-  w.appendChild(el("div","rev-step",`<span class="num">2</span><h2>Re-rate the bets</h2><span class="hint">Has confidence moved? Is it broken?</span>`));
+  w.appendChild(el("div","rev-step",`<span class="num">2</span><h2>${esc(t("rev.2"))}</h2><span class="hint">${esc(t("rev.2.h"))}</span>`));
   const ap=el("div","grid"); ap.style.gap="12px";
   if(!asmp.length){ ap.appendChild(el("div","panel",`<div class="empty"><span class="serif">All bets steady.</span>No shaky or broken assumptions in this view.</div>`)); }
   asmp.forEach(a=>ap.appendChild(reviewAssumptionCard(a)));
   w.appendChild(ap);
 
   // Step 3 — end in a decision
-  w.appendChild(el("div","rev-step",`<span class="num">3</span><h2>End in a decision</h2><span class="hint">If nothing changed, it was theatre</span>`));
+  w.appendChild(el("div","rev-step",`<span class="num">3</span><h2>${esc(t("rev.3"))}</h2><span class="hint">${esc(t("rev.3.h"))}</span>`));
   const dp=el("div","panel panel-pad");
   dp.style.display="flex"; dp.style.justifyContent="space-between"; dp.style.alignItems="center"; dp.style.gap="16px"; dp.style.flexWrap="wrap";
   dp.innerHTML=`<div style="max-width:52ch;color:var(--ink-2);font-size:13.5px">Capture the call this review produced — a HOLD, a re-scope, a resource move, a kill. It lands in the <b style="color:var(--ink)">Decision Log</b> with the bets it rests on.</div>`;
@@ -1261,7 +1349,7 @@ function reviewSignalCard(s){
 function reviewAssumptionCard(a){
   const c=el("div","panel rev-card");
   c.innerHTML=`<div class="rh"><div class="stmt">${esc(a.statement)}</div>${stateBadge(a.state)}</div>
-    <div style="font-size:12px;color:var(--ink-3)">${esc(a.confidence)} confidence × ${esc(a.consequence)} consequence · kill: ${esc((a.kill_signal||"—").slice(0,60))}…</div>`;
+    <div style="font-size:12px;color:var(--ink-3)">${esc(lvl(a.confidence))} ${esc(t("conf.suffix"))} × ${esc(lvl(a.consequence))} ${esc(t("cons.suffix"))} · kill: ${esc((a.kill_signal||"—").slice(0,60))}…</div>`;
   const ctrl=el("div","ctrl");
   const wrapConf=el("div",null,`<div class="lbl" style="margin-bottom:4px">Confidence</div>`);
   const segC=el("div","seg");
@@ -1670,53 +1758,53 @@ function drawerFoot(coll,id){
 }
 function openInsight(id){
   const x = byId("insights",id); if(!x) return;
-  drawerShell("Insight · Sensing", lvlChipBadge(x.confidence));
+  drawerShell(t("dr.eye.insight"), lvlChipBadge(x.confidence));
   const bet = x.feeds?byId("assumptions",x.feeds):null;
   $("#drawerB").innerHTML = `<h3>${esc(x.claim)}</h3>
-    <dl class="kv"><dt>Theme</dt><dd>${esc(x.theme||"—")}</dd><dt>Confidence</dt><dd>${esc(x.confidence)}</dd><dt>Captured</dt><dd class="mono">${esc(x.captured||"—")}</dd><dt>Source</dt><dd>${esc(x.source||"—")}</dd></dl>
-    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:6px">Evidence</div>
+    <dl class="kv"><dt>${esc(t("th.theme"))}</dt><dd>${esc(x.theme||"—")}</dd><dt>${esc(t("th.confidence"))}</dt><dd>${esc(lvl(x.confidence))}</dd><dt>${esc(t("th.captured"))}</dt><dd class="mono">${esc(x.captured||"—")}</dd><dt>${esc(t("dt.source"))}</dt><dd>${esc(x.source||"—")}</dd></dl>
+    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:6px">${esc(t("dr.evidence"))}</div>
     <div class="note">${esc(x.evidence||"—")}</div>
-    ${bet?`<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">Feeds the bet</div><div class="link-row"><a class="linkc" onclick="openAssumption('${bet.id}')"><span class="tk">assumption</span>${esc(bet.statement.slice(0,40))}…</a></div>`:""}`;
+    ${bet?`<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">${esc(t("dr.feeds"))}</div><div class="link-row"><a class="linkc" onclick="openAssumption('${bet.id}')"><span class="tk">${esc(t("tk.assumption"))}</span>${esc(bet.statement.slice(0,40))}…</a></div>`:""}`;
   drawerFoot("insights",id); openDrawer();
 }
 function openDecision(id){
   const d = byId("decisions",id); if(!d) return;
-  drawerShell("Decision · Memory", `<span class="badge ${d.door==="one-way"?"b-bad":"b-acc"}" style="margin-top:6px"><span class="dot"></span>${d.door==="one-way"?"One-way door":"Two-way door"}</span>`);
+  drawerShell(t("dr.eye.decision"), `<span class="badge ${d.door==="one-way"?"b-bad":"b-acc"}" style="margin-top:6px"><span class="dot"></span>${d.door==="one-way"?esc(t("dr.oneway")):esc(t("dr.twoway"))}</span>`);
   $("#drawerB").innerHTML = `<h3>${esc(d.title)}</h3>
-    <dl class="kv"><dt>Strategy</dt><dd>${esc(d.strategy)}</dd><dt>Area</dt><dd>${esc(d.area||"—")}</dd><dt>Owner</dt><dd>${esc(d.owner||"—")}</dd><dt>Decided</dt><dd class="mono">${esc(d.decided||"—")}</dd></dl>
-    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">Reasoning</div><div class="note">${esc(d.reasoning||"—")}</div>
-    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">Options rejected</div><div class="note">${esc(d.rejected||"—")}</div>
-    ${(d.rests&&d.rests.length)?`<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">Rests on assumptions</div><div class="link-row">${d.rests.map(aid=>{const a=byId("assumptions",aid);return a?`<a class="linkc" onclick="openAssumption('${a.id}')"><span class="tk">${a.state}</span>${esc(a.statement.slice(0,38))}…</a>`:""}).join("")}</div>`:""}
-    ${d.trigger?`<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:14px">Review trigger</div><div class="note">${esc(d.trigger)}</div>`:""}`;
+    <dl class="kv"><dt>${esc(t("dt.strategy"))}</dt><dd>${esc(d.strategy)}</dd><dt>${esc(t("dt.area"))}</dt><dd>${esc(d.area||"—")}</dd><dt>${esc(t("th.owner"))}</dt><dd>${esc(d.owner||"—")}</dd><dt>${esc(t("th.decided"))}</dt><dd class="mono">${esc(d.decided||"—")}</dd></dl>
+    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">${esc(t("dr.reasoning"))}</div><div class="note">${esc(d.reasoning||"—")}</div>
+    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">${esc(t("dr.rejected"))}</div><div class="note">${esc(d.rejected||"—")}</div>
+    ${(d.rests&&d.rests.length)?`<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">${esc(t("dr.restson"))}</div><div class="link-row">${d.rests.map(aid=>{const a=byId("assumptions",aid);return a?`<a class="linkc" onclick="openAssumption('${a.id}')"><span class="tk">${esc(t("state."+a.state)||a.state)}</span>${esc(a.statement.slice(0,38))}…</a>`:""}).join("")}</div>`:""}
+    ${d.trigger?`<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:14px">${esc(t("dr.trigger"))}</div><div class="note">${esc(d.trigger)}</div>`:""}`;
   drawerFoot("decisions",id); openDrawer();
 }
 function openAssumption(id){
   const a = byId("assumptions",id); if(!a) return;
-  drawerShell("Assumption · Memory", `<div style="margin-top:6px">${stateBadge(a.state)}</div>`);
+  drawerShell(t("dr.eye.assumption"), `<div style="margin-top:6px">${stateBadge(a.state)}</div>`);
   const sig = a.watchedBy?byId("signals",a.watchedBy):null;
   const deps = DB.decisions.filter(d=>(d.rests||[]).includes(id));
   $("#drawerB").innerHTML = `<h3>${esc(a.statement)}</h3>
-    <dl class="kv"><dt>Strategy</dt><dd>${esc(a.strategy)}</dd><dt>Confidence</dt><dd>${esc(a.confidence)}</dd><dt>Consequence</dt><dd>${esc(a.consequence)}</dd><dt>State</dt><dd>${esc(a.state)}</dd></dl>
-    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">Kill-signal — what would prove this false</div><div class="note">${esc(a.kill_signal||"—")}</div>
+    <dl class="kv"><dt>${esc(t("dt.strategy"))}</dt><dd>${esc(a.strategy)}</dd><dt>${esc(t("th.confidence"))}</dt><dd>${esc(lvl(a.confidence))}</dd><dt>${esc(t("dt.consequence"))}</dt><dd>${esc(lvl(a.consequence))}</dd><dt>${esc(t("th.state"))}</dt><dd>${esc(t("state."+a.state)||a.state)}</dd></dl>
+    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">${esc(t("dr.kill"))}</div><div class="note">${esc(a.kill_signal||"—")}</div>
     ${a.note?`<div class="note" style="border-color:var(--accent-soft)">${esc(a.note)}</div>`:""}
-    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">Watched by</div>
-    <div class="link-row">${sig?`<a class="linkc" onclick="openSignal('${sig.id}')"><span class="tk">signal · ${sig.state}</span>${esc(sig.signal.slice(0,36))}…</a>`:`<span class="badge b-mute"><span class="dot"></span>unwatched — a blind spot</span>`}</div>
-    ${deps.length?`<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:14px">Decisions resting on it</div><div class="link-row">${deps.map(d=>`<a class="linkc" onclick="openDecision('${d.id}')"><span class="tk">decision</span>${esc(d.title.slice(0,34))}…</a>`).join("")}</div>`:""}`;
+    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">${esc(t("dr.watchedby"))}</div>
+    <div class="link-row">${sig?`<a class="linkc" onclick="openSignal('${sig.id}')"><span class="tk">${esc(t("tk.signal"))} · ${esc(t("state."+sig.state)||sig.state)}</span>${esc(sig.signal.slice(0,36))}…</a>`:`<span class="badge b-mute"><span class="dot"></span>${esc(t("dr.blindspot"))}</span>`}</div>
+    ${deps.length?`<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:14px">${esc(t("dr.decresting"))}</div><div class="link-row">${deps.map(d=>`<a class="linkc" onclick="openDecision('${d.id}')"><span class="tk">${esc(t("tk.decision"))}</span>${esc(d.title.slice(0,34))}…</a>`).join("")}</div>`:""}`;
   drawerFoot("assumptions",id); openDrawer();
 }
 function openSignal(id){
   const s = byId("signals",id); if(!s) return;
-  drawerShell("Signal · Feedback", `<div style="margin-top:6px">${stateBadge(s.state)}</div>`);
+  drawerShell(t("dr.eye.signal"), `<div style="margin-top:6px">${stateBadge(s.state)}</div>`);
   const a = s.watches?byId("assumptions",s.watches):null;
   const log = (s.log||[]).map(r=>`<div class="logitem"><span class="d">${esc(r.d)}</span><span>${esc(r.t)}</span></div>`).join("");
   $("#drawerB").innerHTML = `<h3>${esc(s.signal)}</h3>
-    <dl class="kv"><dt>Strategy</dt><dd>${esc(s.strategy)}</dd><dt>Owner</dt><dd>${esc(s.owner||"—")}</dd><dt>Expected shape</dt><dd>${esc(s.expected_shape||"—")}</dd><dt>Latest reading</dt><dd>${esc(s.last_reading||"—")}</dd></dl>
-    ${a?`<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">Watches assumption</div><div class="link-row"><a class="linkc" onclick="openAssumption('${a.id}')"><span class="tk">${a.state}</span>${esc(a.statement.slice(0,38))}…</a></div>`:""}
-    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:16px">Reading log</div>
-    <div style="margin-top:4px">${log||'<div class="note">No readings yet.</div>'}</div>`;
+    <dl class="kv"><dt>${esc(t("dt.strategy"))}</dt><dd>${esc(s.strategy)}</dd><dt>${esc(t("th.owner"))}</dt><dd>${esc(s.owner||"—")}</dd><dt>${esc(t("dt.expected"))}</dt><dd>${esc(s.expected_shape||"—")}</dd><dt>${esc(t("th.latest"))}</dt><dd>${esc(s.last_reading||"—")}</dd></dl>
+    ${a?`<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">${esc(t("dr.watchesasm"))}</div><div class="link-row"><a class="linkc" onclick="openAssumption('${a.id}')"><span class="tk">${esc(t("state."+a.state)||a.state)}</span>${esc(a.statement.slice(0,38))}…</a></div>`:""}
+    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:16px">${esc(t("dr.readinglog"))}</div>
+    <div style="margin-top:4px">${log||`<div class="note">${esc(t("dr.noreadings"))}</div>`}</div>`;
   drawerFoot("signals",id); openDrawer();
 }
-function lvlChipBadge(l){ const cls=l==="high"?"b-good":l==="low"?"b-mute":"b-warn"; return `<span class="badge ${cls}" style="margin-top:6px"><span class="dot"></span>${esc(l)} confidence</span>`; }
+function lvlChipBadge(l){ const cls=l==="high"?"b-good":l==="low"?"b-mute":"b-warn"; return `<span class="badge ${cls}" style="margin-top:6px"><span class="dot"></span>${esc(lvl(l))} ${esc(t("conf.suffix"))}</span>`; }
 
 /* ============================================================ FORMS */
 let editing = null; // {coll,id} or {coll}

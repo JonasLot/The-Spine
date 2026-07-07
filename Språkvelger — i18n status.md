@@ -9,23 +9,33 @@
 - Lagring: `saveProfile()` skriver `lang` inn i `SB.auth.updateUser({data:{…}})`. Leses ved `boot()`.
 - **Utvid:** legg til nøkkel i både `T.en` og `T.no`, bruk `t("nøkkel")` der strengen står. Manglende norsk nøkkel faller trygt tilbake til engelsk.
 
-## Oversatt nå (fase 1) ✅
-- Navigasjon (alle 11 punkter), nav-grupper (Registre/Apparat/Konto), brand-eyebrow + tagline.
-- Topplinje: brødsmule, «Alle strategier», søke-placeholder, «Ny …»-knapp (kontekstuell), «Logg ut».
-- Alle elleve view-overskrifter (h1 + ingress): dashbord, strategier, kart, driftsrytme, svinghjul, systemer, profil, og de fire registrene.
-- «Eksporter .md»-knapp.
-- Verifisert: `node --check` OK, 42 nøkler i hvert språk, full paritet.
+## Oversatt nå (fase 1 + 2) ✅
+Fase 1 — skallet:
+- Navigasjon (alle 11 punkter), nav-grupper, brand-eyebrow + tagline, topplinje, «Ny …»-knapp, «Logg ut», alle elleve view-overskrifter, «Eksporter .md».
 
-## Gjenstår (fase 2 — dyp UI-tekst, fortsatt engelsk)
-Disse er bevisst ikke oversatt ennå, så UI-et er delvis tospråklig i dyplagene:
-- Dashboard-kort, KPI-labels og «what disagrees»-liste.
-- Register-tabeller: kolonneoverskrifter, badges/tilstander (holding, shaky, drifting, disagreeing …), tomtilstander.
-- Strategidetalj: seksjonsoverskrifter («What rests on it», kernel-felt osv.), mini-lister.
-- Skjema/drawer: feltnavn, hjelpetekst, knapper i `buildForm`/modal.
-- Kart-legend og tooltips, review-flyt-tekst, flywheel/systems-kortinnhold.
-- Datofmt./tallformat (no-NO vs en-GB) hvis ønskelig.
+Fase 2 — dyp UI-tekst:
+- Delte etiketter rutet via `t()`: tilstander (holding/shaky/drifting/disagreeing …), statuser, rammeverk, konfidens/konsekvens-nivåer, sync-status, dør-type.
+- Dashboard: KPI-kort, seksjonsoverskrifter, ryggrad-flyt, «trenger oppmerksomhet»-tabell + tomtilstand.
+- Register-tabeller: alle kolonneoverskrifter og tomtilstander (innsikter, beslutninger, antakelser, signaler).
+- Strategidetalj: knapper, kanonisk-linje, énsides-seksjoner, påvirkningskart-/hviler-på-overskrifter, mini-lister.
+- Matrise (konfidens × konsekvens), driftsrytme-stegene, gjennomgangsradar.
+- Detalj-drawere (åpnes fra kart/tabeller): eyebrows, felt-etiketter, seksjoner, lenke-tokens.
 
-Alt følger samme mønster: legg nøkkel i `T`, bytt streng med `t()`. Ingen ny infrastruktur trengs.
+### Demo-strategiene på norsk ✅
+- `SEED_NO` + `L(obj,felt)`-overlegg: seed-strategiene (st1/st2/st3) vises på norsk når norsk er valgt.
+- Trygt: viser norsk **kun** når feltet fortsatt er den opprinnelige seed-teksten. Redigerer du en strategi, vises din egen tekst uendret på begge språk. Ingen datamodell-endring.
+
+### Verifisert (kjørt 2026-07-07)
+- `node --check`: OK. 160 `t()`-nøkler i bruk, alle definert. Full paritet: 196 nøkler i hvert språk.
+- Runtime-test med stubbet DOM: `t()` bytter EN↔NO korrekt; ukjent nøkkel faller tilbake til nøkkelen; `L()` gir norsk for uredigert st1, men bevarer brukerens tekst etter redigering.
+
+## Gjenstår (fase 2b — mindre restlomme)
+- Redigerings-modalen (`FIELDS`/`buildForm`): feltnavn + hjelpetekst (placeholders) og seg-valg. Statisk `FIELDS`-objekt må rutes via `t()` — en egen, avgrenset pass.
+- «Connect your backend»-oppsettskjermen (vises bare før Supabase er konfigurert).
+- Flywheel/Standing Systems-kortinnhold (lange forklaringer i `SYSTEMS`/`FAM`).
+- Evt. dato-/tallformat (no-NO vs en-GB).
+
+Alt følger samme mønster: legg nøkkel i `T.en` + `T.no`, bytt streng med `t()`.
 
 ## Test
 - [ ] Bytt til Norsk i topplinjen → nav, overskrifter og knapper bytter umiddelbart.
