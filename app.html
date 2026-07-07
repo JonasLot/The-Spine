@@ -469,6 +469,10 @@ a{color:inherit}
       <div class="crumb">Spine OS · <b id="crumb">Dashboard</b></div>
       <span class="sync" id="syncStatus"></span>
       <div class="spacer"></div>
+      <div class="field" title="Language / Språk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18" opacity=".6"/></svg>
+        <select id="langSel" aria-label="Language"><option value="en">English</option><option value="no">Norsk</option></select>
+      </div>
       <div class="field">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
         <select id="strategyFilter"><option value="*">All strategies</option></select>
@@ -603,12 +607,95 @@ const FAM = {
 let SB = null;        // Supabase client
 let USER = null;      // signed-in user
 let DB = { strategies:[], insights:[], decisions:[], assumptions:[], signals:[] };
-let PROFILE = { full_name:"", organizations:[] };
+let PROFILE = { full_name:"", organizations:[], lang:"en" };
 let view = "dashboard";
 let q = "";
 let stratF = "*";
 let currentStrategy = null; // strategy id when viewing a single strategy
 let mapFocus = null;        // strategy id when the map is in focus mode
+
+/* ============================================================ i18n
+   UI-chrome translation. Only interface text is translated — your own
+   strategies, insights and decisions stay exactly as you wrote them.
+   The active language lives on your Supabase profile (user-metadata),
+   so it follows you across devices. Extend by adding keys to T.no/T.en. */
+let LANG = "en";
+const T = {
+  en:{
+    "brand.ey":"Strategy Architect",
+    "brand.tag":"“Most strategies die on the page.<br>This one gets followed.”",
+    "grp.registers":"Registers", "grp.apparatus":"Apparatus", "grp.account":"Account",
+    "filter.all":"All strategies", "search.ph":"Search registers…", "signout":"Sign out",
+    "add.org":"Add organisation", "add.strategy":"New strategy", "add.generic":"New",
+    "add.insights":"New insight", "add.decisions":"New decision", "add.assumptions":"New assumption", "add.signals":"New signal",
+    "nav.dashboard":"Dashboard", "nav.strategies":"Strategies", "nav.map":"Strategy Map",
+    "nav.insights":"Insights", "nav.decisions":"Decisions", "nav.assumptions":"Assumptions", "nav.signals":"Signals",
+    "nav.review":"Operating Rhythm", "nav.flywheel":"The Flywheel", "nav.systems":"Standing Systems", "nav.profile":"Profile",
+    "vh.dashboard":`<h1>Am I moving toward the goal?</h1><p>One read of the whole apparatus. The bets the strategy rests on, the signals watching them, and what disagrees with you right now.</p>`,
+    "vh.strategies":`<div><h1>Strategies</h1><p>The canonical artifacts — the single authoritative statement of each strategy that everything else points to. Each one carries a one-page kernel and owns its bets, signals and decisions. This is what the registers orbit.</p></div>`,
+    "vh.map":`<h1>Strategy Map</h1><p>The portfolio as a network. Solid lines are relations you've declared; dashed lines appear when two strategies share insights, bets or decisions. Click a strategy to see everything that influences it.</p>`,
+    "vh.review":`<h1>Operating Rhythm</h1><p>The heartbeat. Read the signals, re-rate the bets, and end in a decision — otherwise the review is theatre. Everything you change here is logged.</p>`,
+    "vh.flywheel":`<h1>The Flywheel</h1><p>The spine is flow — done once per strategy. The standing systems are reservoirs and loops: they accumulate and feed back, so the organisation gets smarter on every pass instead of starting cold.</p>`,
+    "vh.systems":`<h1>Standing Systems</h1><p>The ten systems that make strategy repeatable. Four run as live registers in this app; the other six are the drivetrain around them — reading, re-rating, gating and promoting. Each card names what dies without it.</p>`,
+    "vh.profile":`<h1>Profile</h1><p>Your account details and the organisations you belong to.</p>`,
+    "vh.insights.t":"Insights", "vh.insights.d":"The stock of what's true. Each claim carries its evidence and a confidence — so strategy rests on what's known, not on whoever shouted loudest. A falsified bet downgrades the insight it rested on.",
+    "vh.decisions.t":"Decisions", "vh.decisions.d":"Append-only memory. Every decision records the options rejected and the assumptions it rests on — so nobody re-litigates, and a broken bet tells you which decision to revisit.",
+    "vh.assumptions.t":"Assumptions", "vh.assumptions.d":"The motor of the re-loop. Every strategy is a stack of bets — rate each on confidence × consequence, give each a kill-signal, and re-rate them on the rhythm. The riskiest sit at the top.",
+    "vh.signals.t":"Signals", "vh.signals.d":"Each signal watches a named assumption, has an expected shape, an owner, and a latest reading. A signal with no expected shape can't disagree with you. When one disagrees, it must change something.",
+    "export.md":"Export .md",
+  },
+  no:{
+    "brand.ey":"Strategiarkitekt",
+    "brand.tag":"«De fleste strategier dør på arket.<br>Denne blir fulgt.»",
+    "grp.registers":"Registre", "grp.apparatus":"Apparat", "grp.account":"Konto",
+    "filter.all":"Alle strategier", "search.ph":"Søk i registre…", "signout":"Logg ut",
+    "add.org":"Legg til organisasjon", "add.strategy":"Ny strategi", "add.generic":"Ny",
+    "add.insights":"Ny innsikt", "add.decisions":"Ny beslutning", "add.assumptions":"Ny antakelse", "add.signals":"Nytt signal",
+    "nav.dashboard":"Dashbord", "nav.strategies":"Strategier", "nav.map":"Strategikart",
+    "nav.insights":"Innsikter", "nav.decisions":"Beslutninger", "nav.assumptions":"Antakelser", "nav.signals":"Signaler",
+    "nav.review":"Driftsrytme", "nav.flywheel":"Svinghjulet", "nav.systems":"Stående systemer", "nav.profile":"Profil",
+    "vh.dashboard":`<h1>Beveger jeg meg mot målet?</h1><p>Ett blikk på hele apparatet. Bettene strategien hviler på, signalene som overvåker dem, og hva som er uenig med deg akkurat nå.</p>`,
+    "vh.strategies":`<div><h1>Strategier</h1><p>De kanoniske artefaktene — den ene autoritative formuleringen av hver strategi som alt annet peker mot. Hver bærer en énsides kjerne og eier sine bets, signaler og beslutninger. Det er dette registrene kretser rundt.</p></div>`,
+    "vh.map":`<h1>Strategikart</h1><p>Porteføljen som et nettverk. Heltrukne linjer er relasjoner du har erklært; stiplede linjer dukker opp når to strategier deler innsikter, bets eller beslutninger. Klikk en strategi for å se alt som påvirker den.</p>`,
+    "vh.review":`<h1>Driftsrytme</h1><p>Hjerteslaget. Les signalene, revurder bettene, og avslutt med en beslutning — ellers er gjennomgangen teater. Alt du endrer her blir logget.</p>`,
+    "vh.flywheel":`<h1>Svinghjulet</h1><p>Ryggraden er flyt — gjøres én gang per strategi. De stående systemene er reservoarer og løkker: de akkumulerer og gir tilbakekobling, så organisasjonen blir smartere for hver runde i stedet for å starte kaldt.</p>`,
+    "vh.systems":`<h1>Stående systemer</h1><p>De ti systemene som gjør strategi repeterbar. Fire kjører som levende registre i denne appen; de seks andre er drivverket rundt dem — lesing, revurdering, porting og promotering. Hvert kort navngir hva som dør uten det.</p>`,
+    "vh.profile":`<h1>Profil</h1><p>Kontodetaljene dine og organisasjonene du tilhører.</p>`,
+    "vh.insights.t":"Innsikter", "vh.insights.d":"Beholdningen av det som er sant. Hver påstand bærer sitt bevis og en konfidens — så strategien hviler på det som er kjent, ikke på den som ropte høyest. Et falsifisert bet nedgraderer innsikten det hvilte på.",
+    "vh.decisions.t":"Beslutninger", "vh.decisions.d":"Append-only-hukommelse. Hver beslutning registrerer alternativene som ble forkastet og antakelsene den hviler på — så ingen re-litigerer, og et brutt bet forteller deg hvilken beslutning du bør se på igjen.",
+    "vh.assumptions.t":"Antakelser", "vh.assumptions.d":"Motoren i re-løkken. Hver strategi er en stabel av bets — vurder hver på konfidens × konsekvens, gi hver et kill-signal, og revurder dem i rytmen. De risikableste ligger øverst.",
+    "vh.signals.t":"Signaler", "vh.signals.d":"Hvert signal overvåker en navngitt antakelse, har en forventet form, en eier og en siste avlesning. Et signal uten forventet form kan ikke være uenig med deg. Når ett er uenig, må det endre noe.",
+    "export.md":"Eksporter .md",
+  },
+};
+function t(k){ return (T[LANG] && T[LANG][k]) ?? T.en[k] ?? k; }
+function addLabelFor(){
+  if(view==="profile") return t("add.org");
+  const showAdd = ["strategies","insights","decisions","assumptions","signals"].includes(view) && !currentStrategy;
+  if(!showAdd) return t("add.generic");
+  if(view==="strategies") return t("add.strategy");
+  return t("add."+view);
+}
+function applyChrome(){
+  document.querySelectorAll('.nav-item[data-view]').forEach(n=>{
+    const lab=n.querySelector('span:not(.ct)'); if(lab) lab.textContent=t('nav.'+n.dataset.view);
+  });
+  const grps=document.querySelectorAll('.nav-grp');
+  if(grps[0]) grps[0].textContent=t('grp.registers');
+  if(grps[1]) grps[1].textContent=t('grp.apparatus');
+  if(grps[2]) grps[2].textContent=t('grp.account');
+  const ey=document.querySelector('.brand .ey'); if(ey) ey.textContent=t('brand.ey');
+  const tag=document.querySelector('.foot .tag'); if(tag) tag.innerHTML=t('brand.tag');
+  const srch=$('#search'); if(srch) srch.setAttribute('placeholder',t('search.ph'));
+  const langSel=$('#langSel'); if(langSel) langSel.value=LANG;
+  syncStrategyFilter();
+}
+function setLang(l){
+  if(l===LANG) return;
+  LANG=l; PROFILE.lang=l;
+  applyChrome(); render();
+  if(SB && USER) saveProfile();
+}
 
 const COLLS=["strategies","insights","decisions","assumptions","signals"];
 function stratNames(){ return DB.strategies.map(s=>s.name); }
@@ -681,14 +768,13 @@ function byId(coll,id){ return DB[coll].find(x=>x.id===id); }
 
 /* ============================================================ VIEWS */
 function render(){
-  $("#crumb").textContent = ({dashboard:"Dashboard",strategies:"Strategies",map:"Strategy Map",insights:"Insights",decisions:"Decisions",assumptions:"Assumptions",signals:"Signals",review:"Operating Rhythm",flywheel:"The Flywheel",systems:"Standing Systems",profile:"Profile"})[view];
+  $("#crumb").textContent = t("nav."+view);
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active", n.dataset.view===view));
   const isRegister = ["insights","decisions","assumptions","signals"].includes(view);
   const showAdd = ["strategies","insights","decisions","assumptions","signals","profile"].includes(view) && !currentStrategy;
   $("#addBtn").style.display = showAdd ? "inline-flex":"none";
   $("#searchField").style.display = isRegister ? "flex":"none";
-  if(view==="profile") $("#addLabel").textContent = "Add organisation";
-  else $("#addLabel").textContent = showAdd ? (view==="strategies"?"New strategy":"New "+view.slice(0,-1)) : "New";
+  $("#addLabel").textContent = addLabelFor();
   updateCounts();
   const r = $("#root"); r.innerHTML="";
   r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
@@ -717,10 +803,7 @@ function vDashboard(){
   attention.sort((x,y)=>(order[x.o.state]??9)-(order[y.o.state]??9));
   const strategies = stratF==="*"?DB.strategies:[stratF];
 
-  w.innerHTML = `<div class="view-head">
-    <h1>Am I moving toward the goal?</h1>
-    <p>One read of the whole apparatus. The bets the strategy rests on, the signals watching them, and what disagrees with you right now.</p>
-  </div>`;
+  w.innerHTML = `<div class="view-head">${t("vh.dashboard")}</div>`;
 
   const kpis = el("div","grid kpis");
   kpis.innerHTML = `
@@ -844,7 +927,7 @@ function reviewRadarPanel(){
 function vStrategies(){
   if(currentStrategy) return vStrategyDetail(currentStrategy);
   const w=el("div","view");
-  w.appendChild(el("div","view-head",`<div><h1>Strategies</h1><p>The canonical artifacts — the single authoritative statement of each strategy that everything else points to. Each one carries a one-page kernel and owns its bets, signals and decisions. This is what the registers orbit.</p></div>`));
+  w.appendChild(el("div","view-head",t("vh.strategies")));
   if(!DB.strategies.length){ const p=el("div","panel"); return emptyInto(w,p,"No strategies yet.","Create one — name it, pick a framework, and write the one-page artifact."); }
   const grid=el("div","grid strat-grid");
   DB.strategies.forEach(s=>{
@@ -897,7 +980,7 @@ function vStrategyDetail(id){
   actions.style.cssText="display:flex;gap:8px;flex:none;margin-top:8px";
   const eb=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit`);
   eb.onclick=()=>editEntry("strategies",s.id);
-  const xb=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>Export .md`);
+  const xb=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>${esc(t("export.md"))}`);
   xb.onclick=()=>exportStrategy(s);
   actions.appendChild(eb); actions.appendChild(xb);
   head.appendChild(actions);
@@ -957,7 +1040,7 @@ function exportStrategy(s){
 /* ---------- Insights ---------- */
 function vInsights(){
   const w = el("div","view");
-  w.appendChild(headWithExport("Insights","The stock of what's true. Each claim carries its evidence and a confidence — so strategy rests on what's known, not on whoever shouted loudest. A falsified bet downgrades the insight it rested on.","insights"));
+  w.appendChild(headWithExport(t("vh.insights.t"),t("vh.insights.d"),"insights"));
   const rows = DB.insights.filter(x=>matchStrat(x.strategy ?? "*") || true).filter(x=>matchQ(x.claim+x.theme+x.evidence));
   const panel = el("div","panel");
   if(!rows.length) return emptyInto(w,panel,"No insights yet.","Capture what you've learned — one claim, its evidence, a confidence level.");
@@ -982,7 +1065,7 @@ function vInsights(){
 /* ---------- Decisions ---------- */
 function vDecisions(){
   const w = el("div","view");
-  w.appendChild(headWithExport("Decisions","Append-only memory. Every decision records the options rejected and the assumptions it rests on — so nobody re-litigates, and a broken bet tells you which decision to revisit.","decisions"));
+  w.appendChild(headWithExport(t("vh.decisions.t"),t("vh.decisions.d"),"decisions"));
   const rows = DB.decisions.filter(x=>matchStrat(x.strategy)).filter(x=>matchQ(x.title+x.area+x.reasoning));
   const panel = el("div","panel");
   if(!rows.length) return emptyInto(w,panel,"No decisions logged.","Log the next real choice — what was decided, and what you rejected.");
@@ -1006,7 +1089,7 @@ function vDecisions(){
 /* ---------- Assumptions ---------- */
 function vAssumptions(){
   const w = el("div","view");
-  w.appendChild(headWithExport("Assumptions","The motor of the re-loop. Every strategy is a stack of bets — rate each on confidence × consequence, give each a kill-signal, and re-rate them on the rhythm. The riskiest sit at the top.","assumptions"));
+  w.appendChild(headWithExport(t("vh.assumptions.t"),t("vh.assumptions.d"),"assumptions"));
   const all = DB.assumptions.filter(x=>matchStrat(x.strategy)).filter(x=>matchQ(x.statement+x.kill_signal));
   // confidence × consequence matrix
   w.appendChild(el("div","sect-h",`<h2>Confidence × consequence</h2><span class="hint">The top-left cell is where strategies quietly die — watch those first</span>`));
@@ -1038,7 +1121,7 @@ function vAssumptions(){
 /* ---------- Signals ---------- */
 function vSignals(){
   const w = el("div","view");
-  w.appendChild(headWithExport("Signals","Each signal watches a named assumption, has an expected shape, an owner, and a latest reading. A signal with no expected shape can't disagree with you. When one disagrees, it must change something.","signals"));
+  w.appendChild(headWithExport(t("vh.signals.t"),t("vh.signals.d"),"signals"));
   const all = DB.signals.filter(x=>matchStrat(x.strategy)).filter(x=>matchQ(x.signal+x.last_reading));
   const ord={disagreeing:0,drifting:1,agreeing:2,retired:3};
   const rows = all.slice().sort((a,b)=>(ord[a.state]??9)-(ord[b.state]??9));
@@ -1072,7 +1155,7 @@ function headWithExport(title,desc,coll){
   const h = el("div","view-head");
   h.style.display="flex"; h.style.justifyContent="space-between"; h.style.alignItems="flex-start"; h.style.gap="20px";
   h.innerHTML = `<div><h1>${esc(title)}</h1><p>${esc(desc)}</p></div>`;
-  const btn = el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>Export .md`);
+  const btn = el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>${esc(t("export.md"))}`);
   btn.style.flex="none"; btn.style.marginTop="8px";
   btn.onclick=()=>exportRegister(coll);
   h.appendChild(btn);
@@ -1116,7 +1199,7 @@ function matrixPanel(rows){
 /* ---------- Operating Rhythm (the review ritual) ---------- */
 function vReview(){
   const w=el("div","view");
-  w.innerHTML=`<div class="view-head"><h1>Operating Rhythm</h1><p>The heartbeat. Read the signals, re-rate the bets, and end in a decision — otherwise the review is theatre. Everything you change here is logged.</p></div>`;
+  w.innerHTML=`<div class="view-head">${t("vh.review")}</div>`;
   const sigs=DB.signals.filter(s=>matchStrat(s.strategy)&&(s.state==="disagreeing"||s.state==="drifting"));
   const asmp=DB.assumptions.filter(a=>matchStrat(a.strategy)&&(a.state==="shaky"||a.state==="broken"));
 
@@ -1385,7 +1468,7 @@ function vMap(){
   const focus=mapFocus?byId("strategies",mapFocus):null;
   if(!focus){
     mapFocus=null;
-    w.appendChild(el("div","view-head",`<h1>Strategy Map</h1><p>The portfolio as a network. Solid lines are relations you've declared; dashed lines appear when two strategies share insights, bets or decisions. Click a strategy to see everything that influences it.</p>`));
+    w.appendChild(el("div","view-head",t("vh.map")));
     const panel=el("div","panel map-wrap");
     const graph=buildGraph("portfolio");
     renderGraph(panel,graph,{onNode:n=>{ if(n.kind==="strategy"){ mapFocus=n.id; render(); } }});
@@ -1451,7 +1534,7 @@ function downloadFile(name,text){
 /* ---------- Flywheel ---------- */
 function vFlywheel(){
   const w = el("div","view");
-  w.innerHTML = `<div class="view-head"><h1>The Flywheel</h1><p>The spine is flow — done once per strategy. The standing systems are reservoirs and loops: they accumulate and feed back, so the organisation gets smarter on every pass instead of starting cold.</p></div>`;
+  w.innerHTML = `<div class="view-head">${t("vh.flywheel")}</div>`;
   w.appendChild(spineFlow());
 
   const sh = el("div","sect-h",`<h2>The four families</h2><span class="hint">Ten systems · four live registers</span>`);
@@ -1488,7 +1571,7 @@ function vFlywheel(){
 /* ---------- Systems reference ---------- */
 function vSystems(){
   const w = el("div","view");
-  w.innerHTML = `<div class="view-head"><h1>Standing Systems</h1><p>The ten systems that make strategy repeatable. Four run as live registers in this app; the other six are the drivetrain around them — reading, re-rating, gating and promoting. Each card names what dies without it.</p></div>`;
+  w.innerHTML = `<div class="view-head">${t("vh.systems")}</div>`;
   const grid = el("div","grid sys-grid");
   SYSTEMS.forEach(s=>{
     const f = FAM[s.fam];
@@ -1514,7 +1597,7 @@ function initials(name, email){
 async function saveProfile(){
   if(!SB) return;
   setSync("saving");
-  const {error} = await SB.auth.updateUser({data:{full_name:PROFILE.full_name, organizations:PROFILE.organizations}});
+  const {error} = await SB.auth.updateUser({data:{full_name:PROFILE.full_name, organizations:PROFILE.organizations, lang:PROFILE.lang}});
   if(error){ setSync("error"); return; }
   const {data:{user}} = await SB.auth.getUser();
   if(user) USER = user;
@@ -1526,7 +1609,7 @@ function removeOrg(id){
 }
 function vProfile(){
   const w = el("div","view");
-  w.appendChild(el("div","view-head",`<h1>Profile</h1><p>Your account details and the organisations you belong to.</p>`));
+  w.appendChild(el("div","view-head",t("vh.profile")));
 
   /* account card */
   const card = el("div","panel panel-pad");
@@ -1819,11 +1902,12 @@ function delEntry(coll,id){
 function syncStrategyFilter(){
   const sel = $("#strategyFilter"); const cur=sel.value;
   const names = stratNames();
-  sel.innerHTML = `<option value="*">All strategies</option>` + names.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join("");
+  sel.innerHTML = `<option value="*">${esc(t("filter.all"))}</option>` + names.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join("");
   sel.value = (names.includes(cur)||cur==="*")?cur:"*";
 }
 document.querySelectorAll(".nav-item").forEach(n=> n.onclick=()=>{ view=n.dataset.view; currentStrategy=null; mapFocus=null; $("#side").classList.remove("open"); render(); });
 $("#strategyFilter").onchange = e=>{ stratF=e.target.value; render(); };
+$("#langSel").onchange = e=>{ setLang(e.target.value==="no"?"no":"en"); };
 $("#search").oninput = e=>{ q=e.target.value.trim().toLowerCase(); if(["insights","decisions","assumptions","signals"].includes(view)) render(); };
 $("#addBtn").onclick = newEntry;
 $("#scrim").onclick = closeDrawer;
@@ -1844,7 +1928,7 @@ function configReady(){
 function setAccount(){
   const n=$("#account"); if(!n||!USER) return;
   n.innerHTML = `<div class="acct-email" title="${esc(USER.email||"")}">${esc(USER.email||"Signed in")}</div>
-    <button class="acct-out" id="signOutBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>Sign out</button>`;
+    <button class="acct-out" id="signOutBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>${esc(t("signout"))}</button>`;
   $("#signOutBtn").onclick=signOut;
 }
 async function signOut(){ try{ if(SB) await SB.auth.signOut(); }catch(e){} location.replace(LOGIN_PAGE); }
@@ -1869,7 +1953,9 @@ async function boot(){
   USER = session.user;
   PROFILE.full_name = USER.user_metadata?.full_name || "";
   PROFILE.organizations = USER.user_metadata?.organizations || [];
+  LANG = PROFILE.lang = (USER.user_metadata?.lang==="no"?"no":"en");
   setAccount();
+  applyChrome();
   SB.auth.onAuthStateChange((_e,s)=>{ if(!s) location.replace(LOGIN_PAGE); });
   try{ await loadAll(); }
   catch(err){ console.error("Load failed:",err); setSync("error"); }
