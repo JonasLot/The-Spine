@@ -13,7 +13,7 @@ create extension if not exists "pgcrypto";
 do $$
 declare t text;
 begin
-  foreach t in array array['strategies','insights','decisions','assumptions','signals']
+  foreach t in array array['strategies','insights','decisions','assumptions','signals','goals','outcomes']
   loop
     -- table
     execute format($f$

@@ -30,6 +30,10 @@
   --align:#2E7D5B;  --align-bg:#E7F1EB;
   --feed:#B14A6B;   --feed-bg:#F8E9EF;
 
+  /* direction layer (goals + outcomes) */
+  --goal:#6D4AA6;   --goal-bg:#EFEAF7;
+  --outcome:#1C7C8C; --outcome-bg:#E3F1F3;
+
   /* states */
   --good:#2E7D5B;   --good-bg:#E7F1EB;
   --warn:#B07B2E;   --warn-bg:#F7EFE1;  --warn-line:var(--warn-line);
@@ -426,7 +430,15 @@ a{color:inherit}
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="5" cy="12" r="2.2"/><circle cx="18" cy="5" r="2.2"/><circle cx="18" cy="19" r="2.2"/><path d="M7.1 11l8.7-4.8M7.1 13l8.7 4.8" opacity=".6"/></svg>
       <span>Strategy Map</span></a>
 
-    <div class="nav-grp">Registers</div>
+    <div class="nav-grp" data-grp="direction">Direction</div>
+    <a class="nav-item" data-view="goals">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l2.5 5.3 5.8.8-4.2 4 1 5.7L12 21l-5.1 2.8 1-5.7-4.2-4 5.8-.8L12 3Z"/></svg>
+      <span>Goals</span><span class="ct" data-count="goals">0</span></a>
+    <a class="nav-item" data-view="outcomes">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5" opacity=".6"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>
+      <span>Outcomes</span><span class="ct" data-count="outcomes">0</span></a>
+
+    <div class="nav-grp" data-grp="registers">Registers</div>
     <a class="nav-item" data-view="insights">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.3 1 2.1h6c0-.8.4-1.5 1-2.1A6 6 0 0 0 12 3Z"/></svg>
       <span>Insights</span><span class="ct" data-count="insights">0</span></a>
@@ -440,7 +452,7 @@ a{color:inherit}
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 14a8 8 0 0 1 8-8M4 18a4 4 0 0 1 4-4"/><circle cx="5" cy="19" r="1.4" fill="currentColor" stroke="none"/><path d="M14 4a14 14 0 0 1 6 6" opacity=".5"/></svg>
       <span>Signals</span><span class="ct" data-count="signals">0</span></a>
 
-    <div class="nav-grp">Apparatus</div>
+    <div class="nav-grp" data-grp="apparatus">Apparatus</div>
     <a class="nav-item" data-view="review">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
       <span>Operating Rhythm</span><span class="ct" id="reviewCt">0</span></a>
@@ -451,7 +463,7 @@ a{color:inherit}
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
       <span>Standing Systems</span></a>
 
-    <div class="nav-grp">Account</div>
+    <div class="nav-grp" data-grp="account">Account</div>
     <a class="nav-item" data-view="profile">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
       <span>Profile</span></a>
@@ -516,20 +528,20 @@ a{color:inherit}
 /* ---- seed data (English; adapted from a real worked example) ---- */
 const SEED = {
   strategies: [
-    {id:"st1", name:"Tet Vedtak — Case Platform", framework:"kernel", status:"committed", owner:"Jonas", review:"2026-07-15", version:3,
+    {id:"st1", name:"Tet Vedtak — Case Platform", framework:"kernel", status:"committed", owner:"Jonas", review:"2026-07-15", version:3, serves:["g1","g2"],
       challenge:"150+ municipalities run school transport on legacy systems (FSkyss/Voyager) that can neither automate nor isolate tenant data — and ~90% of appeals are overturned, signalling systemic rule-application errors rather than caseworker discretion.",
       approach:"Build one multi-tenant case platform with a transparent, traceable rule engine — so the same decision logic runs everywhere, automates the routine, and makes every outcome auditable.",
       moves:["Verify the rule engine against 30+ historical appeals (M1 checkpoint)","Clear the DPIA gate before any automated decision (Gate 1)","Per-tenant configuration, never per-tenant code","A separate processing flow for confidential addresses"],
       notDoing:["Extending FSkyss/Voyager","Buying off-the-shelf in this phase","Automating non-routine or discretionary cases"],
       howKnow:["Appeal-overturn rate falls as the pilot rolls out","≥60% of ordinary cases fully automated at quality","Zero statutory-deadline breaches"]},
-    {id:"st2", name:"TØFF Migration", framework:"premortem", status:"reviewed", owner:"Jonas", review:"2026-09-01", version:1,
+    {id:"st2", name:"TØFF Migration", framework:"premortem", status:"reviewed", owner:"Jonas", review:"2026-09-01", version:1, serves:["g1"],
       relations:[{to:"st1", type:"enables"}],
       challenge:"CMP is decommissioned on 31.12.2026; the TØFF migration must complete inside a fixed window with no break in statutory service delivery.",
       approach:"Sequence the migration into increment T2 with a clean rollback path, validating statutory flows in a shadow run before cutover.",
       moves:["Establish a pre-migration baseline","Stage the cutover with a tested rollback","Validate statutory deadlines in a shadow run"],
       notDoing:["Deferring to T3","A big-bang cutover with no fallback"],
       howKnow:["No measurable service interruption in the window","All statutory deadlines met during cutover"]},
-    {id:"st3", name:"On-Demand Transit Planning", framework:"one-pager", status:"draft", owner:"Jonas", review:"2026-08-10", version:1,
+    {id:"st3", name:"On-Demand Transit Planning", framework:"one-pager", status:"draft", owner:"Jonas", review:"2026-08-10", version:1, serves:["g3"],
       challenge:"School admins drop off during onboarding and lean on support calls, capping how fast on-demand planning can scale.",
       approach:"Make onboarding fully self-serve with guided setup, so a new admin reaches first value without a support call.",
       moves:["Guided first-run setup","In-product help at the known drop-off points"],
@@ -580,6 +592,20 @@ const SEED = {
      log:[{d:"2026-06-12", t:"62% at week 4. Drifting below the ≥80% expected shape."},{d:"2026-05-29", t:"71% at week 2. On track."}]},
     {id:"s5", strategy:"Tet Vedtak — Case Platform", signal:"Rule-engine verification against historical appeals", watches:"a5", expected_shape:"Reproduces correct outcomes on ≥30 historical appeal cases.", owner:"Jonas", state:"agreeing", last_reading:"Verification set being assembled — 18 of 30 cases loaded (2026-06-18)",
      log:[{d:"2026-06-18", t:"18 of 30 historical appeals loaded into the verification set. Early reproductions matching."}]},
+  ],
+  goals: [
+    {id:"g1", title:"O1 — one platform, many users, same experience", type:"company", horizon:"2026", owner:"Jonas",
+      statement:"One shared multi-tenant platform serves every municipality with the same experience — the company-level bet the whole programme ladders up to.", note:""},
+    {id:"g2", title:"Lawful, automated casework", type:"product", horizon:"2027", owner:"Jonas",
+      statement:"Ordinary school-transport cases are decided automatically at sufficient quality, on a traceable basis — trustworthy enough to defend on appeal.", note:""},
+    {id:"g3", title:"Self-serve scaling of on-demand planning", type:"product", horizon:"2026", owner:"Jonas",
+      statement:"New school admins reach first value without a support call, so on-demand planning scales without scaling the support team.", note:""},
+  ],
+  outcomes: [
+    {id:"o1", goalId:"g2", statement:"Appeal-overturn rate on school-transport decisions falls", baseline:"~90% overturned", target:"materially lower", by:"2027-Q2", measuredBy:"s1", state:"off-track", note:"Cause not yet understood (M0). The signal currently disagrees."},
+    {id:"o2", goalId:"g2", statement:"≥60% of ordinary cases fully automated at quality", baseline:"0%", target:"60%", by:"2027-Q2", measuredBy:"", state:"not-measured", note:"The M3 ambition the business case rests on. No live signal yet — a1 is the underlying bet."},
+    {id:"o3", goalId:"g1", statement:"No measurable service interruption during the TØFF migration window", baseline:"clean baseline", target:"0 interruptions", by:"2026-12-31", measuredBy:"s3", state:"on-track", note:"Migration not started; baseline clean."},
+    {id:"o4", goalId:"g3", statement:"≥80% of admins self-onboard by week 4", baseline:"62% at week 4", target:"≥80%", by:"2026-Q3", measuredBy:"s4", state:"at-risk", note:"Drifting below target — the signal is watching a6."},
   ]
 };
 
@@ -626,7 +652,7 @@ function feedsL(x){ return LANG==="no"&&FEEDS_NO[x]?FEEDS_NO[x]:x; }
 /* ---- state ---- */
 let SB = null;        // Supabase client
 let USER = null;      // signed-in user
-let DB = { strategies:[], insights:[], decisions:[], assumptions:[], signals:[] };
+let DB = { strategies:[], insights:[], decisions:[], assumptions:[], signals:[], goals:[], outcomes:[] };
 let PROFILE = { full_name:"", organizations:[], lang:"en" };
 let view = "dashboard";
 let q = "";
@@ -651,6 +677,20 @@ const T = {
     "nav.dashboard":"Dashboard", "nav.strategies":"Strategies", "nav.map":"Strategy Map",
     "nav.insights":"Insights", "nav.decisions":"Decisions", "nav.assumptions":"Assumptions", "nav.signals":"Signals",
     "nav.review":"Operating Rhythm", "nav.flywheel":"The Flywheel", "nav.systems":"Standing Systems", "nav.profile":"Profile",
+    "nav.goals":"Goals", "nav.outcomes":"Outcomes", "grp.direction":"Direction",
+    "vh.goals.t":"Goals", "vh.goals.d":"The destinations the strategies ladder up to. Each goal names why the work exists; a goal no strategy serves is a gap, and a strategy that serves no goal has lost its north star.",
+    "vh.outcomes.t":"Outcomes", "vh.outcomes.d":"The measurable change that tells you a goal is being reached. Each outcome carries a baseline, a target and — where one exists — the signal that measures it. This is what 'Am I moving toward the goal?' reads.",
+    "empty.goals.t":"No goals yet.", "empty.goals.d":"Name a destination the strategies serve — a company objective, a product goal, a team outcome.",
+    "empty.outcomes.t":"No outcomes yet.", "empty.outcomes.d":"Define the measurable change that proves a goal is being reached — with a baseline, a target, and the signal that watches it.",
+    "add.goals":"New goal", "add.outcomes":"New outcome",
+    "th.goal":"Goal", "th.outcomes":"Outcomes", "th.serving":"Strategies", "th.target":"Target", "th.measuredby":"Measured by", "th.coverage":"Coverage",
+    "dr.eye.goal":"Goal · Direction", "dr.eye.outcome":"Outcome · Direction",
+    "dt.horizon":"Horizon", "dt.baseline":"Baseline", "dt.target":"Target", "dt.by":"By", "dt.goal":"Goal",
+    "dr.outcomes":"Outcomes", "dr.served":"Served by strategies", "dr.measuredsig":"Measured by signal", "dr.servesgoals":"Serves goals", "dr.uncovered":"No strategy serves this yet", "dr.nomeasure":"No signal measuring this yet", "dr.goalstatement":"What this means",
+    "state.on-track":"On track", "state.at-risk":"At risk", "state.off-track":"Off track", "state.not-measured":"Not measured",
+    "goal.type.company":"Company", "goal.type.product":"Product", "goal.type.team":"Team",
+    "tk.goal":"goal", "tk.outcome":"outcome", "tk.strategy":"strategy",
+    "kpi.coverage":"Goal coverage", "kpi.coverage.s":"goals served by ≥1 strategy",
     "vh.dashboard":`<h1>Am I moving toward the goal?</h1><p>One read of the whole apparatus. The bets the strategy rests on, the signals watching them, and what disagrees with you right now.</p>`,
     "vh.strategies":`<div><h1>Strategies</h1><p>The canonical artifacts — the single authoritative statement of each strategy that everything else points to. Each one carries a one-page kernel and owns its bets, signals and decisions. This is what the registers orbit.</p></div>`,
     "vh.map":`<h1>Strategy Map</h1><p>The portfolio as a network. Solid lines are relations you've declared; dashed lines appear when two strategies share insights, bets or decisions. Click a strategy to see everything that influences it.</p>`,
@@ -705,6 +745,20 @@ const T = {
     "nav.dashboard":"Dashbord", "nav.strategies":"Strategier", "nav.map":"Strategikart",
     "nav.insights":"Innsikter", "nav.decisions":"Beslutninger", "nav.assumptions":"Antakelser", "nav.signals":"Signaler",
     "nav.review":"Driftsrytme", "nav.flywheel":"Svinghjulet", "nav.systems":"Stående systemer", "nav.profile":"Profil",
+    "nav.goals":"Mål", "nav.outcomes":"Utfall", "grp.direction":"Retning",
+    "vh.goals.t":"Mål", "vh.goals.d":"Destinasjonene strategiene ruller opp mot. Hvert mål navngir hvorfor arbeidet finnes; et mål ingen strategi tjener er et gap, og en strategi som ikke tjener noe mål har mistet ledestjernen.",
+    "vh.outcomes.t":"Utfall", "vh.outcomes.d":"Den målbare endringen som forteller at et mål nås. Hvert utfall bærer en baseline, et mål-tall og — der det finnes — signalet som måler det. Det er dette «Beveger jeg meg mot målet?» leser.",
+    "empty.goals.t":"Ingen mål ennå.", "empty.goals.d":"Navngi en destinasjon strategiene tjener — et selskapsmål, et produktmål, et teamutfall.",
+    "empty.outcomes.t":"Ingen utfall ennå.", "empty.outcomes.d":"Definer den målbare endringen som beviser at et mål nås — med en baseline, et mål-tall, og signalet som overvåker det.",
+    "add.goals":"Nytt mål", "add.outcomes":"Nytt utfall",
+    "th.goal":"Mål", "th.outcomes":"Utfall", "th.serving":"Strategier", "th.target":"Mål-tall", "th.measuredby":"Målt av", "th.coverage":"Dekning",
+    "dr.eye.goal":"Mål · Retning", "dr.eye.outcome":"Utfall · Retning",
+    "dt.horizon":"Horisont", "dt.baseline":"Baseline", "dt.target":"Mål-tall", "dt.by":"Innen", "dt.goal":"Mål",
+    "dr.outcomes":"Utfall", "dr.served":"Tjent av strategier", "dr.measuredsig":"Målt av signal", "dr.servesgoals":"Tjener mål", "dr.uncovered":"Ingen strategi tjener dette ennå", "dr.nomeasure":"Ingen signal måler dette ennå", "dr.goalstatement":"Hva dette betyr",
+    "state.on-track":"På sporet", "state.at-risk":"I faresonen", "state.off-track":"Av sporet", "state.not-measured":"Ikke målt",
+    "goal.type.company":"Selskap", "goal.type.product":"Produkt", "goal.type.team":"Team",
+    "tk.goal":"mål", "tk.outcome":"utfall", "tk.strategy":"strategi",
+    "kpi.coverage":"Måldekning", "kpi.coverage.s":"mål tjent av ≥1 strategi",
     "vh.dashboard":`<h1>Beveger jeg meg mot målet?</h1><p>Ett blikk på hele apparatet. Bettene strategien hviler på, signalene som overvåker dem, og hva som er uenig med deg akkurat nå.</p>`,
     "vh.strategies":`<div><h1>Strategier</h1><p>De kanoniske artefaktene — den ene autoritative formuleringen av hver strategi som alt annet peker mot. Hver bærer en énsides kjerne og eier sine bets, signaler og beslutninger. Det er dette registrene kretser rundt.</p></div>`,
     "vh.map":`<h1>Strategikart</h1><p>Porteføljen som et nettverk. Heltrukne linjer er relasjoner du har erklært; stiplede linjer dukker opp når to strategier deler innsikter, bets eller beslutninger. Klikk en strategi for å se alt som påvirker den.</p>`,
@@ -753,7 +807,7 @@ const T = {
 function t(k){ return (T[LANG] && T[LANG][k]) ?? T.en[k] ?? k; }
 function addLabelFor(){
   if(view==="profile") return t("add.org");
-  const showAdd = ["strategies","insights","decisions","assumptions","signals"].includes(view) && !currentStrategy;
+  const showAdd = ["strategies","insights","decisions","assumptions","signals","goals","outcomes"].includes(view) && !currentStrategy;
   if(!showAdd) return t("add.generic");
   if(view==="strategies") return t("add.strategy");
   return t("add."+view);
@@ -762,10 +816,7 @@ function applyChrome(){
   document.querySelectorAll('.nav-item[data-view]').forEach(n=>{
     const lab=n.querySelector('span:not(.ct)'); if(lab) lab.textContent=t('nav.'+n.dataset.view);
   });
-  const grps=document.querySelectorAll('.nav-grp');
-  if(grps[0]) grps[0].textContent=t('grp.registers');
-  if(grps[1]) grps[1].textContent=t('grp.apparatus');
-  if(grps[2]) grps[2].textContent=t('grp.account');
+  document.querySelectorAll('.nav-grp[data-grp]').forEach(n=>{ n.textContent=t('grp.'+n.dataset.grp); });
   const ey=document.querySelector('.brand .ey'); if(ey) ey.textContent=t('brand.ey');
   const tag=document.querySelector('.foot .tag'); if(tag) tag.innerHTML=t('brand.tag');
   const srch=$('#search'); if(srch) srch.setAttribute('placeholder',t('search.ph'));
@@ -853,6 +904,17 @@ const SEED_NO = {
     log:[{d:"2026-06-12", t:"62 % ved uke 4. Driver under forventet form på ≥80 %."},{d:"2026-05-29", t:"71 % ved uke 2. På sporet."}]},
   s5:{signal:"Regelmotor-verifisering mot historiske klager",expected_shape:"Reproduserer korrekte utfall på ≥30 historiske klagesaker.",last_reading:"Verifiseringssett settes sammen — 18 av 30 saker lastet (2026-06-18)",
     log:[{d:"2026-06-18", t:"18 av 30 historiske klager lastet inn i verifiseringssettet. Tidlige reproduksjoner stemmer."}]},
+
+  g1:{title:"O1 — én plattform, mange brukere, samme opplevelse",
+      statement:"Én delt multi-tenant-plattform betjener hver kommune med samme opplevelse — selskaps-bettet hele programmet ruller opp mot."},
+  g2:{title:"Rettssikker, automatisert saksbehandling",
+      statement:"Ordinære skoleskyss-saker avgjøres automatisk med tilstrekkelig kvalitet og sporbart grunnlag — til å tåle en klage."},
+  g3:{title:"Selvbetjent skalering av on-demand-planlegging",
+      statement:"Nye skoleadministratorer når første verdi uten en supporttelefon, så on-demand skalerer uten å skalere supportteamet."},
+  o1:{statement:"Omgjøringsraten for skoleskyss-klager faller"},
+  o2:{statement:"≥60 % av ordinære saker fullautomatisert med kvalitet"},
+  o3:{statement:"Ingen målbart tjenesteavbrudd i migreringsvinduet"},
+  o4:{statement:"≥80 % av administratorer selvbetjener innen uke 4"},
 };
 function seedById(id){ if(typeof SEED==="undefined") return null; for(const c of COLLS){ const x=(SEED[c]||[]).find(o=>o.id===id); if(x) return x; } return null; }
 /* field-level overlay: Norwegian seed text, but only while the field is untouched */
@@ -872,7 +934,7 @@ function trView(o){
   return out;
 }
 
-const COLLS=["strategies","insights","decisions","assumptions","signals"];
+const COLLS=["strategies","insights","decisions","assumptions","signals","goals","outcomes"];
 function stratNames(){ return DB.strategies.map(s=>s.name); }
 function stratByName(n){ return DB.strategies.find(s=>s.name===n); }
 const STRAT_FW={kernel:"Strategy Kernel",cascade:"Playing-to-Win Cascade",wardley:"Wardley Map",premortem:"Pre-mortem","one-pager":"One-Page Strategy"};
@@ -906,7 +968,7 @@ async function pushAll(){
   if(_pushAgain){ _pushAgain=false; pushAll(); }
 }
 async function loadAll(){
-  const out={strategies:[],insights:[],decisions:[],assumptions:[],signals:[]};
+  const out={strategies:[],insights:[],decisions:[],assumptions:[],signals:[],goals:[],outcomes:[]};
   for(const coll of COLLS){ const {data,error}=await SB.from(coll).select("id,data"); if(error) throw error; out[coll]=(data||[]).map(r=>r.data); }
   if(COLLS.every(c=>out[c].length===0)){ DB=structuredClone(SEED); await pushAll(); }   // first sign-in: seed demo data
   else DB=out;
@@ -931,7 +993,9 @@ const STATE_MAP = {
   holding:["b-good","Holding"], agreeing:["b-good","Agreeing"],
   shaky:["b-warn","Shaky"], drifting:["b-warn","Drifting"],
   broken:["b-bad","Broken"], disagreeing:["b-bad","Disagreeing"],
-  retired:["b-mute","Retired"]
+  retired:["b-mute","Retired"],
+  "on-track":["b-good","On track"], "at-risk":["b-warn","At risk"],
+  "off-track":["b-bad","Off track"], "not-measured":["b-mute","Not measured"]
 };
 function stateBadge(s){ const m=STATE_MAP[s]||["b-mute",s]; const lab=T.en["state."+s]?t("state."+s):m[1]; return `<span class="badge ${m[0]}"><span class="dot"></span>${lab}</span>`; }
 function fwL(k){ return T.en["fw."+k]?t("fw."+k):(STRAT_FW[k]||k); }
@@ -948,13 +1012,13 @@ function render(){
   $("#crumb").textContent = t("nav."+view);
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active", n.dataset.view===view));
   const isRegister = ["insights","decisions","assumptions","signals"].includes(view);
-  const showAdd = ["strategies","insights","decisions","assumptions","signals","profile"].includes(view) && !currentStrategy;
+  const showAdd = ["strategies","insights","decisions","assumptions","signals","goals","outcomes","profile"].includes(view) && !currentStrategy;
   $("#addBtn").style.display = showAdd ? "inline-flex":"none";
   $("#searchField").style.display = isRegister ? "flex":"none";
   $("#addLabel").textContent = addLabelFor();
   updateCounts();
   const r = $("#root"); r.innerHTML="";
-  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
+  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,goals:vGoals,outcomes:vOutcomes,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
 }
 function reviewDueCount(){
   return DB.signals.filter(s=>(s.state==="disagreeing"||s.state==="drifting")).length
@@ -1215,6 +1279,62 @@ function exportStrategy(s){
   downloadFile(`Strategy — ${s.name}.md`, md);
 }
 
+/* ---------- Goals & Outcomes (direction layer) ---------- */
+function goalOutcomes(gid){ return DB.outcomes.filter(o=>o.goalId===gid); }
+function goalStrategies(gid){ return DB.strategies.filter(s=>(s.serves||[]).includes(gid)); }
+function goalRollup(gid){
+  const os=goalOutcomes(gid);
+  if(!os.length) return "not-measured";
+  const rank={"off-track":0,"at-risk":1,"not-measured":2,"on-track":3};
+  return os.slice().sort((a,b)=>(rank[a.state]??9)-(rank[b.state]??9))[0].state; // worst state surfaces
+}
+function goalTypeL(k){ return t("goal.type."+(k||"product"))||k; }
+function vGoals(){
+  const w=el("div","view");
+  w.appendChild(el("div","view-head",`<h1>${esc(t("vh.goals.t"))}</h1><p>${esc(t("vh.goals.d"))}</p>`));
+  if(!DB.goals.length){ const p=el("div","panel"); return emptyInto(w,p,t("empty.goals.t"),t("empty.goals.d")); }
+  const tb=el("table","tbl");
+  tb.innerHTML=`<thead><tr><th>${esc(t("th.goal"))}</th><th>${esc(t("th.type"))}</th><th>${esc(t("th.outcomes"))}</th><th>${esc(t("th.serving"))}</th><th>${esc(t("th.owner"))}</th></tr></thead>`;
+  const b=el("tbody");
+  DB.goals.forEach(g=>{
+    const os=goalOutcomes(g.id), strs=goalStrategies(g.id), roll=goalRollup(g.id);
+    const statement=L(g,"statement")||"";
+    const tr=el("tr","row");
+    tr.innerHTML=`<td><div class="stmt">${esc(L(g,"title"))}</div><div class="meta" style="max-width:52ch">${esc(statement.slice(0,90))}${statement.length>90?"…":""}</div></td>
+      <td><span class="chip">${esc(goalTypeL(g.type))}</span></td>
+      <td>${os.length?`<span class="meta" style="margin-right:6px">${os.length}</span>${stateBadge(roll)}`:'<span class="meta">—</span>'}</td>
+      <td>${strs.length?`<span class="meta">${strs.length}</span>`:`<span class="badge b-warn"><span class="dot"></span>${esc(t("dr.uncovered"))}</span>`}</td>
+      <td><span class="meta">${esc(g.owner||"")}</span></td>`;
+    clickable(tr,()=>openGoal(g.id),"Open goal: "+L(g,"title"));
+    b.appendChild(tr);
+  });
+  tb.appendChild(b); const panel=el("div","panel"); panel.appendChild(tb); w.appendChild(panel);
+  return w;
+}
+function vOutcomes(){
+  const w=el("div","view");
+  w.appendChild(el("div","view-head",`<h1>${esc(t("vh.outcomes.t"))}</h1><p>${esc(t("vh.outcomes.d"))}</p>`));
+  if(!DB.outcomes.length){ const p=el("div","panel"); return emptyInto(w,p,t("empty.outcomes.t"),t("empty.outcomes.d")); }
+  const ord={"off-track":0,"at-risk":1,"not-measured":2,"on-track":3};
+  const rows=DB.outcomes.slice().sort((a,b)=>(ord[a.state]??9)-(ord[b.state]??9));
+  const tb=el("table","tbl");
+  tb.innerHTML=`<thead><tr><th>${esc(t("nav.outcomes"))}</th><th>${esc(t("th.goal"))}</th><th>${esc(t("th.target"))}</th><th>${esc(t("th.state"))}</th><th>${esc(t("th.measuredby"))}</th></tr></thead>`;
+  const b=el("tbody");
+  rows.forEach(o=>{
+    const g=o.goalId?byId("goals",o.goalId):null, sig=o.measuredBy?byId("signals",o.measuredBy):null;
+    const tr=el("tr","row");
+    tr.innerHTML=`<td><div class="stmt">${esc(L(o,"statement"))}</div><div class="meta">${esc(o.baseline||"")}${o.by?` · ${esc(t("dt.by"))} ${esc(o.by)}`:""}</div></td>
+      <td>${g?`<span class="meta">${esc(L(g,"title").slice(0,40))}</span>`:'<span class="meta">—</span>'}</td>
+      <td><span class="matrix">${esc(o.target||"—")}</span></td>
+      <td>${stateBadge(o.state)}</td>
+      <td>${sig?`<span class="meta">${stateBadge(sig.state)}</span>`:`<span class="badge b-mute"><span class="dot"></span>${esc(t("dr.nomeasure"))}</span>`}</td>`;
+    clickable(tr,()=>openOutcome(o.id),"Open outcome");
+    b.appendChild(tr);
+  });
+  tb.appendChild(b); const panel=el("div","panel"); panel.appendChild(tb); w.appendChild(panel);
+  return w;
+}
+
 /* ---------- Insights ---------- */
 function vInsights(){
   const w = el("div","view");
@@ -1471,6 +1591,8 @@ const KIND_COLOR = {
   decision:{c:"var(--mem)", bg:"var(--mem-bg)"},
   assumption:{c:"var(--align)", bg:"var(--align-bg)"},
   signal:{c:"var(--feed)", bg:"var(--feed-bg)"},
+  goal:{c:"var(--goal)", bg:"var(--goal-bg)"},
+  outcome:{c:"var(--outcome)", bg:"var(--outcome-bg)"},
 };
 function stateColor(state){
   const m=STATE_MAP[state]; if(!m) return "var(--line)";
@@ -1496,9 +1618,18 @@ function buildGraph(mode, focusId){
     strats.forEach(s=>{
       const k=stratStats(s.name);
       nodes.push({id:s.id, kind:"strategy", label:s.name, flashing:k.flashing,
+        warn:!(s.serves&&s.serves.length),
         r:24+Math.min(16,(k.bets+k.sigs+k.decs)*1.4),
         dim:stratF!=="*"&&s.name!==stratF,
         sub:`${k.bets} bets · ${k.sigs} signals · ${k.decs} decisions`});
+    });
+    // direction layer: goals sit above the strategies that serve them
+    DB.goals.forEach(g=>{
+      const servedBy=strats.filter(s=>(s.serves||[]).includes(g.id));
+      nodes.push({id:g.id, kind:"goal", label:L(g,"title"), r:22, warn:!servedBy.length,
+        dim:stratF!=="*"&&!servedBy.some(s=>s.name===stratF),
+        sub:`${servedBy.length} strategies · ${goalOutcomes(g.id).length} outcomes`});
+      servedBy.forEach(s=>links.push({source:s.id, target:g.id, kind:"serves"}));
     });
     const have=new Set(strats.map(s=>s.id));
     strats.forEach(s=>(s.relations||[]).forEach(r=>{
@@ -1513,6 +1644,9 @@ function buildGraph(mode, focusId){
   } else {
     const s=byId("strategies",focusId); if(!s) return {nodes,links};
     nodes.push({id:s.id, kind:"strategy", label:s.name, r:32, center:true});
+    (s.serves||[]).forEach(gid=>{ const gg=byId("goals",gid); if(gg){
+      nodes.push({id:gg.id, kind:"goal", label:L(gg,"title"), r:16, dim:true});
+      links.push({source:s.id, target:gg.id, kind:"serves"}); } });
     const asmp=DB.assumptions.filter(a=>a.strategy===s.name);
     asmp.forEach(a=>{ nodes.push({id:a.id, kind:"assumption", label:L(a,"statement"), state:a.state, r:11});
       links.push({source:a.id, target:s.id, kind:"spoke", state:a.state}); });
@@ -1581,12 +1715,12 @@ function renderGraph(host, graph, opts={}){
     .attr("stroke",d=>d.state?stateColor(d.state):KIND_COLOR[d.kind].c)
     .attr("stroke-width",d=>d.kind==="strategy"?2:1.7)
     .attr("opacity",d=>d.dim?.5:1);
-  node.filter(d=>d.flashing).append("circle").attr("r",d=>d.r+5)
-    .attr("fill","none").attr("stroke","var(--bad)").attr("stroke-width",1.4).attr("stroke-dasharray","3 4");
+  node.filter(d=>d.flashing||d.warn).append("circle").attr("r",d=>d.r+5)
+    .attr("fill","none").attr("stroke",d=>d.flashing?"var(--bad)":"var(--warn)").attr("stroke-width",1.4).attr("stroke-dasharray","3 4");
   node.filter(d=>d.kind!=="strategy").append("text")
-    .attr("text-anchor","middle").attr("dy","0.35em").attr("font-size",9).attr("font-weight",700)
+    .attr("text-anchor","middle").attr("dy","0.35em").attr("font-size",d=>d.kind==="goal"?11:9).attr("font-weight",700)
     .attr("fill",d=>KIND_COLOR[d.kind].c)
-    .text(d=>({insight:"I",decision:"D",assumption:"A",signal:"S"})[d.kind]);
+    .text(d=>({insight:"I",decision:"D",assumption:"A",signal:"S",goal:"G",outcome:"O"})[d.kind]);
   node.append("text").attr("text-anchor","middle")
     .attr("font-size",d=>d.kind==="strategy"?12.5:10.5)
     .attr("font-weight",d=>d.kind==="strategy"?700:500)
@@ -1623,11 +1757,13 @@ function renderGraph(host, graph, opts={}){
 
 function mapLegend(mode){
   const inner = mode==="portfolio"
-    ? `<span><i style="background:var(--accent)"></i>strategy</span>
+    ? `<span><i style="background:var(--goal)"></i>goal</span>
+       <span><i style="background:var(--accent)"></i>strategy</span>
        <span><span class="ln"></span>declared relation</span>
        <span><span class="ln dash"></span>shared underpinnings</span>
-       <span><i style="background:none;border:1.5px dashed var(--bad)"></i>flashing</span>`
-    : `<span><i style="background:var(--sense)"></i>insight</span>
+       <span><i style="background:none;border:1.5px dashed var(--warn)"></i>unserved goal / orphan strategy</span>`
+    : `<span><i style="background:var(--goal)"></i>goal</span>
+       <span><i style="background:var(--sense)"></i>insight</span>
        <span><i style="background:var(--align)"></i>assumption</span>
        <span><i style="background:var(--feed)"></i>signal</span>
        <span><i style="background:var(--mem)"></i>decision</span>
@@ -1639,6 +1775,8 @@ function openFromMap(n){
   else if(n.kind==="decision") openDecision(n.id);
   else if(n.kind==="assumption") openAssumption(n.id);
   else if(n.kind==="signal") openSignal(n.id);
+  else if(n.kind==="goal") openGoal(n.id);
+  else if(n.kind==="outcome") openOutcome(n.id);
 }
 
 function vMap(){
@@ -1649,7 +1787,7 @@ function vMap(){
     w.appendChild(el("div","view-head",t("vh.map")));
     const panel=el("div","panel map-wrap");
     const graph=buildGraph("portfolio");
-    renderGraph(panel,graph,{onNode:n=>{ if(n.kind==="strategy"){ mapFocus=n.id; render(); } }});
+    renderGraph(panel,graph,{onNode:n=>{ if(n.kind==="strategy"){ mapFocus=n.id; render(); } else if(n.kind==="goal"){ openGoal(n.id); } }});
     if(graph.nodes.length&&!graph.links.length) panel.appendChild(el("div","map-hint","No connections yet — declare a relation in the strategy editor, or let registers span strategies."));
     if(graph.nodes.length) panel.appendChild(mapLegend("portfolio"));
     w.appendChild(panel);
@@ -1889,6 +2027,33 @@ function openSignal(id){
   drawerFoot("signals",id); openDrawer();
 }
 function lvlChipBadge(l){ const cls=l==="high"?"b-good":l==="low"?"b-mute":"b-warn"; return `<span class="badge ${cls}" style="margin-top:6px"><span class="dot"></span>${esc(lvl(l))} ${esc(t("conf.suffix"))}</span>`; }
+const KVH='font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600';
+function goToStrategy(id){ closeDrawer(); currentStrategy=id; view="strategies"; render(); }
+function openGoal(id){
+  const g = trView(byId("goals",id)); if(!g) return;
+  drawerShell(t("dr.eye.goal"), `<span class="chip" style="margin-top:6px">${esc(goalTypeL(g.type))}</span>`);
+  const os=goalOutcomes(id), strs=goalStrategies(id);
+  $("#drawerB").innerHTML = `<h3>${esc(L(g,"title"))}</h3>
+    <dl class="kv"><dt>${esc(t("th.type"))}</dt><dd>${esc(goalTypeL(g.type))}</dd><dt>${esc(t("dt.horizon"))}</dt><dd>${esc(g.horizon||"—")}</dd><dt>${esc(t("th.owner"))}</dt><dd>${esc(g.owner||"—")}</dd></dl>
+    <div style="${KVH}">${esc(t("dr.goalstatement"))}</div><div class="note">${esc(L(g,"statement")||"—")}</div>
+    <div style="${KVH}">${esc(t("dr.outcomes"))}</div>
+    <div class="link-row">${os.length?os.map(o=>`<a class="linkc" onclick="openOutcome('${o.id}')"><span class="tk">${esc(t("state."+o.state)||o.state)}</span>${esc(L(o,"statement").slice(0,40))}…</a>`).join(""):`<span class="badge b-mute"><span class="dot"></span>${esc(t("dr.nomeasure"))}</span>`}</div>
+    <div style="${KVH};margin-top:14px">${esc(t("dr.served"))}</div>
+    <div class="link-row">${strs.length?strs.map(s=>`<a class="linkc" onclick="goToStrategy('${s.id}')"><span class="tk">${esc(t("tk.strategy"))}</span>${esc(s.name.slice(0,36))}</a>`).join(""):`<span class="badge b-warn"><span class="dot"></span>${esc(t("dr.uncovered"))}</span>`}</div>`;
+  drawerFoot("goals",id); openDrawer();
+}
+function openOutcome(id){
+  const o = trView(byId("outcomes",id)); if(!o) return;
+  drawerShell(t("dr.eye.outcome"), `<div style="margin-top:6px">${stateBadge(o.state)}</div>`);
+  const g=o.goalId?byId("goals",o.goalId):null, sig=o.measuredBy?byId("signals",o.measuredBy):null;
+  $("#drawerB").innerHTML = `<h3>${esc(L(o,"statement"))}</h3>
+    <dl class="kv"><dt>${esc(t("dt.baseline"))}</dt><dd>${esc(o.baseline||"—")}</dd><dt>${esc(t("dt.target"))}</dt><dd>${esc(o.target||"—")}</dd><dt>${esc(t("dt.by"))}</dt><dd class="mono">${esc(o.by||"—")}</dd><dt>${esc(t("th.state"))}</dt><dd>${esc(t("state."+o.state)||o.state)}</dd></dl>
+    ${o.note?`<div class="note">${esc(o.note)}</div>`:""}
+    ${g?`<div style="${KVH}">${esc(t("dt.goal"))}</div><div class="link-row"><a class="linkc" onclick="openGoal('${g.id}')"><span class="tk">${esc(t("tk.goal"))}</span>${esc(L(g,"title").slice(0,38))}</a></div>`:""}
+    <div style="${KVH};margin-top:14px">${esc(t("dr.measuredsig"))}</div>
+    <div class="link-row">${sig?`<a class="linkc" onclick="openSignal('${sig.id}')"><span class="tk">${esc(t("tk.signal"))} · ${esc(t("state."+sig.state)||sig.state)}</span>${esc(L(sig,"signal").slice(0,36))}…</a>`:`<span class="badge b-mute"><span class="dot"></span>${esc(t("dr.nomeasure"))}</span>`}</div>`;
+  drawerFoot("outcomes",id); openDrawer();
+}
 
 /* ============================================================ FORMS */
 let editing = null; // {coll,id} or {coll}
@@ -1906,6 +2071,7 @@ const FIELDS = {
     {k:"notDoing",l:"4 · What we are NOT doing",t:"lines",ph:"One per line"},
     {k:"howKnow",l:"5 · How we'll know it's working",t:"lines",ph:"One per line — visible signals"},
     {k:"relations",l:"Relates to other strategies",t:"rels"},
+    {k:"serves",l:"Serves goals",t:"multiref",ref:"goals"},
   ],
   insights:[
     {k:"claim",l:"Claim",t:"textarea",req:1,ph:"What you now believe is true…"},
@@ -1947,8 +2113,26 @@ const FIELDS = {
     {k:"state",l:"State",t:"seg",opts:["agreeing","drifting","disagreeing","retired"]},
     {k:"last_reading",l:"Latest reading",t:"text"},
   ],
+  goals:[
+    {k:"title",l:"Goal",t:"text",req:1,ph:"The destination — why the work exists"},
+    {k:"type",l:"Type",t:"seg",opts:["company","product","team"]},
+    {k:"horizon",l:"Horizon",t:"text",ph:"e.g. 2026"},
+    {k:"owner",l:"Owner",t:"text"},
+    {k:"statement",l:"What this means",t:"textarea",ph:"One or two sentences a new hire understands"},
+    {k:"note",l:"Note",t:"textarea"},
+  ],
+  outcomes:[
+    {k:"statement",l:"Outcome",t:"textarea",req:1,ph:"The measurable change that proves the goal is being reached"},
+    {k:"goalId",l:"Goal",t:"ref",ref:"goals"},
+    {k:"baseline",l:"Baseline",t:"text",ph:"Where it stands today"},
+    {k:"target",l:"Target",t:"text",ph:"e.g. ≥60%"},
+    {k:"by",l:"By when",t:"text",ph:"e.g. 2027-Q2"},
+    {k:"measuredBy",l:"Measured by signal",t:"ref",ref:"signals"},
+    {k:"state",l:"State",t:"seg",opts:["on-track","at-risk","off-track","not-measured"]},
+    {k:"note",l:"Note",t:"textarea"},
+  ],
 };
-const SING = {strategies:"Strategy",insights:"Insight",decisions:"Decision",assumptions:"Assumption",signals:"Signal",org:"Organisation"};
+const SING = {strategies:"Strategy",insights:"Insight",decisions:"Decision",assumptions:"Assumption",signals:"Signal",goals:"Goal",outcomes:"Outcome",org:"Organisation"};
 FIELDS.org = [
   {k:"name",l:"Organisation name",t:"text",req:1,ph:"e.g. Tet Digital"},
   {k:"role",l:"Your role",t:"text",ph:"e.g. Product Manager"},
@@ -2062,6 +2246,8 @@ function delEntry(coll,id){
   DB.assumptions.forEach(a=>{ if(a.watchedBy===id) a.watchedBy=""; });
   DB.insights.forEach(i=>{ if(i.feeds===id) i.feeds=""; });
   DB.decisions.forEach(d=>{ if(d.rests) d.rests=d.rests.filter(r=>r!==id); });
+  DB.strategies.forEach(s=>{ if(s.serves) s.serves=s.serves.filter(g=>g!==id); });
+  DB.outcomes.forEach(o=>{ if(o.goalId===id) o.goalId=""; if(o.measuredBy===id) o.measuredBy=""; });
   if(coll==="strategies"){
     currentStrategy=null;
     if(mapFocus===id) mapFocus=null;
