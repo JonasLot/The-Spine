@@ -21,21 +21,25 @@ Fase 2 — dyp UI-tekst:
 - Matrise (konfidens × konsekvens), driftsrytme-stegene, gjennomgangsradar.
 - Detalj-drawere (åpnes fra kart/tabeller): eyebrows, felt-etiketter, seksjoner, lenke-tokens.
 
-### Demo-strategiene på norsk ✅
-- `SEED_NO` + `L(obj,felt)`-overlegg: seed-strategiene (st1/st2/st3) vises på norsk når norsk er valgt.
-- Trygt: viser norsk **kun** når feltet fortsatt er den opprinnelige seed-teksten. Redigerer du en strategi, vises din egen tekst uendret på begge språk. Ingen datamodell-endring.
+### Demo-innhold på norsk ✅ (alle fire registre + strategier)
+- `SEED_NO` + to overlegg-funksjoner: `L(obj,felt)` (felt-nivå) og `trView(obj)` (objekt-nivå klon).
+- Dekker nå **alle** seed-objekter: strategier (st1–st3), innsikter (i1–i5), beslutninger (d1–d4), antakelser (a1–a6) og signaler (s1–s5) — inkludert avlesningslogg-oppføringer.
+- Vises overalt: register-tabeller, detalj-drawere, strategikart-noder, mini-lister, matrise, driftsrytme-kort, dashboard-liste.
+- Trygt: norsk vises **kun** når feltet fortsatt er den opprinnelige seed-teksten. Redigerer du et objekt, vises din egen tekst uendret på begge språk. Ingen datamodell-endring, ingenting i Supabase.
+
+### Flywheel + Standing Systems ✅
+- `SYS_NO`/`FAM_NO`/`FEEDS_NO` + helpere (`sysName`, `sysDies`, `famLabel`, `famFeeds`, `feedsL`): de ti systemene, fire familiene, register-løkken og alle «uten det:»-tekstene på norsk.
 
 ### Verifisert (kjørt 2026-07-07)
-- `node --check`: OK. 160 `t()`-nøkler i bruk, alle definert. Full paritet: 196 nøkler i hvert språk.
-- Runtime-test med stubbet DOM: `t()` bytter EN↔NO korrekt; ukjent nøkkel faller tilbake til nøkkelen; `L()` gir norsk for uredigert st1, men bevarer brukerens tekst etter redigering.
+- `node --check`: OK. 182 `t()`-nøkler i bruk, alle definert. Full paritet: 218 nøkler i hvert språk.
+- Runtime-test med stubbet DOM: `t()` bytter EN↔NO; ukjent nøkkel faller tilbake; `L()`/`trView()` gir norsk for uredigerte seed-innsikter/-beslutninger/-antakelser/-signaler (inkl. logg), bevarer redigert tekst, og systemer/familier oversettes.
 
-## Gjenstår (fase 2b — mindre restlomme)
-- Redigerings-modalen (`FIELDS`/`buildForm`): feltnavn + hjelpetekst (placeholders) og seg-valg. Statisk `FIELDS`-objekt må rutes via `t()` — en egen, avgrenset pass.
+## Gjenstår (fase 2b — liten restlomme)
+- Redigerings-modalen (`FIELDS`/`buildForm`): feltnavn + hjelpetekst og seg-valg. Statisk `FIELDS`-objekt må rutes via `t()`.
 - «Connect your backend»-oppsettskjermen (vises bare før Supabase er konfigurert).
-- Flywheel/Standing Systems-kortinnhold (lange forklaringer i `SYSTEMS`/`FAM`).
 - Evt. dato-/tallformat (no-NO vs en-GB).
 
-Alt følger samme mønster: legg nøkkel i `T.en` + `T.no`, bytt streng med `t()`.
+Alt følger samme mønster: legg nøkkel i `T.en` + `T.no`, bytt streng med `t()` (UI) eller `L()`/`trView()` (seed-innhold).
 
 ## Test
 - [ ] Bytt til Norsk i topplinjen → nav, overskrifter og knapper bytter umiddelbart.

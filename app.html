@@ -602,6 +602,26 @@ const FAM = {
   Alignment:{c:"var(--align)", bg:"var(--align-bg)", feeds:"feeds Communicate"},
   Feedback:{c:"var(--feed)", bg:"var(--feed-bg)", feeds:"Track → Understand"},
 };
+/* Norwegian for the standing-systems reference content (Flywheel + Systems views) */
+const SYS_NO = {
+  "Insight Repository":{name:"Innsiktsrepositorium",dies:"Strategi bygget på den som ropte høyest, ikke på hva som er sant."},
+  "Environmental Radar":{name:"Omgivelsesradar",dies:"Du oppdager skiftet først etter at det allerede har kostet deg."},
+  "Decision Log":{name:"Beslutningslogg",dies:"Endeløs re-litigering; ingen husker hvorfor."},
+  "Assumption Register":{name:"Antakelsesregister",dies:"Bettene som feiler, blir aldri lagt merke til at feiler."},
+  "Canonical Strategy Artifact":{name:"Kanonisk strategiartefakt",dies:"Fem versjoner av strategien, alle litt feil."},
+  "Operating Rhythm":{name:"Driftsrytme",dies:"Strategien settes, og driver så stille, uexaminert."},
+  "Decision Rights":{name:"Beslutningsrettigheter",dies:"Strategien stopper i gjennomføring på «hvem bestemmer dette?»."},
+  "Signals Ledger":{name:"Signalregister",dies:"Signalene du designet, blir aldri faktisk overvåket."},
+  "Resource Allocation":{name:"Ressursallokering",dies:"En strategi ingen budsjett beveger seg mot — en ønskeliste."},
+  "Learning Loop":{name:"Læringsløkke",dies:"Hver strategi starter fra null; organisasjonen akkumulerer aldri."},
+};
+const FAM_NO = { Sensing:{label:"Sansing",feeds:"mater Forstå"}, Memory:{label:"Hukommelse",feeds:"spenner over løkken"}, Alignment:{label:"Samordning",feeds:"mater Kommuniser"}, Feedback:{label:"Tilbakekobling",feeds:"Spor → Forstå"} };
+const FEEDS_NO = {"Understand":"Forstå","Whole loop":"Hele løkken","Develop ↔ Track":"Utvikle ↔ Spor","Communicate":"Kommuniser","Track":"Spor","Track → Understand":"Spor → Forstå"};
+function sysName(s){ return LANG==="no"&&SYS_NO[s.name]?SYS_NO[s.name].name:s.name; }
+function sysDies(s){ return LANG==="no"&&SYS_NO[s.name]?SYS_NO[s.name].dies:s.dies; }
+function famLabel(fk){ return LANG==="no"&&FAM_NO[fk]?FAM_NO[fk].label:fk; }
+function famFeeds(fk){ return LANG==="no"&&FAM_NO[fk]?FAM_NO[fk].feeds:(FAM[fk]?FAM[fk].feeds:fk); }
+function feedsL(x){ return LANG==="no"&&FEEDS_NO[x]?FEEDS_NO[x]:x; }
 
 /* ---- state ---- */
 let SB = null;        // Supabase client
@@ -671,6 +691,9 @@ const T = {
     "dt.source":"Source","dt.area":"Area","dt.consequence":"Consequence","dt.expected":"Expected shape","dt.strategy":"Strategy",
     "dr.evidence":"Evidence","dr.feeds":"Feeds the bet","dr.reasoning":"Reasoning","dr.rejected":"Options rejected","dr.restson":"Rests on assumptions","dr.trigger":"Review trigger","dr.kill":"Kill-signal — what would prove this false","dr.watchedby":"Watched by","dr.decresting":"Decisions resting on it","dr.watchesasm":"Watches assumption","dr.readinglog":"Reading log","dr.noreadings":"No readings yet.","dr.blindspot":"unwatched — a blind spot",
     "tk.assumption":"assumption","tk.decision":"decision","tk.signal":"signal",
+    "rev.expected":"Expected","rev.watches":"watches","rev.latest":"Latest","rev.newreading":"New reading, e.g. 58% at week 6…","rev.logreading":"Log reading","rev.logged":"✓ logged","rev.rerate":"Re-rate","rev.saved":"✓ saved",
+    "sys.families":"The four families","sys.families.h":"Ten systems · four live registers","sys.loop":"The register loop","sys.loop.h":"How the four registers actually talk to each other","sys.register":"register","sys.live":"live register","sys.without":"Without it:","sys.family":"Family:","sys.feeds":"Feeds",
+    "loop.1":"Insights feed the diagnosis in Understand.","loop.2":"The diagnosis produces Assumptions — the bets the strategy rests on.","loop.3":"Each Signal watches a named assumption; each Decision records the bets it rests on.","loop.4":"When a signal disagrees or an assumption breaks, you're sent back to the diagnosis.","loop.5":"The Learning Loop writes the lesson from a broken bet back into Insights — and downgrades the falsified one. That's what makes it a flywheel, not a one-off.",
   },
   no:{
     "brand.ey":"Strategiarkitekt",
@@ -722,6 +745,9 @@ const T = {
     "dt.source":"Kilde","dt.area":"Område","dt.consequence":"Konsekvens","dt.expected":"Forventet form","dt.strategy":"Strategi",
     "dr.evidence":"Bevis","dr.feeds":"Mater bettet","dr.reasoning":"Begrunnelse","dr.rejected":"Forkastede alternativer","dr.restson":"Hviler på antakelser","dr.trigger":"Gjennomgangstrigger","dr.kill":"Kill-signal — hva som ville motbevise dette","dr.watchedby":"Overvåket av","dr.decresting":"Beslutninger som hviler på den","dr.watchesasm":"Overvåker antakelse","dr.readinglog":"Avlesningslogg","dr.noreadings":"Ingen avlesninger ennå.","dr.blindspot":"uovervåket — et blindpunkt",
     "tk.assumption":"antakelse","tk.decision":"beslutning","tk.signal":"signal",
+    "rev.expected":"Forventet","rev.watches":"overvåker","rev.latest":"Siste","rev.newreading":"Ny avlesning, f.eks. 58 % ved uke 6…","rev.logreading":"Loggfør avlesning","rev.logged":"✓ loggført","rev.rerate":"Revurder","rev.saved":"✓ lagret",
+    "sys.families":"De fire familiene","sys.families.h":"Ti systemer · fire levende registre","sys.loop":"Register-løkken","sys.loop.h":"Hvordan de fire registrene faktisk snakker sammen","sys.register":"register","sys.live":"levende register","sys.without":"Uten det:","sys.family":"Familie:","sys.feeds":"Mater",
+    "loop.1":"Innsikter mater diagnosen i Forstå.","loop.2":"Diagnosen produserer Antakelser — bettene strategien hviler på.","loop.3":"Hvert Signal overvåker en navngitt antakelse; hver Beslutning registrerer bettene den hviler på.","loop.4":"Når et signal er uenig eller en antakelse brytes, sendes du tilbake til diagnosen.","loop.5":"Læringsløkken skriver lærdommen fra et brutt bet tilbake inn i Innsikter — og nedgraderer den falsifiserte. Det er det som gjør det til et svinghjul, ikke en engangshendelse.",
   },
 };
 function t(k){ return (T[LANG] && T[LANG][k]) ?? T.en[k] ?? k; }
@@ -774,13 +800,76 @@ const SEED_NO = {
     moves:["Guidet førstegangsoppsett","Innebygd hjelp ved de kjente frafallspunktene"],
     notDoing:["Ansette mer onboarding-support for å maskere gapet"],
     howKnow:["≥80 % av administratorer selvbetjener innen uke 4","Supporthenvendelser per ny administrator holder seg under 2"]},
+
+  i1:{claim:"~90 % av klagene på skoleskyss omgjøres — kvalitative funn peker mot feil i regelanvendelsen i dagens praksis (inkonsistent tolkning av nærmeste skole, manglende sporbarhet, ujevn vurdering av farlig skolevei), ikke saksbehandlerskjønn.",evidence:"Discovery M0 sluttrapport (2026-05-09), åpent spørsmål H5; kvalitative intervjuer i quick-wins-sporet."},
+  i2:{claim:"Multi-tenancy er et personvernkrav, ikke bare en arkitekturpreferanse — å holde data for 150+ kommuner adskilt er det som gjør en delt plattform juridisk forsvarlig.",evidence:"DPIA-forhåndsvurdering; juridisk gjennomgang av grensene for databehandleransvar."},
+  i3:{claim:"Bygg slår kjøp for dette domenet: norsk skoleskyssrett er smal og regeltung, og hyllevaresystemer støtter verken automatiseringsnivået eller konfigurasjon per tenant som ambisjonen krever.",evidence:"Leverandørskanning + gap-analyse av kapabiliteter."},
+  i4:{claim:"Ansvarsgapet går mellom behandlingsansvarlig (kommunen) og systemoperatøren — inntil beslutningsmyndighet er navngitt, kan ikke automatisering leveres.",evidence:"Interessentintervjuer; workshop om dataansvar."},
+  i5:{claim:"Den skarpeste personvernrisikoen er sensitive data (fortrolige adresser), som trenger en egen behandlingsflyt i stedet for standardpipelinen.",evidence:"DPIA trusselmodellerings-sesjon."},
+
+  d1:{title:"Bygg et skreddersydd saksbehandlingssystem (Tet Vedtak) i stedet for å utvide FSkyss/Voyager",
+    reasoning:"Knyttet til selskapets O1 («én plattform, mange brukere, samme opplevelse») og målet om opptil 60 % full automatisering. Legacy-systemer støtter verken multi-tenancy eller automatisering på nivået ambisjonen krever.",
+    rejected:"Utvide FSkyss/Voyager — forkastet: lav automatisering, ingen multi-tenancy. Kjøpe hyllevare — ikke valgt denne fasen; domenet er smalt og regeltungt.",
+    trigger:"Gate 2 (konseptgodkjenning i Eierforum), eller hvis piloten viser at automatiseringsgevinsten uteblir."},
+  d2:{title:"Ta i bruk konfigurasjon per tenant som multi-tenancy-modell",
+    reasoning:"Konfigurasjon per tenant holder kommunenes data og regler isolert samtidig som de deler én kodebase — den eneste modellen som tilfredsstiller både personvernkravet og delt-plattform-økonomien.",
+    rejected:"Én delt tenant med radnivå-filtrering — forkastet av hensyn til personvern-forsvarlighet.",
+    trigger:"Hvis onboarding-kostnad per tenant overstiger budsjett, eller en tenant trenger regler konfigurasjonsmodellen ikke kan uttrykke."},
+  d3:{title:"Betinget GO på milepæl M1, betinget av DPIA-godkjenning",
+    reasoning:"Momentum betyr noe, men automatisert behandling kan ikke starte før DPIA er godkjent. GO på byggarbeid; HOLD på alt som berører automatiserte beslutninger til Gate 1 er klarert.",
+    rejected:"Full GO inkludert automatisering — forkastet: juridisk eksponering. Full HOLD — forkastet: stopper hele programmet.",
+    trigger:"DPIA-godkjenning (klarerer porten) eller avslag (gjenåpne omfang)."},
+  d4:{title:"Prioriter TØFF-migreringen i inkrement T2",
+    reasoning:"CMP legges ned 31.12.2026; migreringsvinduet er fast og gir lite slakk. Å sekvensere det inn i T2 beskytter lovpålagt tjenesteleveranse.",
+    rejected:"Utsette til T3 — forkastet: kolliderer med CMP-nedleggingsfristen.",
+    trigger:"Ethvert målbart brudd i lovpålagt tjeneste under migreringsvinduet."},
+
+  a1:{statement:"Opptil 60 % av ordinære skoleskyss-saker kan fullautomatiseres med tilstrekkelig beslutningskvalitet.",
+    kill_signal:"Klageanalysen (M0) viser at omgjøringer hovedsakelig drives av regeltolkning, ikke søkerkvalitet — noe som betyr at ordinære saker er mindre regelklare enn antatt.",
+    note:"Hele forretningscaset hviler på dette tallet (M3-ambisjon). Det åpne M0-spørsmålet — hva driver omgjøringsraten? — er i praksis testen av dette bettet."},
+  a2:{statement:"DPIA-en godkjennes i tide til at automatisert behandling kan starte i M2.",
+    kill_signal:"DPIA fortsatt ikke godkjent ved planlagt M2-start.",
+    note:"Aktiv blokker på kritisk sti. En ny DPIA er underveis med ny juridisk rådgiver engasjert."},
+  a3:{statement:"Konfigurasjon per tenant skalerer til 150+ kommuner uten ingeniørinnsats per tenant.",
+    kill_signal:"Onboarding av en ny tenant krever gjentatte ganger kodeendringer, ikke bare konfigurasjon.",
+    note:"Underbygger delt-plattform-økonomien."},
+  a4:{statement:"TØFF-migreringen i T2 kan fullføres uten brudd i lovpålagt tjenesteleveranse.",
+    kill_signal:"Et målbart avbrudd i søknads-/vedtaksflyt, eller en bommet lovbestemt frist under migreringsvinduet.",
+    note:"Identifisert som en organisatorisk risiko: midlertidig degradering under migrering kan bryte lovpålagt tjeneste. Frist 31.12.2026 gir lite slakk; migrering ikke startet."},
+  a5:{statement:"En transparent regelmotor med sporbart beslutningsgrunnlag vil redusere klagevolumet.",
+    kill_signal:"Regelverifisering mot 30+ historiske klager klarer ikke å reprodusere korrekte utfall.",
+    note:"Gode nyheter for a1 hvis sant. Ikke målt ennå — regelverifisering er M1-sjekkpunktet."},
+  a6:{statement:"Skoleadministratorer vil selvbetjene onboarding uten supporttelefoner.",
+    kill_signal:"Supporthenvendelser per ny administrator holder seg over 2 etter uke 4.",
+    note:"Videreført fra On-Demand-piloten; det risikableste bettet i den strategien."},
+
+  s1:{signal:"Omgjøringsrate på skoleskyss-vedtak, og den forståtte årsaken",expected_shape:"Årsak forstått i M0; raten faller etter hvert som Tet Vedtak-piloten rulles ut.",last_reading:"~90 % omgjøring — årsak (beslutningsfeil / regeltolkning / søkerkvalitet) ennå ikke forstått (M0)",
+    log:[{d:"2026-05-13", t:"~90 % omgjøringsrate dokumentert, men ennå ikke forstått. Klageanalyse pågår. Høy rate er et faresignal mot automatiseringsantakelsen."}]},
+  s2:{signal:"DPIA-godkjenningsstatus for automatisert saksbehandling",expected_shape:"Godkjent av personvernombudet før planlagt M2-start.",last_reading:"Pågår — ny DPIA startet, ny juridisk rådgiver engasjert, sanntids-lokasjonsinfo innsendt (2026-06-11)",
+    log:[{d:"2026-06-11", t:"Ny skoleskyss-DPIA startet, ny juridisk rådgiver engasjert. Fortsatt ikke godkjent → blokkerer Gate 1."},{d:"2026-05-13", t:"DPIA ikke fremmet/godkjent. Aktiv blokker på kritisk sti."}]},
+  s3:{signal:"Tjenesteavbrudd under TØFF-migreringsvinduet",expected_shape:"Null brudd i lovpålagt tjeneste; alle frister overholdt.",last_reading:"Ingen migreringsaktivitet ennå — baseline ren (2026-06-01)",
+    log:[{d:"2026-06-01", t:"Baseline før migrering etablert. Ingen avbrudd. Migrering ikke startet."}]},
+  s4:{signal:"Nye administratorer som selvbetjener onboarding uten en supporttelefon",expected_shape:"≥80 % selvbetjener innen uke 4.",last_reading:"62 % ved uke 4 — under forventet form på ≥80 % (2026-06-12)",
+    log:[{d:"2026-06-12", t:"62 % ved uke 4. Driver under forventet form på ≥80 %."},{d:"2026-05-29", t:"71 % ved uke 2. På sporet."}]},
+  s5:{signal:"Regelmotor-verifisering mot historiske klager",expected_shape:"Reproduserer korrekte utfall på ≥30 historiske klagesaker.",last_reading:"Verifiseringssett settes sammen — 18 av 30 saker lastet (2026-06-18)",
+    log:[{d:"2026-06-18", t:"18 av 30 historiske klager lastet inn i verifiseringssettet. Tidlige reproduksjoner stemmer."}]},
 };
+function seedById(id){ if(typeof SEED==="undefined") return null; for(const c of COLLS){ const x=(SEED[c]||[]).find(o=>o.id===id); if(x) return x; } return null; }
+/* field-level overlay: Norwegian seed text, but only while the field is untouched */
 function L(o,f){
-  if(LANG==="no" && o && SEED_NO[o.id] && SEED_NO[o.id][f]!=null && typeof SEED!=="undefined"){
-    const orig=(SEED.strategies||[]).find(x=>x.id===o.id);
+  if(LANG==="no" && o && SEED_NO[o.id] && SEED_NO[o.id][f]!=null){
+    const orig=seedById(o.id);
     if(orig && JSON.stringify(o[f])===JSON.stringify(orig[f])) return SEED_NO[o.id][f];
   }
   return o[f];
+}
+/* object-level overlay: returns a display clone with all untouched seed fields in Norwegian */
+function trView(o){
+  if(LANG!=="no" || !o || !SEED_NO[o.id]) return o;
+  const orig=seedById(o.id); if(!orig) return o;
+  const out={...o};
+  for(const f in SEED_NO[o.id]){ if(JSON.stringify(o[f])===JSON.stringify(orig[f])) out[f]=SEED_NO[o.id][f]; }
+  return out;
 }
 
 const COLLS=["strategies","insights","decisions","assumptions","signals"];
@@ -922,8 +1011,9 @@ function vDashboard(){
     const body = el("tbody");
     attention.forEach(({k,o})=>{
       const tr = el("tr","row");
-      const main = k==="signal"?o.signal:o.statement;
-      const sub  = k==="signal"?o.last_reading:o.kill_signal;
+      const ov = trView(o);
+      const main = k==="signal"?ov.signal:ov.statement;
+      const sub  = k==="signal"?ov.last_reading:ov.kill_signal;
       tr.innerHTML = `<td><div class="stmt">${esc(main)}</div><div class="strat">${esc(o.strategy)}</div></td>
         <td><span class="chip">${esc(t("th."+k))}</span></td>
         <td>${stateBadge(o.state)}</td>
@@ -1100,9 +1190,9 @@ function vStrategyDetail(id){
   // linked registers
   w.appendChild(el("div","sect-h",`<h2>${esc(t("sect.rests"))}</h2><span class="hint">${esc(t("sect.rests.h"))}</span>`));
   const cols=el("div","grid strat-link-grid");
-  cols.appendChild(miniList(t("nav.assumptions"), DB.assumptions.filter(a=>a.strategy===s.name), a=>({main:a.statement,badge:stateBadge(a.state),click:()=>openAssumption(a.id)})));
-  cols.appendChild(miniList(t("nav.signals"), DB.signals.filter(x=>x.strategy===s.name), x=>({main:x.signal,badge:stateBadge(x.state),click:()=>openSignal(x.id)})));
-  cols.appendChild(miniList(t("nav.decisions"), DB.decisions.filter(d=>d.strategy===s.name), d=>({main:d.title,badge:`<span class="badge ${d.door==="one-way"?"b-bad":"b-acc"}"><span class="dot"></span>${esc(t("door."+d.door)||d.door)}</span>`,click:()=>openDecision(d.id)})));
+  cols.appendChild(miniList(t("nav.assumptions"), DB.assumptions.filter(a=>a.strategy===s.name), a=>({main:L(a,"statement"),badge:stateBadge(a.state),click:()=>openAssumption(a.id)})));
+  cols.appendChild(miniList(t("nav.signals"), DB.signals.filter(x=>x.strategy===s.name), x=>({main:L(x,"signal"),badge:stateBadge(x.state),click:()=>openSignal(x.id)})));
+  cols.appendChild(miniList(t("nav.decisions"), DB.decisions.filter(d=>d.strategy===s.name), d=>({main:L(d,"title"),badge:`<span class="badge ${d.door==="one-way"?"b-bad":"b-acc"}"><span class="dot"></span>${esc(t("door."+d.door)||d.door)}</span>`,click:()=>openDecision(d.id)})));
   w.appendChild(cols);
   return w;
 }
@@ -1135,7 +1225,7 @@ function vInsights(){
   const tb = el("table","tbl");
   tb.innerHTML = `<thead><tr><th>${esc(t("th.claim"))}</th><th>${esc(t("th.theme"))}</th><th>${esc(t("th.confidence"))}</th><th>${esc(t("th.captured"))}</th><th>${esc(t("th.feeds"))}</th></tr></thead>`;
   const b = el("tbody");
-  rows.forEach(x=>{
+  rows.forEach(x=>{ x=trView(x);
     const tr = el("tr","row");
     const bet = x.feeds?byId("assumptions",x.feeds):null;
     tr.innerHTML = `<td><div class="stmt">${esc(x.claim)}</div><div class="meta">${esc(x.source||"")}</div></td>
@@ -1160,7 +1250,7 @@ function vDecisions(){
   const tb = el("table","tbl");
   tb.innerHTML = `<thead><tr><th>${esc(t("th.decision"))}</th><th>${esc(t("th.door"))}</th><th>${esc(t("th.rests"))}</th><th>${esc(t("th.owner"))}</th><th>${esc(t("th.decided"))}</th></tr></thead>`;
   const b = el("tbody");
-  rows.slice().sort((a,c)=>(c.decided||"").localeCompare(a.decided||"")).forEach(d=>{
+  rows.slice().sort((a,c)=>(c.decided||"").localeCompare(a.decided||"")).forEach(d=>{ d=trView(d);
     const tr = el("tr","row");
     tr.innerHTML = `<td><div class="stmt">${esc(d.title)}</div><div class="strat">${esc(d.strategy)} · ${esc(d.area||"")}</div></td>
       <td><span class="badge ${d.door==="one-way"?"b-bad":"b-acc"}"><span class="dot"></span>${d.door==="one-way"?"One-way":"Two-way"}</span></td>
@@ -1190,7 +1280,7 @@ function vAssumptions(){
   const tb = el("table","tbl");
   tb.innerHTML = `<thead><tr><th>${esc(t("th.assumption"))}</th><th>${esc(t("th.confcons"))}</th><th>${esc(t("th.state"))}</th><th>${esc(t("th.killsignal"))}</th><th>${esc(t("th.watchedby"))}</th></tr></thead>`;
   const b = el("tbody");
-  rows.forEach(a=>{
+  rows.forEach(a=>{ a=trView(a);
     const tr = el("tr","row");
     const sig = a.watchedBy?byId("signals",a.watchedBy):null;
     const risky = a.confidence==="low"&&a.consequence==="high";
@@ -1218,7 +1308,7 @@ function vSignals(){
   const tb = el("table","tbl");
   tb.innerHTML = `<thead><tr><th>${esc(t("th.signal"))}</th><th>${esc(t("th.watches"))}</th><th>${esc(t("th.state"))}</th><th>${esc(t("th.latest"))}</th><th>${esc(t("th.owner"))}</th></tr></thead>`;
   const b = el("tbody");
-  rows.forEach(s=>{
+  rows.forEach(s=>{ s=trView(s);
     const tr = el("tr","row");
     const a = s.watches?byId("assumptions",s.watches):null;
     tr.innerHTML = `<td><div class="stmt">${esc(s.signal)}</div><div class="strat">${esc(s.strategy)}</div></td>
@@ -1269,8 +1359,8 @@ function matrixPanel(rows){
       items.forEach(a=>{
         const m=STATE_MAP[a.state]||["b-mute"];
         const colr=m[0]==="b-bad"?"var(--bad)":m[0]==="b-warn"?"var(--warn)":m[0]==="b-good"?"var(--good)":"var(--mute)";
-        const d=el("span","m-dot",`<span class="dot" style="background:${colr}"></span>${esc(a.statement.slice(0,22))}…`);
-        d.title=a.statement; clickable(d,()=>openAssumption(a.id),"Open assumption: "+a.statement);
+        const d=el("span","m-dot",`<span class="dot" style="background:${colr}"></span>${esc(L(a,"statement").slice(0,22))}…`);
+        d.title=L(a,"statement"); clickable(d,()=>openAssumption(a.id),"Open assumption: "+L(a,"statement"));
         cl.appendChild(d);
       });
       grid.appendChild(cl);
@@ -1325,16 +1415,16 @@ function vReview(){
 function reviewSignalCard(s){
   const c=el("div","panel rev-card");
   const a=s.watches?byId("assumptions",s.watches):null;
-  c.innerHTML=`<div class="rh"><div class="stmt">${esc(s.signal)}</div>${stateBadge(s.state)}</div>
-    <div style="font-size:12.5px;color:var(--ink-2)">Expected: ${esc(s.expected_shape||"—")}${a?` · watches <b>${esc(a.statement.slice(0,40))}…</b>`:""}</div>
-    <div style="font-size:12px;color:var(--ink-3)">Latest: ${esc(s.last_reading||"—")}</div>`;
+  c.innerHTML=`<div class="rh"><div class="stmt">${esc(L(s,"signal"))}</div>${stateBadge(s.state)}</div>
+    <div style="font-size:12.5px;color:var(--ink-2)">${esc(t("rev.expected"))}: ${esc(L(s,"expected_shape")||"—")}${a?` · ${esc(t("rev.watches"))} <b>${esc(L(a,"statement").slice(0,40))}…</b>`:""}</div>
+    <div style="font-size:12px;color:var(--ink-3)">${esc(t("rev.latest"))}: ${esc(L(s,"last_reading")||"—")}</div>`;
   const ctrl=el("div","ctrl");
-  const inp=el("input"); inp.placeholder="New reading, e.g. 58% at week 6…";
+  const inp=el("input"); inp.placeholder=t("rev.newreading");
   const seg=el("div","seg");
-  ["agreeing","drifting","disagreeing","retired"].forEach(o=>{ const b=el("button",o===s.state?"on":""); b.type="button"; b.textContent=o; b.onclick=()=>{seg.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); seg.dataset.val=o;}; seg.appendChild(b); });
+  ["agreeing","drifting","disagreeing","retired"].forEach(o=>{ const b=el("button",o===s.state?"on":""); b.type="button"; b.textContent=t("state."+o); b.onclick=()=>{seg.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); seg.dataset.val=o;}; seg.appendChild(b); });
   seg.dataset.val=s.state;
-  const save=el("button","btn pri","Log reading");
-  const flash=el("span","saved-flash","✓ logged");
+  const save=el("button","btn pri",t("rev.logreading"));
+  const flash=el("span","saved-flash",t("rev.logged"));
   save.onclick=()=>{
     const today=new Date().toISOString().slice(0,10);
     const txt=inp.value.trim();
@@ -1348,19 +1438,19 @@ function reviewSignalCard(s){
 }
 function reviewAssumptionCard(a){
   const c=el("div","panel rev-card");
-  c.innerHTML=`<div class="rh"><div class="stmt">${esc(a.statement)}</div>${stateBadge(a.state)}</div>
-    <div style="font-size:12px;color:var(--ink-3)">${esc(lvl(a.confidence))} ${esc(t("conf.suffix"))} × ${esc(lvl(a.consequence))} ${esc(t("cons.suffix"))} · kill: ${esc((a.kill_signal||"—").slice(0,60))}…</div>`;
+  c.innerHTML=`<div class="rh"><div class="stmt">${esc(L(a,"statement"))}</div>${stateBadge(a.state)}</div>
+    <div style="font-size:12px;color:var(--ink-3)">${esc(lvl(a.confidence))} ${esc(t("conf.suffix"))} × ${esc(lvl(a.consequence))} ${esc(t("cons.suffix"))} · kill: ${esc((L(a,"kill_signal")||"—").slice(0,60))}…</div>`;
   const ctrl=el("div","ctrl");
-  const wrapConf=el("div",null,`<div class="lbl" style="margin-bottom:4px">Confidence</div>`);
+  const wrapConf=el("div",null,`<div class="lbl" style="margin-bottom:4px">${esc(t("th.confidence"))}</div>`);
   const segC=el("div","seg");
-  ["low","medium","high"].forEach(o=>{ const b=el("button",o===a.confidence?"on":""); b.type="button"; b.textContent=o; b.onclick=()=>{segC.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); segC.dataset.val=o;}; segC.appendChild(b); });
+  ["low","medium","high"].forEach(o=>{ const b=el("button",o===a.confidence?"on":""); b.type="button"; b.textContent=lvl(o); b.onclick=()=>{segC.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); segC.dataset.val=o;}; segC.appendChild(b); });
   segC.dataset.val=a.confidence; wrapConf.appendChild(segC);
-  const wrapState=el("div",null,`<div class="lbl" style="margin-bottom:4px">State</div>`);
+  const wrapState=el("div",null,`<div class="lbl" style="margin-bottom:4px">${esc(t("th.state"))}</div>`);
   const segS=el("div","seg");
-  ["holding","shaky","broken","retired"].forEach(o=>{ const b=el("button",o===a.state?"on":""); b.type="button"; b.textContent=o; b.onclick=()=>{segS.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); segS.dataset.val=o;}; segS.appendChild(b); });
+  ["holding","shaky","broken","retired"].forEach(o=>{ const b=el("button",o===a.state?"on":""); b.type="button"; b.textContent=t("state."+o); b.onclick=()=>{segS.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); segS.dataset.val=o;}; segS.appendChild(b); });
   segS.dataset.val=a.state; wrapState.appendChild(segS);
-  const save=el("button","btn pri","Re-rate"); save.style.alignSelf="flex-end";
-  const flash=el("span","saved-flash","✓ saved"); flash.style.alignSelf="flex-end";
+  const save=el("button","btn pri",t("rev.rerate")); save.style.alignSelf="flex-end";
+  const flash=el("span","saved-flash",t("rev.saved")); flash.style.alignSelf="flex-end";
   save.onclick=()=>{ a.confidence=segC.dataset.val; a.state=segS.dataset.val; saveData(); flash.classList.add("on"); setTimeout(()=>render(),650); };
   ctrl.style.alignItems="flex-end";
   ctrl.appendChild(wrapConf); ctrl.appendChild(wrapState); ctrl.appendChild(save); ctrl.appendChild(flash);
@@ -1424,17 +1514,17 @@ function buildGraph(mode, focusId){
     const s=byId("strategies",focusId); if(!s) return {nodes,links};
     nodes.push({id:s.id, kind:"strategy", label:s.name, r:32, center:true});
     const asmp=DB.assumptions.filter(a=>a.strategy===s.name);
-    asmp.forEach(a=>{ nodes.push({id:a.id, kind:"assumption", label:a.statement, state:a.state, r:11});
+    asmp.forEach(a=>{ nodes.push({id:a.id, kind:"assumption", label:L(a,"statement"), state:a.state, r:11});
       links.push({source:a.id, target:s.id, kind:"spoke", state:a.state}); });
     const inSet=new Set(asmp.map(a=>a.id));
     DB.insights.forEach(i=>{ if(i.feeds&&inSet.has(i.feeds)){
-      nodes.push({id:i.id, kind:"insight", label:i.claim, r:9, sub:i.confidence+" confidence"});
+      nodes.push({id:i.id, kind:"insight", label:L(i,"claim"), r:9, sub:lvl(i.confidence)+" "+t("conf.suffix")});
       links.push({source:i.id, target:i.feeds, kind:"feeds"}); } });
     DB.signals.forEach(g=>{ if(g.strategy===s.name){
-      nodes.push({id:g.id, kind:"signal", label:g.signal, state:g.state, r:9});
+      nodes.push({id:g.id, kind:"signal", label:L(g,"signal"), state:g.state, r:9});
       links.push({source:g.id, target:(g.watches&&inSet.has(g.watches))?g.watches:s.id, kind:"watches", state:g.state}); } });
     DB.decisions.forEach(d=>{ if(d.strategy===s.name){
-      nodes.push({id:d.id, kind:"decision", label:d.title, r:10, sub:d.door+" door"});
+      nodes.push({id:d.id, kind:"decision", label:L(d,"title"), r:10, sub:(t("door."+d.door)||d.door)});
       let tied=false; (d.rests||[]).forEach(r=>{ if(inSet.has(r)){ links.push({source:d.id, target:r, kind:"rests"}); tied=true; } });
       if(!tied) links.push({source:d.id, target:s.id, kind:"rests"}); } });
     DB.strategies.forEach(o=>{ if(o.id===s.id) return;
@@ -1625,7 +1715,7 @@ function vFlywheel(){
   w.innerHTML = `<div class="view-head">${t("vh.flywheel")}</div>`;
   w.appendChild(spineFlow());
 
-  const sh = el("div","sect-h",`<h2>The four families</h2><span class="hint">Ten systems · four live registers</span>`);
+  const sh = el("div","sect-h",`<h2>${esc(t("sys.families"))}</h2><span class="hint">${esc(t("sys.families.h"))}</span>`);
   w.appendChild(sh);
   const grid = el("div","grid fam-grid");
   Object.keys(FAM).forEach(fk=>{
@@ -1633,22 +1723,16 @@ function vFlywheel(){
     const card = el("div","fam");
     card.style.background = f.bg;
     card.style.borderColor = "transparent";
-    const sysList = SYSTEMS.filter(s=>s.fam===fk).map(s=>`<div class="sys"><span class="dotm" style="background:${f.c}"></span>${esc(s.name)}${s.reg?`<span class="reg">${esc(s.reg)} register</span>`:""}</div>`).join("");
-    card.innerHTML = `<h4 style="color:${f.c}"><span class="dotm" style="background:${f.c}"></span>${fk}</h4><div class="sd">${f.feeds}</div>${sysList}`;
+    const sysList = SYSTEMS.filter(s=>s.fam===fk).map(s=>`<div class="sys"><span class="dotm" style="background:${f.c}"></span>${esc(sysName(s))}${s.reg?`<span class="reg">${esc(t("nav."+s.reg.toLowerCase()))} ${esc(t("sys.register"))}</span>`:""}</div>`).join("");
+    card.innerHTML = `<h4 style="color:${f.c}"><span class="dotm" style="background:${f.c}"></span>${esc(famLabel(fk))}</h4><div class="sd">${esc(famFeeds(fk))}</div>${sysList}`;
     grid.appendChild(card);
   });
   w.appendChild(grid);
 
-  const lh = el("div","sect-h",`<h2>The register loop</h2><span class="hint">How the four registers actually talk to each other</span>`);
+  const lh = el("div","sect-h",`<h2>${esc(t("sys.loop"))}</h2><span class="hint">${esc(t("sys.loop.h"))}</span>`);
   w.appendChild(lh);
   const loop = el("div","panel panel-pad");
-  const steps = [
-    ["Insights feed the diagnosis in Understand."],
-    ["The diagnosis produces Assumptions — the bets the strategy rests on."],
-    ["Each Signal watches a named assumption; each Decision records the bets it rests on."],
-    ["When a signal disagrees or an assumption breaks, you're sent back to the diagnosis."],
-    ["The Learning Loop writes the lesson from a broken bet back into Insights — and downgrades the falsified one. That's what makes it a flywheel, not a one-off."],
-  ];
+  const steps = [[t("loop.1")],[t("loop.2")],[t("loop.3")],[t("loop.4")],[t("loop.5")]];
   const lw = el("div","wheel-loop");
   steps.forEach((s,i)=>{ lw.appendChild(el("div","loop-step",`<div class="ix">${i+1}</div><div class="tx">${s[0]}</div>`)); });
   loop.appendChild(lw);
@@ -1664,9 +1748,9 @@ function vSystems(){
   SYSTEMS.forEach(s=>{
     const f = FAM[s.fam];
     const c = el("div","panel sys-card");
-    c.innerHTML = `<div class="top"><span class="dotm" style="background:${f.c}"></span><span class="nm">${esc(s.name)}</span>${s.reg?`<span class="badge b-acc" style="margin-left:auto"><span class="dot"></span>live register</span>`:`<span class="chip" style="margin-left:auto">${s.fam}</span>`}</div>
-      <div class="dies"><b style="color:var(--bad)">Without it:</b> ${esc(s.dies)}</div>
-      <div class="feeds">Family: ${esc(s.fam)} · Feeds ${esc(s.feeds)}</div>`;
+    c.innerHTML = `<div class="top"><span class="dotm" style="background:${f.c}"></span><span class="nm">${esc(sysName(s))}</span>${s.reg?`<span class="badge b-acc" style="margin-left:auto"><span class="dot"></span>${esc(t("sys.live"))}</span>`:`<span class="chip" style="margin-left:auto">${esc(famLabel(s.fam))}</span>`}</div>
+      <div class="dies"><b style="color:var(--bad)">${esc(t("sys.without"))}</b> ${esc(sysDies(s))}</div>
+      <div class="feeds">${esc(t("sys.family"))} ${esc(famLabel(s.fam))} · ${esc(t("sys.feeds"))} ${esc(feedsL(s.feeds))}</div>`;
     if(s.reg){ clickable(c,()=>{ view = s.reg.toLowerCase(); render(); },"Open "+s.reg+" register"); }
     grid.appendChild(c);
   });
@@ -1757,7 +1841,7 @@ function drawerFoot(coll,id){
   $("#drawerF").innerHTML = `<button class="btn" onclick="editEntry('${coll}','${id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button><button class="btn danger" onclick="delEntry('${coll}','${id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>Delete</button>`;
 }
 function openInsight(id){
-  const x = byId("insights",id); if(!x) return;
+  const x = trView(byId("insights",id)); if(!x) return;
   drawerShell(t("dr.eye.insight"), lvlChipBadge(x.confidence));
   const bet = x.feeds?byId("assumptions",x.feeds):null;
   $("#drawerB").innerHTML = `<h3>${esc(x.claim)}</h3>
@@ -1768,7 +1852,7 @@ function openInsight(id){
   drawerFoot("insights",id); openDrawer();
 }
 function openDecision(id){
-  const d = byId("decisions",id); if(!d) return;
+  const d = trView(byId("decisions",id)); if(!d) return;
   drawerShell(t("dr.eye.decision"), `<span class="badge ${d.door==="one-way"?"b-bad":"b-acc"}" style="margin-top:6px"><span class="dot"></span>${d.door==="one-way"?esc(t("dr.oneway")):esc(t("dr.twoway"))}</span>`);
   $("#drawerB").innerHTML = `<h3>${esc(d.title)}</h3>
     <dl class="kv"><dt>${esc(t("dt.strategy"))}</dt><dd>${esc(d.strategy)}</dd><dt>${esc(t("dt.area"))}</dt><dd>${esc(d.area||"—")}</dd><dt>${esc(t("th.owner"))}</dt><dd>${esc(d.owner||"—")}</dd><dt>${esc(t("th.decided"))}</dt><dd class="mono">${esc(d.decided||"—")}</dd></dl>
@@ -1779,7 +1863,7 @@ function openDecision(id){
   drawerFoot("decisions",id); openDrawer();
 }
 function openAssumption(id){
-  const a = byId("assumptions",id); if(!a) return;
+  const a = trView(byId("assumptions",id)); if(!a) return;
   drawerShell(t("dr.eye.assumption"), `<div style="margin-top:6px">${stateBadge(a.state)}</div>`);
   const sig = a.watchedBy?byId("signals",a.watchedBy):null;
   const deps = DB.decisions.filter(d=>(d.rests||[]).includes(id));
@@ -1793,7 +1877,7 @@ function openAssumption(id){
   drawerFoot("assumptions",id); openDrawer();
 }
 function openSignal(id){
-  const s = byId("signals",id); if(!s) return;
+  const s = trView(byId("signals",id)); if(!s) return;
   drawerShell(t("dr.eye.signal"), `<div style="margin-top:6px">${stateBadge(s.state)}</div>`);
   const a = s.watches?byId("assumptions",s.watches):null;
   const log = (s.log||[]).map(r=>`<div class="logitem"><span class="d">${esc(r.d)}</span><span>${esc(r.t)}</span></div>`).join("");
