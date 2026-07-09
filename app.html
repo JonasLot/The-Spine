@@ -1184,7 +1184,7 @@ function vStrategies(){
   const w=el("div","view");
   const head=el("div","view-head");
   head.style.cssText="display:flex;justify-content:space-between;align-items:flex-start;gap:20px";
-  head.innerHTML=`<div>${t("vh.strategies")}</div>`;
+  head.innerHTML=t("vh.strategies");
   const imp=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21V9M7 14l5-5 5 5"/><path d="M5 3h14"/></svg>${esc(LANG==="no"?"Importer":"Import")}`);
   imp.style.flex="none"; imp.onclick=()=>importEntities("strategies");
   head.appendChild(imp);
@@ -1952,8 +1952,12 @@ function parseOneStrategyMd(block){
 function importEntities(coll){
   const inp = document.createElement("input");
   inp.type = "file"; inp.accept = ".json,.md,.markdown,text/markdown,application/json";
+  // Må ligge i DOM-en før .click() ellers åpner ikke Safari/Firefox dialogen.
+  inp.style.position="fixed"; inp.style.left="-9999px";
+  document.body.appendChild(inp);
+  const cleanup = ()=>{ setTimeout(()=>inp.remove(), 300); };
   inp.onchange = ()=>{
-    const file = inp.files && inp.files[0]; if(!file) return;
+    const file = inp.files && inp.files[0]; if(!file){ cleanup(); return; }
     const reader = new FileReader();
     reader.onload = ()=>{
       try{
@@ -1967,7 +1971,9 @@ function importEntities(coll){
         const queue = rawList.map(r=>{ const {clean,warnings}=normalizeEntity(coll,r); return {clean,warnings}; });
         startImportReview(coll, queue, file.name);
       }catch(err){ alert("Import feilet: "+err.message); }
+      finally{ cleanup(); }
     };
+    reader.onerror = ()=>{ alert("Kunne ikke lese fila."); cleanup(); };
     reader.readAsText(file);
   };
   inp.click();
@@ -1990,7 +1996,9 @@ function endImport(){
   $("#mCancel").textContent = _origCancelTxt; $("#mCancel").onclick = defaultCancel;
   $("#modal").classList.remove("on"); editing = null;
   render();
-  if(n) alert("Importert "+n+" "+SING[coll].toLowerCase()+(n>1?"-er":"")+".");
+  if(n) alert(LANG==="no"
+    ? "Importert "+n+" oppføring"+(n>1?"er":"")+"."
+    : "Imported "+n+" entr"+(n>1?"ies":"y")+".");
 }
 function nextImport(){
   if(!IMPORT || !IMPORT.queue.length){ finalizeImport(); return; }
