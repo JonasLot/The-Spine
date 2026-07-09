@@ -1169,7 +1169,13 @@ function reviewRadarPanel(){
 function vStrategies(){
   if(currentStrategy) return vStrategyDetail(currentStrategy);
   const w=el("div","view");
-  w.appendChild(el("div","view-head",t("vh.strategies")));
+  const head=el("div","view-head");
+  head.style.cssText="display:flex;justify-content:space-between;align-items:flex-start;gap:20px";
+  head.innerHTML=`<div>${t("vh.strategies")}</div>`;
+  const imp=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21V9M7 14l5-5 5 5"/><path d="M5 3h14"/></svg>${esc(LANG==="no"?"Importer":"Import")}`);
+  imp.style.flex="none"; imp.onclick=()=>importEntities("strategies");
+  head.appendChild(imp);
+  w.appendChild(head);
   if(!DB.strategies.length){ const p=el("div","panel"); return emptyInto(w,p,t("empty.strat.t"),t("empty.strat.d")); }
   const grid=el("div","grid strat-grid");
   DB.strategies.forEach(s=>{
@@ -1847,6 +1853,160 @@ function downloadFile(name,text){
   setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },300);
 }
 
+/* ════════════════════════════════════════════════════════════════
+   IMPORT / opplasting  (Fase 0 felles kjerne + Fase 1 strukturert spor)
+   Pilot: strategies. Ingen backend — leser en fil brukeren velger,
+   normaliserer mot FIELDS, viser hver kandidat i det vanlige skjemaet
+   (buildForm/saveForm) og skriver bare via eksisterende save().
+   ════════════════════════════════════════════════════════════════ */
+
+// Felt-typer som er referanser til andre entiteter — importeres alltid tomme i v1.
+const REF_FIELD_TYPES = ["rels","ref","multiref","strat"];
+
+// Normaliser et løst objekt til et rent entitetsobjekt + advarsler.
+function normalizeEntity(coll, raw){
+  const clean = {}, warnings = [];
+  const known = new Set(FIELDS[coll].map(f=>f.k));
+  FIELDS[coll].forEach(f=>{
+    const v = raw ? raw[f.k] : undefined;
+    if(REF_FIELD_TYPES.includes(f.t)){
+      clean[f.k] = (f.t==="multiref"||f.t==="rels") ? [] : "";
+      const had = Array.isArray(v) ? v.length : (v!=null && v!=="");
+      if(had) warnings.push(`«${f.l}» (referanse) tømt — koble manuelt etter import`);
+      return;
+    }
+    if(f.t==="lines"){
+      let arr = Array.isArray(v) ? v : (typeof v==="string" ? v.split("\n") : []);
+      clean[f.k] = arr.map(x=>String(x).trim()).filter(Boolean);
+      return;
+    }
+    if(f.t==="seg"){
+      const val = v==null ? "" : String(v).trim();
+      if(!val){ clean[f.k] = f.opts[0]; }
+      else if(f.opts.includes(val)){ clean[f.k] = val; }
+      else { clean[f.k] = f.opts[0]; warnings.push(`«${f.l}»: «${val}» er ikke gyldig — satt til «${f.opts[0]}»`); }
+      return;
+    }
+    clean[f.k] = v==null ? "" : String(v);
+  });
+  // rapporter ukjente felt som forkastes
+  if(raw && typeof raw==="object"){
+    const dropped = Object.keys(raw).filter(k=>k!=="id" && !known.has(k));
+    if(dropped.length) warnings.push(`Ukjente felt forkastet: ${dropped.join(", ")}`);
+  }
+  return { clean, warnings };
+}
+
+/* ---- Parsere ---- */
+function parseImportJSON(text, coll){
+  let obj;
+  try{ obj = JSON.parse(text); }
+  catch(e){ throw new Error("Ugyldig JSON: "+e.message); }
+  const arr = Array.isArray(obj) ? obj : (obj && Array.isArray(obj[coll]) ? obj[coll] : [obj]);
+  return arr;
+}
+
+// Parser exportStrategy-formatet (round-trip). Støtter flere blokker delt med ———.
+function splitStrategyBlocks(text){
+  // Del på register-eksportens skilletegn; ellers én blokk.
+  return text.includes("\n———\n") ? text.split("\n———\n") : [text];
+}
+function parseOneStrategyMd(block){
+  const fm = block.match(/---\n([\s\S]*?)\n---/);
+  const front = {};
+  if(fm){
+    fm[1].split("\n").forEach(line=>{
+      const m = line.match(/^([a-zA-Z_]+):\s*(.*)$/);
+      if(m){ let val = m[2].trim().replace(/^"(.*)"$/,"$1").replace(/\\"/g,'"'); front[m[1]] = val; }
+    });
+  }
+  const sec = (n)=>{
+    const re = new RegExp("##\\s*"+n+"[^\\n]*\\n([\\s\\S]*?)(?=\\n##\\s|\\n———|$)");
+    const m = block.match(re); return m ? m[1].trim() : "";
+  };
+  const listLines = (s)=> s.split("\n").map(x=>x.replace(/^\s*(?:[-*]|\d+\.)\s*/,"").trim()).filter(Boolean);
+  const raw = {
+    name: front.strategy || (block.match(/^#\s+(.+)$/m)||[])[1] || "",
+    framework: front.framework, status: front.status, owner: front.owner,
+    review: front.review, version: front.version,
+    challenge: sec("1"), approach: sec("2"),
+    moves: listLines(sec("3")), notDoing: listLines(sec("4")), howKnow: listLines(sec("5")),
+  };
+  return (raw.name || raw.challenge || raw.approach) ? raw : null;
+}
+
+/* ---- Filvelger + dispatch ---- */
+function importEntities(coll){
+  const inp = document.createElement("input");
+  inp.type = "file"; inp.accept = ".json,.md,.markdown,text/markdown,application/json";
+  inp.onchange = ()=>{
+    const file = inp.files && inp.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{
+        const text = String(reader.result||"");
+        const isJson = /\.json$/i.test(file.name) || text.trim().startsWith("{") || text.trim().startsWith("[");
+        let rawList;
+        if(isJson) rawList = parseImportJSON(text, coll);
+        else if(coll==="strategies") rawList = splitStrategyBlocks(text).map(parseOneStrategyMd).filter(Boolean);
+        else throw new Error(".md-import er foreløpig bare støttet for strategier. Bruk .json for "+SING[coll]+".");
+        if(!rawList.length){ alert("Fant ingen "+SING[coll].toLowerCase()+" i fila."); return; }
+        const queue = rawList.map(r=>{ const {clean,warnings}=normalizeEntity(coll,r); return {clean,warnings}; });
+        startImportReview(coll, queue, file.name);
+      }catch(err){ alert("Import feilet: "+err.message); }
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+}
+
+/* ---- Gjennomsyn-kø: gjenbruker buildForm/saveForm ---- */
+let IMPORT = null;               // {coll, queue, total, done, source}
+let _origSaveTxt=null, _origCancelTxt=null;
+
+function startImportReview(coll, queue, source){
+  if(_origSaveTxt==null){ _origSaveTxt=$("#mSave").textContent; _origCancelTxt=$("#mCancel").textContent; }
+  IMPORT = { coll, queue, total: queue.length, done: 0, source };
+  nextImport();
+}
+function endImport(){
+  const n = IMPORT ? IMPORT.done : 0;
+  const coll = IMPORT ? IMPORT.coll : "strategies";
+  IMPORT = null;
+  $("#mSave").textContent = _origSaveTxt; $("#mSave").onclick = saveForm;
+  $("#mCancel").textContent = _origCancelTxt; $("#mCancel").onclick = defaultCancel;
+  $("#modal").classList.remove("on"); editing = null;
+  render();
+  if(n) alert("Importert "+n+" "+SING[coll].toLowerCase()+(n>1?"-er":"")+".");
+}
+function nextImport(){
+  if(!IMPORT || !IMPORT.queue.length){ finalizeImport(); return; }
+  const step = IMPORT.queue.shift();
+  const idx = IMPORT.total - IMPORT.queue.length;
+  editing = { coll: IMPORT.coll, id: null, data: step.clean };
+  buildForm();
+  // dekorér modalen for import-modus
+  $("#mTitle").textContent = "Gjennomgå import — "+idx+" av "+IMPORT.total;
+  const banner = el("div","import-banner");
+  banner.style.cssText = "margin-bottom:14px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg-2);font-size:12.5px;line-height:1.5";
+  let html = `<b>Foreslått fra</b> <span class="mono">${esc(IMPORT.source)}</span>. Rett ved behov og lagre.`;
+  if(step.warnings.length) html += "<ul style='margin:8px 0 0;padding-left:18px;color:var(--ink-2)'>"+step.warnings.map(w=>`<li>${esc(w)}</li>`).join("")+"</ul>";
+  html += `<div style="margin-top:8px"><a href="#" id="importAbort" style="color:var(--ink-3)">Avbryt hele importen</a></div>`;
+  banner.innerHTML = html;
+  const body = $("#mBody"); body.insertBefore(banner, body.firstChild);
+  $("#importAbort").onclick = (e)=>{ e.preventDefault(); IMPORT.queue = []; finalizeImport(); };
+  const last = IMPORT.queue.length===0;
+  $("#mSave").textContent = last ? "Lagre & fullfør" : "Lagre & neste";
+  $("#mSave").onclick = ()=>{
+    saveForm();
+    if($("#modal").classList.contains("on")) return; // validering feilet — bli stående
+    IMPORT.done++; nextImport();
+  };
+  $("#mCancel").textContent = IMPORT.queue.length ? "Hopp over" : "Hopp over & fullfør";
+  $("#mCancel").onclick = ()=>{ editing=null; nextImport(); };
+}
+function finalizeImport(){ endImport(); }
+
 /* ---------- Flywheel ---------- */
 function vFlywheel(){
   const w = el("div","view");
@@ -2269,10 +2429,11 @@ $("#langSel").onchange = e=>{ setLang(e.target.value==="no"?"no":"en"); };
 $("#search").oninput = e=>{ q=e.target.value.trim().toLowerCase(); if(["insights","decisions","assumptions","signals"].includes(view)) render(); };
 $("#addBtn").onclick = newEntry;
 $("#scrim").onclick = closeDrawer;
-$("#mCancel").onclick = ()=>{ $("#modal").classList.remove("on"); editing=null; };
+function defaultCancel(){ $("#modal").classList.remove("on"); editing=null; }
+$("#mCancel").onclick = defaultCancel;
 $("#mSave").onclick = saveForm;
 $("#menuBtn").onclick = ()=> $("#side").classList.toggle("open");
-document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ closeDrawer(); $("#modal").classList.remove("on"); } });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ if(IMPORT) finalizeImport(); closeDrawer(); $("#modal").classList.remove("on"); } });
 window.openInsight=openInsight; window.openDecision=openDecision; window.openAssumption=openAssumption; window.openSignal=openSignal;
 window.closeDrawer=closeDrawer; window.editEntry=editEntry; window.delEntry=delEntry;
 
