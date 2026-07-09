@@ -953,25 +953,38 @@ async function pushAll(){
   if(!SB||!USER) return;
   if(_pushing){ _pushAgain=true; return; }
   _pushing=true;
-  try{
-    for(const coll of COLLS){
+  // Per-table isolation: one failing/missing table must not block the others.
+  const failed=[];
+  for(const coll of COLLS){
+    try{
       const rows=DB[coll].map(o=>({id:o.id,user_id:USER.id,data:o,updated_at:new Date().toISOString()}));
       if(rows.length){ const {error}=await SB.from(coll).upsert(rows); if(error) throw error; }
       const ids=DB[coll].map(o=>o.id);
       let del=SB.from(coll).delete().eq("user_id",USER.id);
       if(ids.length) del=del.not("id","in","("+ids.map(i=>'"'+i+'"').join(",")+")");
       const {error:e2}=await del; if(e2) throw e2;
-    }
-    setSync("saved");
-  }catch(err){ console.error("Spine sync failed:",err); setSync("error"); }
+    }catch(err){ failed.push(coll); console.error(`Spine sync failed for "${coll}":`,err); }
+  }
+  setSync(failed.length ? "error" : "saved");
+  if(failed.length) console.warn("Spine sync: skipped tables →",failed.join(", "));
   _pushing=false;
   if(_pushAgain){ _pushAgain=false; pushAll(); }
 }
 async function loadAll(){
   const out={strategies:[],insights:[],decisions:[],assumptions:[],signals:[],goals:[],outcomes:[]};
-  for(const coll of COLLS){ const {data,error}=await SB.from(coll).select("id,data"); if(error) throw error; out[coll]=(data||[]).map(r=>r.data); }
-  if(COLLS.every(c=>out[c].length===0)){ DB=structuredClone(SEED); await pushAll(); }   // first sign-in: seed demo data
+  // Per-table isolation: a missing table degrades to an empty collection instead of killing the whole load.
+  const failed=[];
+  for(const coll of COLLS){
+    try{
+      const {data,error}=await SB.from(coll).select("id,data"); if(error) throw error;
+      out[coll]=(data||[]).map(r=>r.data);
+    }catch(err){ failed.push(coll); console.error(`Spine load failed for "${coll}":`,err); }
+  }
+  if(failed.length){ setSync("error"); console.warn("Spine load: unavailable tables →",failed.join(", ")); }
+  // Only auto-seed on a clean first sign-in: every table loaded AND all empty.
+  if(!failed.length && COLLS.every(c=>out[c].length===0)){ DB=structuredClone(SEED); await pushAll(); }
   else DB=out;
+  return {failed};
 }
 function uid(p){ return p + Math.random().toString(36).slice(2,7); }
 

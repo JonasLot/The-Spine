@@ -129,10 +129,24 @@ function showErr(t){ $("#errText").textContent=t; show("#errMsg",true); }
 
   const SB = supabase.createClient(window.SPINE_CONFIG.SUPABASE_URL, window.SPINE_CONFIG.SUPABASE_ANON_KEY);
 
+  // Surface an auth error with full context in the console (code/status) + a readable line for the user.
+  function reportAuthError(where, error){
+    console.error(`[auth] ${where} failed:`, {
+      message: error?.message, code: error?.code, status: error?.status, name: error?.name, error
+    });
+    const bits=[error?.message||"Something went wrong."];
+    if(error?.code) bits.push(`(${error.code})`);
+    else if(error?.status) bits.push(`(HTTP ${error.status})`);
+    showErr(bits.join(" "));
+  }
+
   // already signed in (or just returned from a magic link) → go to app
-  const { data:{ session } } = await SB.auth.getSession();
-  if(session){ location.replace(APP); return; }
-  SB.auth.onAuthStateChange((_e,s)=>{ if(s) location.replace(APP); });
+  try{
+    const { data:{ session }, error } = await SB.auth.getSession();
+    if(error) reportAuthError("getSession", error);
+    if(session){ location.replace(APP); return; }
+  }catch(err){ reportAuthError("getSession", err); }
+  SB.auth.onAuthStateChange((evt,s)=>{ console.debug("[auth] state:", evt, s?.user?.email||null); if(s) location.replace(APP); });
 
   const form=$("#loginForm"), btn=$("#submitBtn"), lbl=$("#submitLabel");
   form.addEventListener("submit", async (e)=>{
@@ -141,15 +155,23 @@ function showErr(t){ $("#errText").textContent=t; show("#errMsg",true); }
     const email=$("#email").value.trim();
     if(!email) return;
     btn.disabled=true; lbl.textContent="Sending…";
-    const { error } = await SB.auth.signInWithOtp({
-      email,
-      options:{ emailRedirectTo: new URL("login.html", location.href).href }
-    });
-    btn.disabled=false; lbl.textContent="Send me a magic link";
-    if(error){ showErr(error.message || "Couldn't send the link. Try again."); return; }
-    $("#sentEmail").textContent=email;
-    $("#formState").style.display="none";
-    show("#sentState",true);
+    try{
+      const redirect = new URL("login.html", location.href).href;
+      console.debug("[auth] signInWithOtp →", email, "redirect:", redirect);
+      const { error } = await SB.auth.signInWithOtp({
+        email,
+        options:{ emailRedirectTo: redirect }
+      });
+      btn.disabled=false; lbl.textContent="Send me a magic link";
+      if(error){ reportAuthError("signInWithOtp", error); return; }
+      console.debug("[auth] magic link request accepted for", email);
+      $("#sentEmail").textContent=email;
+      $("#formState").style.display="none";
+      show("#sentState",true);
+    }catch(err){
+      btn.disabled=false; lbl.textContent="Send me a magic link";
+      reportAuthError("signInWithOtp", err);
+    }
   });
   $("#againBtn").onclick=()=>{ show("#sentState",false); $("#formState").style.display="block"; $("#email").focus(); };
 })();
