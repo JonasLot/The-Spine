@@ -1,7 +1,23 @@
 # Plan — Delbar kanonisk strategi
 
 > Relatert: [[Backend Setup — Supabase]] · [[Plan — Rammeverk-router & lenser]] · [[Plan — Goals & Outcomes]] · `app.html` · `login.html` · `supabase-schema.sql`
-> Status: **Ikke startet** (2026-09-08). Utløst av konkurranseanalyse mot StrategyOS.
+> Status: **Bygget** (2026-09-09). Fase 1–4 lever i `supabase-schema.sql`, `s.html` og `app.html`.
+> ⚠️ **Krever ett manuelt steg:** kjør `supabase-schema.sql` på nytt i Supabase SQL-editoren. Til det er gjort viser appen et dempet bånd i stedet for delefunksjonen.
+
+## Levert (2026-09-09)
+- **Fase 1** — `shares`-tabell med RLS som kun gir eieren tilgang, og `get_share(token)` som `security definer`. Anon kan kalle funksjonen, men har ingen `select` på tabellen — den kan ikke enumereres. Kommentaren i SQL-fila advarer eksplisitt mot `for select using (true)`, som ville latt anon-nøkkelen laste ned samtlige delinger.
+- **Fase 2** — `s.html`: frittstående leserside, tokenet i fragmentet (aldri i query, så det havner ikke i serverlogger eller Referer). Egne tokens fra `index.html`, ikke appens sidebar-CSS — den skal se ut som et dokument. `@media print` gir PDF via nettleserens utskrift, uten bibliotek.
+- **Fase 3** — publisering fra `vStrategyDetail`: øyeblikksbilde, ikke levende vindu. Kopier lenke, publiser på nytt, opphev deling. Utdatert-bånd når `version` har flyttet seg siden publisering.
+- **Fase 4** — `vShares` under Apparatus. `SYSTEMS[4]` gikk fra `reg:""` til `reg:"Shares"` — Canonical Artifact er nå et live register, og «four live registers» er blitt fem.
+
+**Åpne spørsmål avgjort:**
+- Beslutningsloggen deles ikke som standard, men kan hukes av per publisering.
+- Utløp settes til 90 dager som standard, med «uten utløp» som bevisst valg. Produktets eget standpunkt mot drivende kopier er dermed standardinnstillingen.
+- Ikke passord. Tokenet er 122 bits fra `crypto.randomUUID()`.
+
+**Payloaden utelater bevisst:** beslutninger (med mindre huket av), innsikter, eiernavn på bets og signaler, interne notater, og avlesningshistorikken. Tester verifiserer hver utelatelse, at pensjonerte bets og signaler filtreres bort, og at ingen bruker-id eller e-post havner i payloaden.
+
+**Gjenstår:** `s.html` på penere sti enn `#token` krever en rewrite-regel hos verten. Landingssidens «One canonical artifact everyone points to» er nå sann i appen, men lenken må testes i produksjon før teksten kan stå uimotsagt.
 
 ## Hvorfor
 

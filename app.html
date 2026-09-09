@@ -320,6 +320,21 @@ a{color:inherit}
 .sug-note .hint{font-size:12px;color:var(--accent-ink);opacity:.72;margin-top:2px}
 .sug-chip{display:inline-block;font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;
   background:var(--accent-soft);color:var(--accent-ink);white-space:nowrap;margin-left:4px}
+.share-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 18px;margin-bottom:18px;
+  border-color:var(--accent);background:var(--accent-soft)}
+.share-bar.muted{border-color:var(--line);background:var(--bg-2)}
+.share-bar .sh-txt{flex:1;min-width:220px;font-size:13.5px;color:var(--accent-ink)}
+.share-bar.muted .sh-txt{color:var(--ink-3)}
+.share-bar .sh-stale{font-size:12.5px;color:var(--warn);font-weight:600;margin-top:3px}
+.share-bar .sh-opts{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.share-bar .sh-check{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--accent-ink);cursor:pointer}
+.share-bar .sh-check input{width:14px;height:14px;accent-color:var(--accent);cursor:pointer}
+.share-bar .sh-sel{border:1px solid var(--line);background:var(--panel);border-radius:var(--r-sm);
+  padding:7px 10px;font-family:inherit;font-size:12.5px;color:var(--ink);outline:none}
+.share-bar .sh-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;width:100%}
+.share-bar .sh-url{flex:1;min-width:220px;border:1px solid var(--line);background:var(--panel);
+  border-radius:var(--r-sm);padding:8px 11px;font-family:"Spline Sans Mono",monospace;
+  font-size:12px;color:var(--ink-2);outline:none}
 .pm-lead{font-size:13.5px;color:var(--ink-2);margin-bottom:16px;text-wrap:pretty;line-height:1.5}
 .pm-row{display:flex;gap:12px;align-items:flex-start;padding:13px;border:1px solid var(--line);
   border-radius:var(--r-sm);margin-bottom:8px;cursor:pointer;transition:opacity .14s,border-color .14s}
@@ -522,6 +537,9 @@ a{color:inherit}
     <a class="nav-item" data-view="review">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
       <span>Operating Rhythm</span><span class="ct" id="reviewCt">0</span></a>
+    <a class="nav-item" data-view="shares">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v13M8 7l4-4 4 4"/></svg>
+      <span>Canonical Artifact</span><span class="ct" id="sharesCt">0</span></a>
     <a class="nav-item" data-view="flywheel">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
       <span>The Flywheel</span></a>
@@ -681,7 +699,7 @@ const SYSTEMS = [
   {name:"Environmental Radar", fam:"Sensing", feeds:"Understand", reg:"", dies:"You discover the shift after it's already cost you."},
   {name:"Decision Log", fam:"Memory", feeds:"Whole loop", reg:"Decisions", dies:"Endless re-litigation; nobody remembers why."},
   {name:"Assumption Register", fam:"Memory", feeds:"Develop ↔ Track", reg:"Assumptions", dies:"The bets that fail are never noticed failing."},
-  {name:"Canonical Strategy Artifact", fam:"Alignment", feeds:"Communicate", reg:"", dies:"Five versions of the strategy, all slightly wrong."},
+  {name:"Canonical Strategy Artifact", fam:"Alignment", feeds:"Communicate", reg:"Shares", dies:"Five versions of the strategy, all slightly wrong."},
   {name:"Operating Rhythm", fam:"Alignment", feeds:"Communicate", reg:"", dies:"Strategy is set, then quietly drifts, unexamined."},
   {name:"Decision Rights", fam:"Alignment", feeds:"Communicate", reg:"", dies:"Strategy stalls in execution on 'who decides this?'"},
   {name:"Signals Ledger", fam:"Feedback", feeds:"Track", reg:"Signals", dies:"The signals you designed are never actually watched."},
@@ -842,6 +860,20 @@ const T = {
     "pm.asm":"Bet","pm.sig":"Signal","pm.link":"The signal will be linked to watch this bet.",
     "pm.inv":"It holds that: {c} — does not happen.","pm.from":"From the pre-mortem.",
     "pm.create":"Create these",
+    "share.none":"Not shared. Publishing writes a snapshot of this version — the link will not change while someone is reading it.",
+    "share.publish":"Publish and share","share.decisions":"Include the decision log",
+    "share.exp90":"Expires in 90 days","share.expnone":"No expiry",
+    "share.live":"Shared","share.on":"published","share.expires":"expires",
+    "share.copy":"Copy link","share.copied":"✓ copied","share.republish":"Republish",
+    "share.revoke":"Stop sharing",
+    "share.stale":"The shared version is v{a}. The live one is v{b}.",
+    "share.setup":"Sharing needs one setup step — re-run supabase-schema.sql in the Supabase SQL editor, then reload.",
+    "share.failed":"Could not publish. Check that supabase-schema.sql has been re-run.",
+    "vh.shares":"<h1>Canonical Artifact</h1><p>Every version you have published, and whether it still matches the live strategy.</p>",
+    "nav.shares":"Canonical Artifact","th.shared":"Link","th.expiry":"Expiry",
+    "share.current":"Current","share.outdated":"Outdated","share.expired":"expired",
+    "share.setup.t":"One setup step.",
+    "empty.shares.t":"Nothing published yet.","empty.shares.d":"Open a strategy and publish it — the link is how other people point at the same artifact.",
     "sys.families":"The four families","sys.families.h":"Ten systems · four live registers","sys.loop":"The register loop","sys.loop.h":"How the four registers actually talk to each other","sys.register":"register","sys.live":"live register","sys.without":"Without it:","sys.family":"Family:","sys.feeds":"Feeds",
     "loop.1":"Insights feed the diagnosis in Understand.","loop.2":"The diagnosis produces Assumptions — the bets the strategy rests on.","loop.3":"Each Signal watches a named assumption; each Decision records the bets it rests on.","loop.4":"When a signal disagrees or an assumption breaks, you're sent back to the diagnosis.","loop.5":"The Learning Loop writes the lesson from a broken bet back into Insights — and downgrades the falsified one. That's what makes it a flywheel, not a one-off.",
   },
@@ -954,6 +986,20 @@ const T = {
     "pm.asm":"Bet","pm.sig":"Signal","pm.link":"Signalet kobles til å overvåke dette bettet.",
     "pm.inv":"Det holder at: {c} — ikke inntreffer.","pm.from":"Fra pre-mortem.",
     "pm.create":"Opprett disse",
+    "share.none":"Ikke delt. Publisering skriver et øyeblikksbilde av denne versjonen — lenken endrer seg ikke mens noen leser den.",
+    "share.publish":"Publiser og del","share.decisions":"Ta med beslutningsloggen",
+    "share.exp90":"Utløper om 90 dager","share.expnone":"Uten utløp",
+    "share.live":"Delt","share.on":"publisert","share.expires":"utløper",
+    "share.copy":"Kopier lenke","share.copied":"✓ kopiert","share.republish":"Publiser på nytt",
+    "share.revoke":"Opphev deling",
+    "share.stale":"Delt versjon er v{a}. Gjeldende er v{b}.",
+    "share.setup":"Deling krever ett oppsettsteg — kjør supabase-schema.sql på nytt i Supabase SQL-editoren, og last inn siden på nytt.",
+    "share.failed":"Kunne ikke publisere. Sjekk at supabase-schema.sql er kjørt på nytt.",
+    "vh.shares":"<h1>Kanonisk artefakt</h1><p>Hver versjon du har publisert, og om den fortsatt stemmer med den levende strategien.</p>",
+    "nav.shares":"Kanonisk artefakt","th.shared":"Lenke","th.expiry":"Utløp",
+    "share.current":"Gjeldende","share.outdated":"Utdatert","share.expired":"utløpt",
+    "share.setup.t":"Ett oppsettsteg.",
+    "empty.shares.t":"Ingenting publisert ennå.","empty.shares.d":"Åpne en strategi og publiser den — lenken er måten andre peker på det samme artefaktet.",
     "sys.families":"De fire familiene","sys.families.h":"Ti systemer · fire levende registre","sys.loop":"Register-løkken","sys.loop.h":"Hvordan de fire registrene faktisk snakker sammen","sys.register":"register","sys.live":"levende register","sys.without":"Uten det:","sys.family":"Familie:","sys.feeds":"Mater",
     "loop.1":"Innsikter mater diagnosen i Forstå.","loop.2":"Diagnosen produserer Antakelser — bettene strategien hviler på.","loop.3":"Hvert Signal overvåker en navngitt antakelse; hver Beslutning registrerer bettene den hviler på.","loop.4":"Når et signal er uenig eller en antakelse brytes, sendes du tilbake til diagnosen.","loop.5":"Læringsløkken skriver lærdommen fra et brutt bet tilbake inn i Innsikter — og nedgraderer den falsifiserte. Det er det som gjør det til et svinghjul, ikke en engangshendelse.",
   },
@@ -1350,7 +1396,7 @@ function render(){
   $("#addLabel").textContent = addLabelFor();
   updateCounts();
   const r = $("#root"); r.innerHTML="";
-  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,goals:vGoals,outcomes:vOutcomes,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
+  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,goals:vGoals,outcomes:vOutcomes,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,shares:vShares,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
 }
 function reviewDueCount(){
   return DB.signals.filter(s=>s.state==="disagreeing"||s.state==="drifting"||suggestSignalState(s)).length
@@ -1360,6 +1406,7 @@ function updateCounts(){
   document.querySelectorAll("[data-count]").forEach(n=>{ n.textContent = DB[n.dataset.count].length; });
   const rc=$("#reviewCt"); if(rc) rc.textContent = reviewDueCount();
   const sc=$("#stratCt"); if(sc) sc.textContent = DB.strategies.length;
+  const shc=$("#sharesCt"); if(shc) shc.textContent = SHARES.length;
 }
 
 /* ---------- Dashboard ---------- */
@@ -1572,6 +1619,68 @@ function vStrategyDetail(id){
   actions.appendChild(eb); actions.appendChild(xb);
   head.appendChild(actions);
   w.appendChild(head);
+
+  // ── deling: publiser en versjon, ikke et vindu ──
+  const shp=el("div","panel share-bar");
+  const drawShare=()=>{
+    shp.innerHTML="";
+    if(!SHARES_OK){
+      shp.classList.add("muted");
+      shp.innerHTML=`<div class="sh-txt">${esc(t("share.setup"))}</div>`;
+      return;
+    }
+    shp.classList.remove("muted");
+    const sh=shareOf(s.id);
+    if(!sh){
+      const txt=el("div","sh-txt",esc(t("share.none")));
+      const opts=el("div","sh-opts");
+      const dec=el("label","sh-check");
+      const dcb=el("input"); dcb.type="checkbox";
+      dec.appendChild(dcb); dec.appendChild(el("span",null,esc(t("share.decisions"))));
+      const expSel=el("select","sh-sel");
+      [[90,"share.exp90"],[0,"share.expnone"]].forEach(([v,k])=>{
+        const o=el("option"); o.value=v; o.textContent=t(k); expSel.appendChild(o);
+      });
+      opts.appendChild(dec); opts.appendChild(expSel);
+      const btn=el("button","btn pri",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v13M8 7l4-4 4 4"/></svg>${esc(t("share.publish"))}`);
+      btn.onclick=async()=>{
+        btn.disabled=true;
+        try{
+          const tok=await publishShare(s,{decisions:dcb.checked, days:Number(expSel.value)});
+          try{ await navigator.clipboard.writeText(shareUrl(tok)); }catch(e){}
+          drawShare();
+        }catch(err){
+          console.error("Publish failed:",err);
+          btn.disabled=false;
+          shp.querySelector(".sh-txt").textContent=t("share.failed");
+        }
+      };
+      shp.appendChild(txt); shp.appendChild(opts); shp.appendChild(btn);
+      return;
+    }
+    const stale=shareStale(s);
+    const exp=sh.expires_at?` · ${t("share.expires")} ${String(sh.expires_at).slice(0,10)}`:"";
+    const info=el("div","sh-txt");
+    info.innerHTML=`<b>${esc(t("share.live"))}</b> · v${esc(sh.version)} · ${esc(t("share.on"))} ${esc(String(sh.created_at||"").slice(0,10))}${esc(exp)}`
+      + (stale?`<div class="sh-stale">${esc(t("share.stale").replace("{a}",sh.version).replace("{b}",s.version||1))}</div>`:"");
+    const url=el("input","sh-url"); url.readOnly=true; url.value=shareUrl(sh.token);
+    url.onclick=()=>url.select();
+    const copy=el("button","btn",esc(t("share.copy")));
+    copy.onclick=async()=>{
+      try{ await navigator.clipboard.writeText(shareUrl(sh.token)); }catch(e){ url.select(); }
+      copy.textContent=t("share.copied");
+      setTimeout(()=>copy.textContent=t("share.copy"),1400);
+    };
+    const re=el("button",stale?"btn pri":"btn",esc(t("share.republish")));
+    re.onclick=async()=>{ re.disabled=true; try{ await publishShare(s,{days:sh.expires_at?90:0}); drawShare(); }catch(err){ re.disabled=false; } };
+    const rv=el("button","btn danger",esc(t("share.revoke")));
+    rv.onclick=async()=>{ rv.disabled=true; try{ await revokeShare(s); drawShare(); }catch(err){ rv.disabled=false; } };
+    const row=el("div","sh-row");
+    row.appendChild(url); row.appendChild(copy); row.appendChild(re); row.appendChild(rv);
+    shp.appendChild(info); shp.appendChild(row);
+  };
+  drawShare();
+  w.appendChild(shp);
 
   // one-page artifact
   const op=el("div","panel onepage");
@@ -2600,6 +2709,43 @@ function nextImport(){
 function finalizeImport(){ endImport(); }
 
 /* ---------- Flywheel ---------- */
+function vShares(){
+  const w=el("div","view");
+  w.appendChild(el("div","view-head",t("vh.shares")));
+  if(!SHARES_OK){
+    const p=el("div","panel");
+    p.innerHTML=`<div class="empty"><span class="serif">${esc(t("share.setup.t"))}</span>${esc(t("share.setup"))}</div>`;
+    w.appendChild(p); return w;
+  }
+  const rows=SHARES.map(sh=>({sh, s:DB.strategies.find(x=>x.id===sh.strategy_id)}))
+                   .filter(r=>r.s && matchStrat(r.s.name));
+  const panel=el("div","panel");
+  if(!rows.length) return emptyInto(w,panel,t("empty.shares.t"),t("empty.shares.d"));
+  const tb=el("table","tbl");
+  tb.innerHTML=`<thead><tr><th>${esc(t("th.strategy"))}</th><th>${esc(t("th.shared"))}</th><th>${esc(t("th.state"))}</th><th>${esc(t("th.expiry"))}</th><th></th></tr></thead>`;
+  const b=el("tbody");
+  rows.forEach(({sh,s})=>{
+    const stale=String(sh.version||"")!==String(s.version||1);
+    const tr=el("tr","row");
+    const exp=sh.expires_at?String(sh.expires_at).slice(0,10):t("share.expnone");
+    const gone=sh.expires_at && new Date(sh.expires_at)<new Date();
+    tr.innerHTML=`<td><div class="stmt">${esc(s.name)}</div><div class="strat">v${esc(sh.version)} · ${esc(String(sh.created_at||"").slice(0,10))}</div></td>
+      <td><span class="meta mono" style="max-width:26ch;overflow:hidden;text-overflow:ellipsis;display:inline-block">${esc(sh.token.slice(0,8))}…</span></td>
+      <td>${stale?`<span class="badge b-warn"><span class="dot"></span>${esc(t("share.outdated"))}</span>`
+                 :`<span class="badge b-good"><span class="dot"></span>${esc(t("share.current"))}</span>`}</td>
+      <td><span class="meta${gone?' ':''}">${esc(exp)}${gone?" · "+esc(t("share.expired")):""}</span></td>`;
+    const td=el("td"); td.style.textAlign="right";
+    const cp=el("button","btn",esc(t("share.copy"))); cp.style.fontSize="12px"; cp.style.padding="6px 11px";
+    cp.onclick=async(e)=>{ e.stopPropagation();
+      try{ await navigator.clipboard.writeText(shareUrl(sh.token)); }catch(x){}
+      cp.textContent=t("share.copied"); setTimeout(()=>cp.textContent=t("share.copy"),1400); };
+    td.appendChild(cp); tr.appendChild(td);
+    clickable(tr,()=>{ currentStrategy=s.id; view="strategies"; render(); },"Open strategy: "+s.name);
+    b.appendChild(tr);
+  });
+  tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
+  return w;
+}
 function vFlywheel(){
   const w = el("div","view");
   w.innerHTML = `<div class="view-head">${t("vh.flywheel")}</div>`;
@@ -2988,6 +3134,92 @@ const ROUTER_Q2=[
 // Pre-mortem produserer naturlig det som skal inn i to registre: hver årsak er
 // en kandidat-antakelse (invertert), hvert tidligste varsel et kandidat-signal.
 // Paret vises eksplisitt før noe opprettes — appen gjetter ikke i det skjulte.
+// ── Deling ───────────────────────────────────────────────────────────────
+// Et share er et øyeblikksbilde, ikke et vindu. Den delte lenken endrer seg
+// ikke mens leseren ser på den — "v3, committed" er et kanonisk artefakt,
+// "det jeg holder på med akkurat nå" er det ikke.
+let SHARES = [];
+let SHARES_OK = true;   // false når shares-tabellen/funksjonen ikke finnes ennå
+
+function shareOf(sid){ return SHARES.find(x=>x.strategy_id===sid) || null; }
+function shareUrl(token){
+  return location.href.replace(/[^/]*$/,"") + "s.html#" + encodeURIComponent(token);
+}
+// Er den delte versjonen fortsatt den samme som den levende?
+function shareStale(s){
+  const sh=shareOf(s.id); if(!sh) return false;
+  return String(sh.version||"") !== String(s.version||1);
+}
+function buildSharePayload(s, opts){
+  const name=s.name;
+  const asmp=DB.assumptions.filter(a=>a.strategy===name && a.state!=="retired");
+  const sigs=DB.signals.filter(x=>x.strategy===name && x.state!=="retired");
+  const gIds=s.serves||[];
+  const p={
+    v:1,
+    published:new Date().toISOString(),
+    lang:LANG,
+    strategy:{
+      name, version:s.version||1, status:s.status, owner:s.owner||"",
+      framework:s.framework,
+      challenge:L(s,"challenge"), approach:L(s,"approach"),
+      moves:L(s,"moves")||[], notDoing:L(s,"notDoing")||[], howKnow:L(s,"howKnow")||[],
+    },
+    goals:DB.goals.filter(g=>gIds.includes(g.id))
+      .map(g=>({title:L(g,"title"), statement:L(g,"statement"), horizon:g.horizon||""})),
+    bets:asmp.map(a=>({
+      statement:L(a,"statement"), state:a.state,
+      confidence:a.confidence, consequence:a.consequence,
+      kill_signal:L(a,"kill_signal")||"",
+    })),
+    signals:sigs.map(x=>({
+      signal:L(x,"signal"), state:x.state,
+      expected_shape:L(x,"expected_shape")||"", last_reading:L(x,"last_reading")||"",
+      watches:x.watches ? (L(byId("assumptions",x.watches)||{},"statement")||null) : null,
+    })),
+  };
+  // Beslutningsloggen inneholder forkastede alternativer og resonnement.
+  // Den er av som standard — deling er et bevisst valg per publisering.
+  if(opts && opts.decisions){
+    p.decisions=DB.decisions.filter(d=>d.strategy===name).map(d=>({
+      title:L(d,"title"), door:d.door, decided:d.decided||"",
+      reasoning:L(d,"reasoning")||"",
+    }));
+  }
+  return p;
+}
+async function loadShares(){
+  if(!SB||!USER) return;
+  try{
+    const {data,error}=await SB.from("shares").select("token,strategy_id,version,created_at,expires_at");
+    if(error) throw error;
+    SHARES=data||[]; SHARES_OK=true;
+  }catch(err){
+    SHARES=[]; SHARES_OK=false;
+    console.warn("Shares unavailable — kjør supabase-schema.sql på nytt:",err.message||err);
+  }
+}
+async function publishShare(s, opts){
+  const existing=shareOf(s.id);
+  const token=existing ? existing.token : (crypto.randomUUID?crypto.randomUUID():uid("sh")+uid("sh"));
+  const days=(opts&&opts.days)||0;
+  const row={
+    token, user_id:USER.id, strategy_id:s.id, version:String(s.version||1),
+    payload:buildSharePayload(s,opts),
+    expires_at: days ? new Date(Date.now()+days*864e5).toISOString() : null,
+  };
+  const {error}=await SB.from("shares").upsert(row);
+  if(error) throw error;
+  await loadShares();
+  return token;
+}
+async function revokeShare(s){
+  const sh=shareOf(s.id); if(!sh) return;
+  const {error}=await SB.from("shares").delete().eq("token",sh.token);
+  if(error) throw error;
+  await loadShares();
+}
+
 function premortemCandidates(s){
   const causes=lensVal(s,"causes")||[], early=lensVal(s,"earliest")||[];
   const n=Math.max(causes.length, early.length);
@@ -3288,6 +3520,7 @@ async function boot(){
   SB.auth.onAuthStateChange((_e,s)=>{ if(!s) location.replace(LOGIN_PAGE); });
   try{ await loadAll(); }
   catch(err){ console.error("Load failed:",err); setSync("error"); }
+  await loadShares();
   syncStrategyFilter();
   render();
 }

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Strategy — The Spine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="spine-config.js"></script>
+<style>
+:root{
+  --bg:#F6F3EC; --bg-2:#FBF9F4; --panel:#FFFFFF;
+  --ink:#1C1A16; --ink-2:#56524A; --ink-3:#736E63;
+  --line:#E4DFD3; --line-2:#EFEBE1;
+  --accent:#234E42; --accent-soft:#E6EEE9; --accent-ink:#1A3B32;
+  --good:#2E7D5B; --good-bg:#E7F1EB;
+  --warn:#B07B2E; --warn-bg:#F7EFE1;
+  --bad:#B23A3A;  --bad-bg:#F7E7E5;
+  --mute:#736E63; --mute-bg:#EEEAE0;
+  --r-lg:20px; --r-md:14px; --r-sm:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,sans-serif;
+  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.serif{font-family:"Instrument Serif",Georgia,serif;font-weight:400}
+.mono{font-family:"Spline Sans Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.wrap{max-width:760px;margin:0 auto;padding:56px 28px 80px}
+
+.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600}
+h1{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:clamp(32px,5.5vw,50px);
+  line-height:1.06;letter-spacing:-.01em;margin:10px 0 14px;text-wrap:balance}
+.meta{font-size:13.5px;color:var(--ink-2);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.meta .dot{color:var(--ink-3)}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;
+  padding:4px 10px;border-radius:20px;white-space:nowrap}
+.b-good{background:var(--good-bg);color:var(--good)} .b-warn{background:var(--warn-bg);color:var(--warn)}
+.b-bad{background:var(--bad-bg);color:var(--bad)}    .b-mute{background:var(--mute-bg);color:var(--mute)}
+
+hr.rule{border:none;border-top:1px solid var(--line);margin:34px 0}
+
+.sec{margin-top:32px}
+.sec > h2{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:700;margin-bottom:10px}
+.sec p{font-size:17px;color:var(--ink);text-wrap:pretty}
+.sec ol,.sec ul{margin:0;padding-left:22px}
+.sec li{font-size:16px;margin:7px 0;text-wrap:pretty}
+.sec .none{color:var(--ink-3);font-style:italic;font-size:15px}
+
+.goalline{background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:14px 16px;margin-bottom:10px}
+.goalline .g{font-weight:600;font-size:15px;text-wrap:pretty}
+.goalline .s{font-size:13.5px;color:var(--ink-2);margin-top:4px;text-wrap:pretty}
+.goalline .h{font-size:11.5px;color:var(--ink-3);margin-top:6px}
+
+.bet{border:1px solid var(--line);border-radius:var(--r-md);padding:15px 17px;margin-bottom:10px;background:var(--panel)}
+.bet .top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.bet .st{font-weight:600;font-size:15px;flex:1;text-wrap:pretty}
+.bet .cc{font-size:11.5px;color:var(--ink-3);margin-top:7px;letter-spacing:.02em}
+.bet .kill{font-size:13px;color:var(--ink-2);margin-top:8px;padding-top:8px;
+  border-top:1px dashed var(--line);text-wrap:pretty}
+.bet .kill b{color:var(--ink);font-weight:600}
+
+.sig{border-left:2px solid var(--line);padding:2px 0 2px 15px;margin-bottom:16px}
+.sig .nm{font-weight:600;font-size:14.5px;text-wrap:pretty}
+.sig .row{font-size:13px;color:var(--ink-2);margin-top:5px;text-wrap:pretty}
+.sig .row b{color:var(--ink-3);font-weight:600}
+.sig.s-bad{border-left-color:var(--bad)} .sig.s-warn{border-left-color:var(--warn)}
+.sig.s-good{border-left-color:var(--good)}
+
+footer{margin-top:52px;padding-top:22px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:baseline}
+footer .pub{font-size:12.5px;color:var(--ink-3)}
+footer a{font-size:12.5px;color:var(--ink-3);text-decoration:none}
+footer a:hover{color:var(--accent)}
+footer a b{color:var(--accent);font-weight:600}
+
+.state{text-align:center;padding:90px 20px}
+.state .t{font-family:"Instrument Serif",Georgia,serif;font-size:30px;margin-bottom:8px}
+.state .d{color:var(--ink-2);font-size:15px;max-width:46ch;margin:0 auto;text-wrap:pretty}
+
+@media print{
+  body{background:#fff}
+  .wrap{max-width:none;padding:0}
+  footer a{display:none}
+  .bet,.goalline{break-inside:avoid}
+  .sec{break-inside:avoid-page}
+  h1{font-size:30px}
+  .sec p,.sec li{font-size:12pt}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="root">
+  <div class="state"><div class="t serif">Loading…</div></div>
+</div>
+
+<script>
+const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const STATE_CLS = {
+  holding:["b-good","Holding"], agreeing:["b-good","Agreeing"],
+  shaky:["b-warn","Shaky"], drifting:["b-warn","Drifting"],
+  broken:["b-bad","Broken"], disagreeing:["b-bad","Disagreeing"],
+  retired:["b-mute","Retired"],
+};
+const LVL = { en:{low:"Low",medium:"Medium",high:"High"},
+              no:{low:"Lav",medium:"Middels",high:"Høy"} };
+const STATE_NO = {
+  holding:"Holder", agreeing:"Enig", shaky:"Vaklende", drifting:"Driver",
+  broken:"Brutt", disagreeing:"Uenig", retired:"Pensjonert",
+};
+const TX = {
+  en:{ canon:"Canonical artifact", owner:"owner", version:"Version",
+       s1:"1 · The challenge", s2:"2 · Our approach", s3:"3 · The big moves",
+       s4:"4 · What we are NOT doing", s5:"5 · How we'll know it's working",
+       goals:"Goals this serves", bets:"What must be true", sigs:"What is being watched",
+       kill:"Would prove this false", expect:"Expected", latest:"Latest reading",
+       conf:"confidence", cons:"consequence",
+       watches:"Watches", none:"— none stated —", published:"Published",
+       made:"Made with", missT:"Nothing here.",
+       missD:"This link is not valid, or the strategy it pointed to is no longer shared.",
+       errT:"Could not load.", errD:"Something went wrong reaching the strategy. Try again in a moment." },
+  no:{ canon:"Kanonisk artefakt", owner:"eier", version:"Versjon",
+       s1:"1 · Utfordringen", s2:"2 · Vår tilnærming", s3:"3 · De store trekkene",
+       s4:"4 · Hva vi IKKE gjør", s5:"5 · Hvordan vi vet at det virker",
+       goals:"Mål dette tjener", bets:"Hva som må være sant", sigs:"Hva som overvåkes",
+       kill:"Ville motbevise dette", expect:"Forventet", latest:"Siste avlesning",
+       conf:"konfidens", cons:"konsekvens",
+       watches:"Overvåker", none:"— ingenting oppgitt —", published:"Publisert",
+       made:"Laget med", missT:"Ingenting her.",
+       missD:"Denne lenken er ikke gyldig, eller strategien den pekte på deles ikke lenger.",
+       errT:"Kunne ikke laste.", errD:"Noe gikk galt under henting av strategien. Prøv igjen om et øyeblikk." },
+};
+let T = TX.en;
+
+function lvl(v){
+  const tab = LVL[T === TX.no ? "no" : "en"];
+  return (tab && tab[v]) || v || "—";
+}
+function stateBadge(st){
+  const m = STATE_CLS[st]; if(!m) return "";
+  const label = T === TX.no ? (STATE_NO[st]||m[1]) : m[1];
+  return `<span class="badge ${m[0]}">${esc(label)}</span>`;
+}
+function sigCls(st){
+  const m = STATE_CLS[st]; if(!m) return "";
+  return m[0]==="b-bad"?"s-bad":m[0]==="b-warn"?"s-warn":m[0]==="b-good"?"s-good":"";
+}
+function para(v){ return v && String(v).trim() ? `<p>${esc(v)}</p>` : `<div class="none">${esc(T.none)}</div>`; }
+function list(arr, tag){
+  if(!arr || !arr.length) return `<div class="none">${esc(T.none)}</div>`;
+  return `<${tag}>${arr.map(x=>`<li>${esc(x)}</li>`).join("")}</${tag}>`;
+}
+function fmtDate(iso){
+  if(!iso) return "";
+  const d = new Date(iso);
+  if(isNaN(d)) return String(iso).slice(0,10);
+  return d.toLocaleDateString(T===TX.no?"nb-NO":"en-GB",{year:"numeric",month:"long",day:"numeric"});
+}
+function showState(t, d){
+  document.getElementById("root").innerHTML =
+    `<div class="state"><div class="t serif">${esc(t)}</div><div class="d">${esc(d)}</div></div>`;
+}
+
+function render(p){
+  T = TX[p.lang === "no" ? "no" : "en"] || TX.en;
+  const s = p.strategy || {};
+  document.documentElement.lang = p.lang === "no" ? "no" : "en";
+  document.title = (s.name || "Strategy") + " — The Spine";
+
+  const goals = (p.goals||[]).map(g=>
+    `<div class="goalline"><div class="g">${esc(g.title)}</div>`
+    +(g.statement?`<div class="s">${esc(g.statement)}</div>`:"")
+    +(g.horizon?`<div class="h">${esc(g.horizon)}</div>`:"")+`</div>`).join("");
+
+  const bets = (p.bets||[]).map(b=>
+    `<div class="bet"><div class="top"><div class="st">${esc(b.statement)}</div>${stateBadge(b.state)}</div>`
+    +`<div class="cc">${esc(lvl(b.confidence))} ${esc(T.conf)} × ${esc(lvl(b.consequence))} ${esc(T.cons)}</div>`
+    +(b.kill_signal?`<div class="kill"><b>${esc(T.kill)}:</b> ${esc(b.kill_signal)}</div>`:"")
+    +`</div>`).join("");
+
+  const sigs = (p.signals||[]).map(x=>
+    `<div class="sig ${sigCls(x.state)}"><div class="nm">${esc(x.signal)} ${stateBadge(x.state)}</div>`
+    +(x.expected_shape?`<div class="row"><b>${esc(T.expect)}:</b> ${esc(x.expected_shape)}</div>`:"")
+    +(x.last_reading?`<div class="row"><b>${esc(T.latest)}:</b> ${esc(x.last_reading)}</div>`:"")
+    +(x.watches?`<div class="row"><b>${esc(T.watches)}:</b> ${esc(x.watches)}</div>`:"")
+    +`</div>`).join("");
+
+  document.getElementById("root").innerHTML = `
+    <div class="eyebrow">${esc(T.canon)}</div>
+    <h1>${esc(s.name||"—")}</h1>
+    <div class="meta">
+      <span>${esc(T.version)} ${esc(s.version||1)}</span>
+      ${s.owner?`<span class="dot">·</span><span>${esc(T.owner)} ${esc(s.owner)}</span>`:""}
+    </div>
+    <hr class="rule">
+    <div class="sec"><h2>${esc(T.s1)}</h2>${para(s.challenge)}</div>
+    <div class="sec"><h2>${esc(T.s2)}</h2>${para(s.approach)}</div>
+    <div class="sec"><h2>${esc(T.s3)}</h2>${list(s.moves,"ol")}</div>
+    <div class="sec"><h2>${esc(T.s4)}</h2>${list(s.notDoing,"ul")}</div>
+    <div class="sec"><h2>${esc(T.s5)}</h2>${list(s.howKnow,"ul")}</div>
+    ${goals?`<hr class="rule"><div class="sec"><h2>${esc(T.goals)}</h2>${goals}</div>`:""}
+    ${bets?`<hr class="rule"><div class="sec"><h2>${esc(T.bets)}</h2>${bets}</div>`:""}
+    ${sigs?`<hr class="rule"><div class="sec"><h2>${esc(T.sigs)}</h2>${sigs}</div>`:""}
+    <footer>
+      <div class="pub">${esc(T.published)} ${esc(fmtDate(p.published))}${s.owner?` · ${esc(s.owner)}`:""}</div>
+      <a href="index.html">${esc(T.made)} <b>The Spine</b></a>
+    </footer>`;
+}
+
+(async function(){
+  // Tokenet står i fragmentet, ikke i query — da havner det aldri i
+  // serverlogger eller Referer-headere.
+  const token = decodeURIComponent((location.hash||"").replace(/^#/,"").trim());
+  if(!token){ showState(TX.en.missT, TX.en.missD); return; }
+  const cfg = window.SPINE_CONFIG;
+  if(typeof supabase === "undefined" || !cfg || !cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY){
+    showState(TX.en.errT, TX.en.errD); return;
+  }
+  try{
+    const SB = supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+    const { data, error } = await SB.rpc("get_share", { p_token: token });
+    if(error) throw error;
+    if(!data){ showState(TX.en.missT, TX.en.missD); return; }
+    render(data);
+  }catch(err){
+    console.error("Share load failed:", err);
+    showState(TX.en.errT, TX.en.errD);
+  }
+})();
+</script>
+</body>
+</html>

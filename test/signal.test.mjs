@@ -61,6 +61,11 @@ const harness = [
   func("lensNO"), func("lensWhen"), func("lensAnatomy"), func("lensSmells"), func("smellsFlagged"),
   func("lensFields"), func("lensDerive"), func("lensVal"), func("artifactEmpty"),
   func("routeLens"), decl("KEEP_KEYS"), func("premortemCandidates"),
+  func("buildSharePayload"), func("shareUrl"),
+  "let SHARES=[];", func("shareOf"), func("shareStale"),
+  "function byId(c,i){return (DB[c]||[]).find(x=>x.id===i)}",
+  // shareUrl leser location; stubbes saa lenkeformatet kan testes utenfor nettleser.
+  "const location={href:'https://spine.example/app.html'};",
   // assumptionFollowUp slår opp i DB og L(); begge stubbes her.
   "let DB={signals:[],assumptions:[]};",
   "function L(o,f){return o?o[f]:undefined}",
@@ -69,6 +74,7 @@ const harness = [
   "FIELDS,SING,SING_NO,FLD_NO,fldL,fldPh,singL," +
   "STRAT_FW,LENSES,LENSES_NO,lensWhen,lensAnatomy,lensSmells,smellsFlagged," +
   "lensFields,lensDerive,lensVal,artifactEmpty,routeLens,KEEP_KEYS,premortemCandidates," +
+  "buildSharePayload,shareUrl,shareStale,setShares:v=>{SHARES=v}," +
   "setLang:v=>{LANG=v},setDB:v=>{DB=v}};",
 ].join("\n");
 
@@ -78,6 +84,7 @@ const {
   FIELDS, SING, SING_NO, FLD_NO, fldL, fldPh, singL,
   STRAT_FW, LENSES, LENSES_NO, lensWhen, lensAnatomy, lensSmells, smellsFlagged,
   lensFields, lensDerive, lensVal, artifactEmpty, routeLens, KEEP_KEYS, premortemCandidates,
+  buildSharePayload, shareUrl, shareStale, setShares,
   setLang, setDB,
 } = new Function(harness)();
 
@@ -403,6 +410,60 @@ ok(KEEP_KEYS.strategies.includes("lens"), "lens overlever import");
 ok(KEEP_KEYS.strategies.includes("smellFlags"), "smellFlags overlever import");
 ok(KEEP_KEYS.strategies.includes("smellChecked"), "smellChecked overlever import");
 ok(KEEP_KEYS.signals.includes("log"), "avlesningsloggen overlever import");
+
+group("delt artefakt — hva payloaden inneholder");
+setDB({
+  signals: SEED.signals, assumptions: SEED.assumptions,
+  goals: SEED.goals, decisions: SEED.decisions, strategies: SEED.strategies,
+});
+const st1 = SEED.strategies.find(x => x.id === "st1");
+const pay = buildSharePayload(st1, {});
+ok(pay.v === 1, "payload er versjonert for framtidig lesing");
+ok(pay.strategy.name === st1.name, "artefaktet er med");
+ok(Array.isArray(pay.strategy.moves), "moves er en liste, ikke undefined");
+ok(pay.bets.length > 0, "bettene er med");
+ok(pay.signals.length > 0, "signalene er med");
+ok(pay.lang === "en" || pay.lang === "no", "publisererens språk følger med");
+
+group("delt artefakt — hva den IKKE lekker");
+ok(pay.decisions === undefined, "beslutningsloggen er AV som standard");
+ok(buildSharePayload(st1, { decisions: true }).decisions !== undefined,
+   "beslutningsloggen kan slås på bevisst");
+ok(pay.bets.every(b => b.owner === undefined), "eiernavn på bets er ikke med");
+ok(pay.signals.every(s => s.owner === undefined), "eiernavn på signaler er ikke med");
+ok(pay.signals.every(s => s.log === undefined), "avlesningshistorikken er internt arbeid");
+ok(pay.insights === undefined, "innsikter med kilder er ikke med");
+ok(pay.bets.every(b => b.note === undefined), "interne notater på bets er ikke med");
+const flat = JSON.stringify(pay);
+ok(!flat.includes("user_id") && !flat.includes("@"), "ingen bruker-id eller e-post i payloaden");
+
+group("delt artefakt — retired filtreres bort");
+setDB({
+  signals: [{ id: "s9", strategy: st1.name, signal: "pensjonert", state: "retired", watches: "" }],
+  assumptions: [{ id: "a9", strategy: st1.name, statement: "pensjonert", state: "retired" }],
+  goals: [], decisions: [], strategies: SEED.strategies,
+});
+const p2 = buildSharePayload(st1, {});
+ok(p2.bets.length === 0, "pensjonerte bets er ikke med");
+ok(p2.signals.length === 0, "pensjonerte signaler er ikke med");
+setDB({
+  signals: SEED.signals, assumptions: SEED.assumptions,
+  goals: SEED.goals, decisions: SEED.decisions, strategies: SEED.strategies,
+});
+
+group("delt artefakt — versjonssporing");
+setShares([{ token: "abc", strategy_id: "st1", version: "3" }]);
+ok(shareStale({ id: "st1", version: 3 }) === false, "samme versjon er ikke utdatert");
+ok(shareStale({ id: "st1", version: 4 }) === true, "ny versjon gjør delingen utdatert");
+ok(shareStale({ id: "st2", version: 1 }) === false, "strategi uten deling er ikke utdatert");
+setShares([]);
+ok(shareStale({ id: "st1", version: 3 }) === false, "ingen delinger: ingenting er utdatert");
+
+group("delt artefakt — lenkeformat");
+const u = shareUrl("tok-123");
+ok(u.includes("s.html#"), "tokenet står i fragmentet, ikke i query");
+ok(!u.includes("?"), "ingen query-parametre — tokenet havner ikke i serverlogger");
+ok(shareUrl("a b&c").includes(encodeURIComponent("a b&c")), "tokenet URL-kodes");
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,
