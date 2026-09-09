@@ -320,6 +320,44 @@ a{color:inherit}
 .sug-note .hint{font-size:12px;color:var(--accent-ink);opacity:.72;margin-top:2px}
 .sug-chip{display:inline-block;font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;
   background:var(--accent-soft);color:var(--accent-ink);white-space:nowrap;margin-left:4px}
+.pm-lead{font-size:13.5px;color:var(--ink-2);margin-bottom:16px;text-wrap:pretty;line-height:1.5}
+.pm-row{display:flex;gap:12px;align-items:flex-start;padding:13px;border:1px solid var(--line);
+  border-radius:var(--r-sm);margin-bottom:8px;cursor:pointer;transition:opacity .14s,border-color .14s}
+.pm-row:hover{border-color:var(--ink-3)}
+.pm-row.off{opacity:.42}
+.pm-row input{margin-top:3px;flex:none;width:15px;height:15px;accent-color:var(--accent);cursor:pointer}
+.pm-row .tag{display:inline-block;font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;
+  border-radius:5px;padding:1px 6px;margin-right:8px;vertical-align:1px}
+.pm-a{font-size:13.5px;color:var(--ink);text-wrap:pretty}
+.pm-a .tag{background:var(--mem-bg);color:var(--mem)}
+.pm-s{font-size:13.5px;color:var(--ink);margin-top:7px;text-wrap:pretty}
+.pm-s .tag{background:var(--feed-bg);color:var(--feed)}
+.pm-link{font-size:11.5px;color:var(--ink-3);margin-top:6px;font-style:italic}
+.pm-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line-2)}
+.rt-q{font-family:"Instrument Serif",Georgia,serif;font-size:22px;line-height:1.2;margin-bottom:14px;text-wrap:pretty}
+.rt-opts{display:flex;flex-direction:column;gap:8px}
+.rt-opt{text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:var(--r-sm);
+  padding:13px 15px;font-size:14px;font-weight:500;color:var(--ink);line-height:1.4;
+  transition:border-color .14s,transform .14s,background .14s;cursor:pointer;text-wrap:pretty}
+.rt-opt:hover{border-color:var(--accent);background:var(--accent-soft);transform:translateX(2px)}
+.rt-opt.sm{padding:8px 12px;font-size:12.5px;font-weight:600}
+.rt-skip{margin-top:16px;font-size:12.5px;color:var(--ink-3);border:none;background:none;padding:6px 0;cursor:pointer}
+.rt-skip:hover{color:var(--ink)}
+.rt-result{border:1px solid var(--accent);background:var(--accent-soft);border-radius:var(--r-md);padding:16px 18px;margin-bottom:16px}
+.rt-result .nm{font-family:"Instrument Serif",Georgia,serif;font-size:24px;color:var(--accent-ink)}
+.rt-result .wh{font-size:13.5px;color:var(--accent-ink);margin-top:6px;text-wrap:pretty}
+.rt-result .an{font-size:12.5px;color:var(--accent-ink);opacity:.75;margin-top:8px;font-family:"Spline Sans Mono",monospace}
+.rt-other{margin-top:18px;padding-top:14px;border-top:1px solid var(--line-2)}
+.rt-other .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:8px}
+.rt-other .rt-opts{flex-direction:row;flex-wrap:wrap}
+.lens-panel{display:flex;flex-direction:column;gap:14px;padding:18px}
+.lens-panel .fg{display:flex;flex-direction:column;gap:6px}
+.lens-panel label{font-size:12px;font-weight:600;color:var(--ink-2)}
+.lens-panel textarea{border:1px solid var(--line);background:var(--bg-2);border-radius:var(--r-sm);
+  padding:10px 12px;font-family:inherit;font-size:14px;color:var(--ink);resize:vertical;outline:none;line-height:1.5}
+.lens-panel textarea:focus{border-color:var(--accent);background:var(--panel);box-shadow:0 0 0 3px var(--accent-soft)}
+.lens-foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--line-2)}
+.lens-note{font-size:12.5px;color:var(--ink-3);flex:1;min-width:200px}
 .smell-panel{display:flex;flex-direction:column;gap:2px}
 .smell-row{display:flex;gap:12px;align-items:flex-start;padding:12px 12px;border-radius:var(--r-sm);
   cursor:pointer;transition:background .14s}
@@ -782,6 +820,28 @@ const T = {
     "smell.head":"Self-test — how this lens goes wrong",
     "smell.checked":"Self-tested","smell.never":"Never self-tested. The questions above are the lens's own quality bar.",
     "smell.clean":"nothing flagged","smell.flag":"flagged","smell.flags":"flagged",
+    "lens.head":"The lens — your working surface",
+    "lens.derive":"Carry into the artifact",
+    "lens.canfill":"{n} section(s) above are still empty and can be filled from this.",
+    "lens.allfull":"The artifact is already written. Derive never overwrites what you wrote.",
+    "lens.nothing":"Fill in the lens first — then it can carry into the artifact.",
+    "rt.ey":"Router","rt.title":"Which lens does this problem need?",
+    "rt.q1":"Where are you standing?",
+    "rt.q1.a":"I know something is wrong, but not what",
+    "rt.q1.b":"I know what is wrong, but not where to act",
+    "rt.q1.c":"I am choosing between several paths",
+    "rt.q1.d":"The choice is made",
+    "rt.q2":"What is at stake?",
+    "rt.q2.a":"A lot, and I am not confident",
+    "rt.q2.b":"It is fine — I just need to write it down",
+    "rt.result":"Start here.","rt.go":"Use this lens",
+    "rt.other":"Or pick another","rt.back":"← Start over",
+    "rt.skip":"Skip — I know which one I want",
+    "pm.btn":"Send to the registers","pm.ey":"Pre-mortem","pm.title":"Turn the pre-mortem into bets and signals",
+    "pm.lead":"Each cause becomes an assumption, inverted into what must hold. Each earliest warning becomes the signal that watches it. Uncheck anything you do not want.",
+    "pm.asm":"Bet","pm.sig":"Signal","pm.link":"The signal will be linked to watch this bet.",
+    "pm.inv":"It holds that: {c} — does not happen.","pm.from":"From the pre-mortem.",
+    "pm.create":"Create these",
     "sys.families":"The four families","sys.families.h":"Ten systems · four live registers","sys.loop":"The register loop","sys.loop.h":"How the four registers actually talk to each other","sys.register":"register","sys.live":"live register","sys.without":"Without it:","sys.family":"Family:","sys.feeds":"Feeds",
     "loop.1":"Insights feed the diagnosis in Understand.","loop.2":"The diagnosis produces Assumptions — the bets the strategy rests on.","loop.3":"Each Signal watches a named assumption; each Decision records the bets it rests on.","loop.4":"When a signal disagrees or an assumption breaks, you're sent back to the diagnosis.","loop.5":"The Learning Loop writes the lesson from a broken bet back into Insights — and downgrades the falsified one. That's what makes it a flywheel, not a one-off.",
   },
@@ -872,6 +932,28 @@ const T = {
     "smell.head":"Selvtest — slik går denne linsen galt",
     "smell.checked":"Selvtestet","smell.never":"Aldri selvtestet. Spørsmålene over er linsens egen kvalitetsterskel.",
     "smell.clean":"ingenting flagget","smell.flag":"flagget","smell.flags":"flagget",
+    "lens.head":"Linsen — arbeidsflaten din",
+    "lens.derive":"Før inn i artefaktet",
+    "lens.canfill":"{n} seksjon(er) over står tomme og kan fylles herfra.",
+    "lens.allfull":"Artefaktet er allerede skrevet. Derive overskriver aldri det du har skrevet.",
+    "lens.nothing":"Fyll ut linsen først — så kan den føres inn i artefaktet.",
+    "rt.ey":"Router","rt.title":"Hvilken linse trenger dette problemet?",
+    "rt.q1":"Hvor står du?",
+    "rt.q1.a":"Jeg vet at noe er galt, men ikke hva",
+    "rt.q1.b":"Jeg vet hva som er galt, men ikke hvor jeg skal handle",
+    "rt.q1.c":"Jeg står mellom flere veier",
+    "rt.q1.d":"Valget er tatt",
+    "rt.q2":"Hva står på spill?",
+    "rt.q2.a":"Mye, og jeg er ikke trygg",
+    "rt.q2.b":"Det er greit — jeg skal bare skrive det ned",
+    "rt.result":"Start her.","rt.go":"Bruk denne linsen",
+    "rt.other":"Eller velg en annen","rt.back":"← Start på nytt",
+    "rt.skip":"Hopp over — jeg vet hvilken jeg vil ha",
+    "pm.btn":"Send til registrene","pm.ey":"Pre-mortem","pm.title":"Gjør pre-mortem om til bets og signaler",
+    "pm.lead":"Hver årsak blir en antakelse, invertert til det som må holde. Hvert tidligste varsel blir signalet som overvåker den. Fjern haken på det du ikke vil ha.",
+    "pm.asm":"Bet","pm.sig":"Signal","pm.link":"Signalet kobles til å overvåke dette bettet.",
+    "pm.inv":"Det holder at: {c} — ikke inntreffer.","pm.from":"Fra pre-mortem.",
+    "pm.create":"Opprett disse",
     "sys.families":"De fire familiene","sys.families.h":"Ti systemer · fire levende registre","sys.loop":"Register-løkken","sys.loop.h":"Hvordan de fire registrene faktisk snakker sammen","sys.register":"register","sys.live":"levende register","sys.without":"Uten det:","sys.family":"Familie:","sys.feeds":"Mater",
     "loop.1":"Innsikter mater diagnosen i Forstå.","loop.2":"Diagnosen produserer Antakelser — bettene strategien hviler på.","loop.3":"Hvert Signal overvåker en navngitt antakelse; hver Beslutning registrerer bettene den hviler på.","loop.4":"Når et signal er uenig eller en antakelse brytes, sendes du tilbake til diagnosen.","loop.5":"Læringsløkken skriver lærdommen fra et brutt bet tilbake inn i Innsikter — og nedgraderer den falsifiserte. Det er det som gjør det til et svinghjul, ikke en engangshendelse.",
   },
@@ -1018,6 +1100,12 @@ const LENSES = {
   kernel:{
     when:"You know something is wrong, but not what.",
     anatomy:"Diagnosis → guiding policy → coherent action.",
+    fields:[
+      {k:"diagnosis",l:"Diagnosis",t:"textarea",ph:"What is the critical difficulty? Not the goal — the obstacle."},
+      {k:"policy",l:"Guiding policy",t:"textarea",ph:"The general approach that meets the diagnosis."},
+      {k:"actions",l:"Coherent actions",t:"lines",ph:"One per line. They must support each other, not just the policy."},
+    ],
+    derive:{diagnosis:"challenge", policy:"approach", actions:"moves"},
     smells:[
       {k:"goal-as-diagnosis", q:"Is the diagnosis really a goal in disguise?",
        why:"“We must become more data-driven” is an ambition, not a difficulty."},
@@ -1029,6 +1117,14 @@ const LENSES = {
   wardley:{
     when:"You know what is wrong, but not where in the chain to act.",
     anatomy:"User → need → value chain → evolution stage.",
+    fields:[
+      {k:"users",l:"Users",t:"lines",ph:"One per line — real people, not “the business”"},
+      {k:"needs",l:"Needs",t:"lines",ph:"One per line — what each user is trying to get done"},
+      {k:"chain",l:"Value chain",t:"textarea",ph:"Component → what it rests on"},
+      {k:"evolution",l:"Evolution",t:"textarea",ph:"Genesis / custom / product / commodity — where does each component sit?"},
+      {k:"movement",l:"Movement",t:"textarea",ph:"What is shifting, and how fast?"},
+    ],
+    derive:{chain:"challenge", movement:"approach"},
     smells:[
       {k:"no-movement", q:"Have you said anything about movement — what is shifting, and how fast?",
        why:"A map without evolution is an architecture diagram."},
@@ -1038,6 +1134,14 @@ const LENSES = {
   cascade:{
     when:"The diagnosis is clear, and the choice is between several paths.",
     anatomy:"Winning aspiration → where to play → how to win → capabilities → systems.",
+    fields:[
+      {k:"ambition",l:"Winning aspiration",t:"textarea",ph:"What winning looks like, in one sentence"},
+      {k:"where",l:"Where we play",t:"lines",ph:"One per line — and it must not be everywhere"},
+      {k:"how",l:"How we win",t:"textarea",ph:"The mechanism, not “better than the others”"},
+      {k:"capability",l:"Capabilities required",t:"lines",ph:"One per line"},
+      {k:"systems",l:"Management systems",t:"lines",ph:"One per line — what keeps it true"},
+    ],
+    derive:{how:"approach", where:"moves"},
     smells:[
       {k:"where-is-everywhere", q:"Is “where we play” effectively everywhere?",
        why:"If you play everywhere, you have not chosen."},
@@ -1047,6 +1151,12 @@ const LENSES = {
   premortem:{
     when:"The decision is made. You want to know how it dies before it does.",
     anatomy:"Assume failure → explain why → turn the explanations into assumptions.",
+    fields:[
+      {k:"failure",l:"It is 12 months on. It went wrong. What happened?",t:"textarea",ph:"Write it as history, not as risk"},
+      {k:"causes",l:"Causes",t:"lines",ph:"One per line — each becomes a candidate assumption"},
+      {k:"earliest",l:"Earliest warning",t:"lines",ph:"One per line — each becomes a candidate signal"},
+    ],
+    derive:{earliest:"howKnow"},
     smells:[
       {k:"external-only", q:"Are all the causes outside your control?",
        why:"Then you have written an excuse, not a pre-mortem."},
@@ -1056,6 +1166,8 @@ const LENSES = {
   "one-pager":{
     when:"The thinking is done. You are just writing it down.",
     anatomy:"No lens — you write the artifact directly.",
+    fields:[],
+    derive:{},
     smells:[
       {k:"adjectives", q:"Does any of the big moves contain an adjective like “better” or “more efficient”?",
        why:"Goals with adjectives are what we stand against — they cannot be disproved."},
@@ -1065,6 +1177,11 @@ const LENSES = {
 const LENSES_NO = {
   kernel:{ when:"Du vet at noe er galt, men ikke hva.",
     anatomy:"Diagnose → guiding policy → koherente handlinger.",
+    fields:{
+      diagnosis:["Diagnose","Hva er den kritiske vanskeligheten? Ikke målet — hindringen."],
+      policy:["Guiding policy","Den generelle tilnærmingen som møter diagnosen."],
+      actions:["Koherente handlinger","Én per linje. De må støtte hverandre, ikke bare policyen."],
+    },
     smells:{
       "goal-as-diagnosis":["Er diagnosen egentlig et mål i forkledning?","«Vi må bli mer datadrevne» er en ambisjon, ikke en vanskelighet."],
       "incoherent":["Trekker to av de store trekkene i hver sin retning?","Koherens er hele poenget. Ellers er det en liste, ikke en strategi."],
@@ -1072,24 +1189,44 @@ const LENSES_NO = {
     }},
   wardley:{ when:"Du vet hva som er galt, men ikke hvor i kjeden du skal handle.",
     anatomy:"Bruker → behov → verdikjede → evolusjonsstadium.",
+    fields:{
+      users:["Brukere","Én per linje — ekte mennesker, ikke «virksomheten»"],
+      needs:["Behov","Én per linje — hva hver bruker prøver å få gjort"],
+      chain:["Verdikjede","Komponent → hva den hviler på"],
+      evolution:["Evolusjon","Genesis / custom / product / commodity — hvor står hver komponent?"],
+      movement:["Bevegelse","Hva flytter seg, og hvor fort?"],
+    },
     smells:{
       "no-movement":["Har du sagt noe om bevegelse — hva som flytter seg, og hvor fort?","Et kart uten evolusjon er et arkitekturdiagram."],
       "no-user":["Er brukeren en ekte person, ikke «virksomheten»?","Ankeret er en bruker med et behov. Uten det flyter kartet."],
     }},
   cascade:{ when:"Diagnosen er klar, og valget står mellom flere veier.",
     anatomy:"Vinnende ambisjon → hvor → hvordan → evner → systemer.",
+    fields:{
+      ambition:["Vinnende ambisjon","Hva det vil si å vinne, i én setning"],
+      where:["Hvor vi spiller","Én per linje — og det må ikke være alle steder"],
+      how:["Hvordan vi vinner","Mekanismen, ikke «bedre enn de andre»"],
+      capability:["Nødvendige evner","Én per linje"],
+      systems:["Styringssystemer","Én per linje — hva som holder det sant"],
+    },
     smells:{
       "where-is-everywhere":["Er «hvor vi spiller» i praksis alle steder?","Hvis du spiller overalt, har du ikke valgt."],
       "how-is-better":["Er «hvordan vi vinner» bare «bedre enn de andre»?","Det er en ambisjon. Hvordan er en mekanisme."],
     }},
   premortem:{ when:"Beslutningen er tatt. Du vil vite hvordan den dør før den gjør det.",
     anatomy:"Anta fiasko → forklar hvorfor → gjør forklaringene til antakelser.",
+    fields:{
+      failure:["Det er 12 måneder frem. Det gikk galt. Hva skjedde?","Skriv det som historie, ikke som risiko"],
+      causes:["Årsaker","Én per linje — hver blir en kandidat til antakelsesregisteret"],
+      earliest:["Tidligste varsel","Én per linje — hver blir et kandidat-signal"],
+    },
     smells:{
       "external-only":["Ligger alle årsakene utenfor din kontroll?","Da har du skrevet en unnskyldning, ikke en pre-mortem."],
       "no-signal":["Har hver årsak et tidligste varsel du faktisk overvåker?","En årsak uten signal kan ikke oppdages. Da er den pynt."],
     }},
   "one-pager":{ when:"Tenkningen er ferdig. Du skal bare skrive den ned.",
     anatomy:"Ingen linse — du skriver artefaktet direkte.",
+    fields:{},
     smells:{
       "adjectives":["Inneholder noen av de store trekkene et adjektiv som «bedre» eller «mer effektiv»?","Mål med adjektiver er det vi står imot — de kan ikke motbevises."],
     }},
@@ -1097,6 +1234,20 @@ const LENSES_NO = {
 function lensNO(fw){ return LANG==="no" ? LENSES_NO[fw] : null; }
 function lensWhen(fw){ const n=lensNO(fw); return (n&&n.when) || (LENSES[fw]||LENSES.kernel).when; }
 function lensAnatomy(fw){ const n=lensNO(fw); return (n&&n.anatomy) || (LENSES[fw]||LENSES.kernel).anatomy; }
+function lensFields(fw){
+  const base=(LENSES[fw]||LENSES.kernel).fields||[], n=lensNO(fw);
+  return base.map(f=>{
+    const tr=n&&n.fields&&n.fields[f.k];
+    return {k:f.k, t:f.t, l:(tr&&tr[0])||f.l, ph:(tr&&tr[1])||f.ph||""};
+  });
+}
+function lensDerive(fw){ return (LENSES[fw]||LENSES.kernel).derive||{}; }
+function lensVal(s,k){ return (s&&s.lens&&s.lens.fields&&s.lens.fields[k]) ?? ""; }
+// Er artefakt-seksjonen tom? Avgjør om derive tør skrive i den.
+function artifactEmpty(s,k){
+  const v=s[k];
+  return Array.isArray(v) ? v.length===0 : !String(v||"").trim();
+}
 function lensSmells(fw){
   const base=(LENSES[fw]||LENSES.kernel).smells, n=lensNO(fw);
   return base.map(sm=>{
@@ -1431,6 +1582,69 @@ function vStrategyDetail(id){
     ${opSection(t("op.4"),opList(L(s,"notDoing"),"ul"))}
     ${opSection(t("op.5"),opList(L(s,"howKnow"),"ul"))}`;
   w.appendChild(op);
+
+  // linsens arbeidsflate — der du tenker deg fram til artefaktet over
+  const lfields=lensFields(s.framework);
+  if(lfields.length){
+    w.appendChild(el("div","sect-h",
+      `<h2>${esc(t("lens.head"))}</h2><span class="hint">${esc(lensWhen(s.framework))}</span>`));
+    const lp=el("div","panel panel-pad lens-panel");
+    lfields.forEach(f=>{
+      const fg=el("div","fg");
+      fg.appendChild(el("label",null,esc(f.l)));
+      const inp=el("textarea");
+      inp.placeholder=f.ph;
+      inp.rows=f.t==="lines"?3:2;
+      const cur=lensVal(s,f.k);
+      inp.value=f.t==="lines"?(Array.isArray(cur)?cur.join("\n"):"") : (cur||"");
+      inp.onchange=()=>{
+        s.lens=s.lens||{}; s.lens.fields=s.lens.fields||{}; s.lens.type=s.framework;
+        s.lens.fields[f.k]= f.t==="lines"
+          ? inp.value.split("\n").map(x=>x.trim()).filter(Boolean)
+          : inp.value;
+        saveData();
+      };
+      fg.appendChild(inp); lp.appendChild(fg);
+    });
+
+    // derive — fyller BARE tomme seksjoner i artefaktet
+    const der=lensDerive(s.framework);
+    const foot=el("div","lens-foot");
+    const canFill=()=>Object.keys(der).filter(k=>{
+      const v=lensVal(s,k);
+      const has=Array.isArray(v)?v.length:String(v||"").trim();
+      return has && artifactEmpty(s,der[k]);
+    });
+    const note=el("div","lens-note");
+    const upd=()=>{
+      const n=canFill().length;
+      const blocked=Object.keys(der).filter(k=>{
+        const v=lensVal(s,k);
+        const has=Array.isArray(v)?v.length:String(v||"").trim();
+        return has && !artifactEmpty(s,der[k]);
+      }).length;
+      note.textContent = n ? t("lens.canfill").replace("{n}",n)
+                        : blocked ? t("lens.allfull")
+                        : t("lens.nothing");
+      db.disabled=!n; db.style.opacity=n?"1":".45"; db.style.pointerEvents=n?"":"none";
+    };
+    const db=el("button","btn pri",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>${esc(t("lens.derive"))}`);
+    db.onclick=()=>{
+      canFill().forEach(k=>{ s[der[k]]=lensVal(s,k); });
+      saveData(); render();
+    };
+    foot.appendChild(note); foot.appendChild(db);
+    if(s.framework==="premortem"){
+      const pb=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg>${esc(t("pm.btn"))}`);
+      const cnt=premortemCandidates(s).length;
+      pb.disabled=!cnt; pb.style.opacity=cnt?"1":".45"; pb.style.pointerEvents=cnt?"":"none";
+      pb.onclick=()=>openPremortemPush(s);
+      foot.appendChild(pb);
+    }
+    lp.appendChild(foot);
+    upd();
+    w.appendChild(lp);
+  }
 
   // failure smells — selvtest mot linsens egne kvalitetskrav
   const smells=lensSmells(s.framework);
@@ -2222,9 +2436,14 @@ function numOrBlank(v){
 }
 
 // Normaliser et løst objekt til et rent entitetsobjekt + advarsler.
+// Felt som lever utenfor FIELDS, men som skal overleve en import.
+// Uten dette forkaster normalizeEntity dem som "ukjente".
+const KEEP_KEYS = {strategies:["lens","smellFlags","smellChecked"], signals:["log"]};
 function normalizeEntity(coll, raw){
   const clean = {}, warnings = [];
-  const known = new Set(FIELDS[coll].map(f=>f.k));
+  const keep = KEEP_KEYS[coll] || [];
+  const known = new Set([...FIELDS[coll].map(f=>f.k), ...keep]);
+  keep.forEach(k=>{ if(raw && raw[k]!==undefined) clean[k]=raw[k]; });
   FIELDS[coll].forEach(f=>{
     const v = raw ? raw[f.k] : undefined;
     if(REF_FIELD_TYPES.includes(f.t)){
@@ -2741,7 +2960,151 @@ FIELDS.org = [
 
 function newEntry(){
   if(view==="profile"){ editing={coll:"org",id:null,data:{}}; buildForm(); return; }
-  if(!FIELDS[view]) return; editing={coll:view,id:null,data:{}}; buildForm();
+  if(!FIELDS[view]) return;
+  // Ny strategi går innom routeren — men den er en kollega, ikke en port.
+  if(view==="strategies"){ openRouter(); return; }
+  editing={coll:view,id:null,data:{}}; buildForm();
+}
+
+// Sender deg til den ene linsen problemet trenger, ut fra hvor du står —
+// ikke ut fra hvilket rammeverk du liker best.
+function routeLens(a){
+  if(a.q1==="unclear-problem")             return "kernel";
+  if(a.q1==="unclear-where")               return "wardley";
+  if(a.q1==="choosing-between")            return "cascade";
+  if(a.q1==="decided" && a.q2==="risky")   return "premortem";
+  return "one-pager";
+}
+const ROUTER_Q1=[
+  {v:"unclear-problem", k:"rt.q1.a"},
+  {v:"unclear-where",   k:"rt.q1.b"},
+  {v:"choosing-between",k:"rt.q1.c"},
+  {v:"decided",         k:"rt.q1.d"},
+];
+const ROUTER_Q2=[
+  {v:"risky", k:"rt.q2.a"},
+  {v:"calm",  k:"rt.q2.b"},
+];
+// Pre-mortem produserer naturlig det som skal inn i to registre: hver årsak er
+// en kandidat-antakelse (invertert), hvert tidligste varsel et kandidat-signal.
+// Paret vises eksplisitt før noe opprettes — appen gjetter ikke i det skjulte.
+function premortemCandidates(s){
+  const causes=lensVal(s,"causes")||[], early=lensVal(s,"earliest")||[];
+  const n=Math.max(causes.length, early.length);
+  const out=[];
+  for(let i=0;i<n;i++){
+    out.push({i, cause:causes[i]||"", signal:early[i]||"", on:true});
+  }
+  return out;
+}
+function openPremortemPush(s){
+  const cands=premortemCandidates(s);
+  if(!cands.length) return;
+  $("#mEy").textContent=t("pm.ey");
+  $("#mTitle").textContent=t("pm.title");
+  const body=$("#mBody");
+  body.innerHTML="";
+  body.appendChild(el("div","pm-lead",esc(t("pm.lead"))));
+  cands.forEach(c=>{
+    const row=el("label","pm-row");
+    const cb=el("input"); cb.type="checkbox"; cb.checked=true;
+    cb.onchange=()=>{ c.on=cb.checked; row.classList.toggle("off",!cb.checked); };
+    const tx=el("div");
+    tx.innerHTML=
+      (c.cause?`<div class="pm-a"><span class="tag">${esc(t("pm.asm"))}</span>${esc(c.cause)}</div>`:"")
+     +(c.signal?`<div class="pm-s"><span class="tag">${esc(t("pm.sig"))}</span>${esc(c.signal)}</div>`:"")
+     +(c.cause&&c.signal?`<div class="pm-link">${esc(t("pm.link"))}</div>`:"");
+    row.appendChild(cb); row.appendChild(tx);
+    body.appendChild(row);
+  });
+  const foot=el("div","pm-foot");
+  const go=el("button","btn pri",esc(t("pm.create")));
+  go.type="button";
+  go.onclick=()=>{
+    let na=0, ns=0;
+    cands.filter(c=>c.on).forEach(c=>{
+      let aid=null;
+      if(c.cause){
+        aid=uid("a");
+        DB.assumptions.push({id:aid, strategy:s.name,
+          statement:t("pm.inv").replace("{c}",c.cause),
+          confidence:"low", consequence:"high", state:"holding",
+          kill_signal:c.signal||"", note:t("pm.from"), watchedBy:""});
+        na++;
+      }
+      if(c.signal){
+        const sid=uid("s");
+        DB.signals.push({id:sid, strategy:s.name, signal:c.signal,
+          watches:aid||"", expected_shape:"", owner:s.owner||"",
+          state:"agreeing", last_reading:"", thresh:"", dir:"", unit:"", band:"", log:[]});
+        if(aid){ const a=byId("assumptions",aid); if(a) a.watchedBy=sid; }
+        ns++;
+      }
+    });
+    save(); $("#modal").classList.remove("on"); editing=null; render();
+  };
+  const cancel=el("button","btn",esc(t("btn.cancel")||"Cancel"));
+  cancel.type="button";
+  cancel.onclick=()=>{ $("#modal").classList.remove("on"); editing=null; };
+  foot.appendChild(cancel); foot.appendChild(go);
+  body.appendChild(foot);
+  $("#modal").classList.add("on");
+}
+
+function openRouter(){
+  const ans={};
+  const body=$("#mBody");
+  $("#mEy").textContent=t("rt.ey");
+  $("#mTitle").textContent=t("rt.title");
+  const draw=()=>{
+    body.innerHTML="";
+    const skip=el("button","btn rt-skip",esc(t("rt.skip")));
+    skip.type="button";
+    skip.onclick=()=>{ editing={coll:"strategies",id:null,data:{}}; buildForm(); };
+
+    if(!ans.q1 || (ans.q1==="decided" && !ans.q2)){
+      const first=!ans.q1;
+      const qs=first?ROUTER_Q1:ROUTER_Q2;
+      body.appendChild(el("div","rt-q",esc(t(first?"rt.q1":"rt.q2"))));
+      const list=el("div","rt-opts");
+      qs.forEach(o=>{
+        const b=el("button","rt-opt",esc(t(o.k)));
+        b.type="button";
+        b.onclick=()=>{ if(first) ans.q1=o.v; else ans.q2=o.v; draw(); };
+        list.appendChild(b);
+      });
+      body.appendChild(list);
+      body.appendChild(skip);
+      return;
+    }
+    // Resultat — med begrunnelse, og full mulighet til å overstyre.
+    const fw=routeLens(ans);
+    body.appendChild(el("div","rt-q",esc(t("rt.result"))));
+    const card=el("div","rt-result");
+    card.innerHTML=`<div class="nm">${esc(fwL(fw))}</div>
+      <div class="wh">${esc(lensWhen(fw))}</div>
+      <div class="an">${esc(lensAnatomy(fw))}</div>`;
+    body.appendChild(card);
+    const go=el("button","btn pri",esc(t("rt.go")));
+    go.type="button";
+    go.onclick=()=>{ editing={coll:"strategies",id:null,data:{framework:fw}}; buildForm(); };
+    const other=el("div","rt-other");
+    other.appendChild(el("div","lbl",esc(t("rt.other"))));
+    const row=el("div","rt-opts");
+    Object.keys(LENSES).filter(k=>k!==fw).forEach(k=>{
+      const b=el("button","rt-opt sm",esc(fwL(k)));
+      b.type="button";
+      b.onclick=()=>{ editing={coll:"strategies",id:null,data:{framework:k}}; buildForm(); };
+      row.appendChild(b);
+    });
+    other.appendChild(row);
+    const back=el("button","btn rt-skip",esc(t("rt.back")));
+    back.type="button";
+    back.onclick=()=>{ delete ans.q1; delete ans.q2; draw(); };
+    body.appendChild(go); body.appendChild(other); body.appendChild(back);
+  };
+  draw();
+  $("#modal").classList.add("on");
 }
 function editEntry(coll,id){ closeDrawer(); editing={coll,id,data:structuredClone(byId(coll,id))}; buildForm(); }
 function buildForm(){

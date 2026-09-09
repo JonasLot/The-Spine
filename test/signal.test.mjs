@@ -59,6 +59,8 @@ const harness = [
   func("fldTr"), func("fldL"), func("fldPh"), func("singL"),
   decl("STRAT_FW"), decl("LENSES"), decl("LENSES_NO"),
   func("lensNO"), func("lensWhen"), func("lensAnatomy"), func("lensSmells"), func("smellsFlagged"),
+  func("lensFields"), func("lensDerive"), func("lensVal"), func("artifactEmpty"),
+  func("routeLens"), decl("KEEP_KEYS"), func("premortemCandidates"),
   // assumptionFollowUp slår opp i DB og L(); begge stubbes her.
   "let DB={signals:[],assumptions:[]};",
   "function L(o,f){return o?o[f]:undefined}",
@@ -66,6 +68,7 @@ const harness = [
   "suggestSignalState,suggestionText,assumptionFollowUp,followUpText," +
   "FIELDS,SING,SING_NO,FLD_NO,fldL,fldPh,singL," +
   "STRAT_FW,LENSES,LENSES_NO,lensWhen,lensAnatomy,lensSmells,smellsFlagged," +
+  "lensFields,lensDerive,lensVal,artifactEmpty,routeLens,KEEP_KEYS,premortemCandidates," +
   "setLang:v=>{LANG=v},setDB:v=>{DB=v}};",
 ].join("\n");
 
@@ -74,6 +77,7 @@ const {
   suggestSignalState, suggestionText, assumptionFollowUp, followUpText,
   FIELDS, SING, SING_NO, FLD_NO, fldL, fldPh, singL,
   STRAT_FW, LENSES, LENSES_NO, lensWhen, lensAnatomy, lensSmells, smellsFlagged,
+  lensFields, lensDerive, lensVal, artifactEmpty, routeLens, KEEP_KEYS, premortemCandidates,
   setLang, setDB,
 } = new Function(harness)();
 
@@ -298,6 +302,14 @@ for (const fw of Object.keys(LENSES)) {
     if (!tr) { lmangler.push(`${fw}.${sm.k} (ingen norsk lukt)`); continue; }
     if (!tr[0] || !tr[1]) lmangler.push(`${fw}.${sm.k} (tomt spørsmål eller begrunnelse)`);
   }
+  for (const f of LENSES[fw].fields || []) {
+    const tr = n.fields && n.fields[f.k];
+    if (!tr) { lmangler.push(`${fw}.${f.k} (ingen norsk arbeidsfelt)`); continue; }
+    if (!tr[0]) lmangler.push(`${fw}.${f.k} (tom etikett)`);
+    if (f.ph && !tr[1]) lmangler.push(`${fw}.${f.k} (tom plassholder)`);
+  }
+  for (const k of Object.keys(n.fields || {}))
+    if (!(LENSES[fw].fields || []).some(f => f.k === k)) lmangler.push(`${fw}.${k} (dødt norsk arbeidsfelt)`);
 }
 ok(lmangler.length === 0, "alle linser og lukter har norsk: mangler " + lmangler.join(", "));
 const ldoede = Object.keys(LENSES_NO).filter(k => !LENSES[k]);
@@ -323,6 +335,74 @@ ok(smellsFlagged({ smellFlags: ["a", "b"] }).length === 2, "flagg leses ut");
 const kernelQ = lensSmells("kernel").map(s => s.k);
 ok(kernelQ.includes("no-tradeoff"), "kernel spør om notDoing, som finnes i FIELDS");
 ok(FIELDS.strategies.some(f => f.k === "notDoing"), "notDoing finnes faktisk i artefaktet");
+
+group("linsens arbeidsflate");
+setLang("en");
+ok(lensFields("kernel").length === 3, "kernel har tre arbeidsfelt");
+ok(lensFields("one-pager").length === 0, "one-pager har ingen — det er å hoppe over linsen");
+ok(lensFields("wardley").every(f => f.l && f.t), "hvert felt har etikett og type");
+ok(lensFields("kernel").every(f => ["textarea", "lines"].includes(f.t)),
+   "kun typer arbeidsflaten faktisk kan rendre");
+setLang("no");
+ok(lensFields("kernel")[0].l === "Diagnose", "arbeidsfelt oversettes");
+ok(lensFields("kernel")[0].ph.includes("hindringen"), "plassholder oversettes");
+setLang("en");
+
+group("derive — fyller bare tomt");
+// Hvert derive-mål må finnes i artefaktet, og typene må stemme.
+const dfeil = [];
+for (const fw of Object.keys(LENSES)) {
+  const der = lensDerive(fw), flds = Object.fromEntries(lensFields(fw).map(f => [f.k, f.t]));
+  for (const [from, to] of Object.entries(der)) {
+    const art = FIELDS.strategies.find(f => f.k === to);
+    if (!art) { dfeil.push(`${fw}: ${to} finnes ikke i artefaktet`); continue; }
+    if (!flds[from]) { dfeil.push(`${fw}: ${from} finnes ikke som arbeidsfelt`); continue; }
+    const lensArr = flds[from] === "lines", artArr = art.t === "lines";
+    if (lensArr !== artArr) dfeil.push(`${fw}: ${from}(${flds[from]}) → ${to}(${art.t}) typemismatch`);
+  }
+}
+ok(dfeil.length === 0, "derive-koblingene er typeriktige: " + dfeil.join(", "));
+ok(Object.keys(lensDerive("one-pager")).length === 0, "one-pager deriverer ingenting");
+ok(artifactEmpty({ challenge: "" }, "challenge"), "tom streng er tom");
+ok(artifactEmpty({ challenge: "   " }, "challenge"), "bare blanke er tomt");
+ok(artifactEmpty({ moves: [] }, "moves"), "tom liste er tom");
+ok(!artifactEmpty({ moves: ["a"] }, "moves"), "liste med innhold er ikke tom");
+ok(!artifactEmpty({ challenge: "x" }, "challenge"), "tekst er ikke tom");
+ok(artifactEmpty({}, "challenge"), "manglende felt er tomt");
+ok(lensVal({}, "diagnosis") === "", "lensVal på strategi uten linse gir tom");
+ok(lensVal({ lens: { fields: { diagnosis: "x" } } }, "diagnosis") === "x", "lensVal leser ut");
+
+group("routeren");
+ok(routeLens({ q1: "unclear-problem" }) === "kernel", "vet ikke hva → kernel");
+ok(routeLens({ q1: "unclear-where" }) === "wardley", "vet ikke hvor → wardley");
+ok(routeLens({ q1: "choosing-between" }) === "cascade", "velger mellom veier → cascade");
+ok(routeLens({ q1: "decided", q2: "risky" }) === "premortem", "tatt valg + risiko → premortem");
+ok(routeLens({ q1: "decided", q2: "calm" }) === "one-pager", "tatt valg + rolig → one-pager");
+ok(routeLens({}) === "one-pager", "tomt svar faller til one-pager, ikke undefined");
+ok(LENSES[routeLens({ q1: "tull" })], "ukjent svar gir alltid en gyldig linse");
+const alleRuter = new Set([
+  routeLens({ q1: "unclear-problem" }), routeLens({ q1: "unclear-where" }),
+  routeLens({ q1: "choosing-between" }), routeLens({ q1: "decided", q2: "risky" }),
+  routeLens({ q1: "decided", q2: "calm" })]);
+ok(alleRuter.size === 5, "de fem svarene treffer fem ulike linser — ingen er uoppnåelig");
+
+group("pre-mortem til registrene");
+const pm = (causes, earliest) => premortemCandidates({ lens: { fields: { causes, earliest } } });
+ok(pm(["a", "b"], ["x", "y"]).length === 2, "to årsaker + to varsler gir to par");
+ok(pm(["a", "b"], ["x", "y"])[0].cause === "a" && pm(["a", "b"], ["x", "y"])[0].signal === "x",
+   "paret er årsak i mot varsel i");
+ok(pm(["a", "b", "c"], ["x"]).length === 3, "flere årsaker enn varsler: alle årsaker med");
+ok(pm(["a"], ["x", "y", "z"]).length === 3, "flere varsler enn årsaker: alle varsler med");
+ok(pm(["a", "b"], ["x"])[1].signal === "", "årsak uten varsel får tomt signal, ikke undefined");
+ok(pm([], []).length === 0, "tom pre-mortem gir ingen kandidater");
+ok(premortemCandidates({}).length === 0, "strategi uten linse krasjer ikke");
+ok(pm(["a"], ["x"]).every(c => c.on === true), "alt er huket av som utgangspunkt");
+
+group("import bevarer lens og flagg");
+ok(KEEP_KEYS.strategies.includes("lens"), "lens overlever import");
+ok(KEEP_KEYS.strategies.includes("smellFlags"), "smellFlags overlever import");
+ok(KEEP_KEYS.strategies.includes("smellChecked"), "smellChecked overlever import");
+ok(KEEP_KEYS.signals.includes("log"), "avlesningsloggen overlever import");
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,
