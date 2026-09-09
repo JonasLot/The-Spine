@@ -55,17 +55,21 @@ const harness = [
   func("numOrBlank"), func("readings"), func("sparkline"), func("sparkBlock"),
   func("stateColor"), func("suggestSignalState"), func("suggestionText"),
   func("trunc"), decl("ASM_RANK"), func("assumptionFollowUp"), func("followUpText"),
+  decl("FIELDS"), decl("SING"), decl("SING_NO"), decl("FLD_NO"),
+  func("fldTr"), func("fldL"), func("fldPh"), func("singL"),
   // assumptionFollowUp slår opp i DB og L(); begge stubbes her.
   "let DB={signals:[],assumptions:[]};",
   "function L(o,f){return o?o[f]:undefined}",
   "return {SEED,SEED_NO,T,numOrBlank,readings,sparkline,sparkBlock," +
   "suggestSignalState,suggestionText,assumptionFollowUp,followUpText," +
+  "FIELDS,SING,SING_NO,FLD_NO,fldL,fldPh,singL," +
   "setLang:v=>{LANG=v},setDB:v=>{DB=v}};",
 ].join("\n");
 
 const {
   SEED, SEED_NO, T, numOrBlank, readings, sparkline, sparkBlock,
   suggestSignalState, suggestionText, assumptionFollowUp, followUpText,
+  FIELDS, SING, SING_NO, FLD_NO, fldL, fldPh, singL,
   setLang, setDB,
 } = new Function(harness)();
 
@@ -220,6 +224,53 @@ for (const k of ["th.trend", "rev.value", "spark.target", "spark.aria", "sug.pre
                  "state.holding", "state.shaky", "state.broken"]) {
   ok(T.en[k] !== undefined && T.no[k] !== undefined, `${k} finnes i både en og no`);
 }
+
+group("i18n — skjemafelt");
+// Hver eneste etikett og plassholder i FIELDS må ha norsk. Denne testen er
+// grunnen til at ny gjeld ikke kan snike seg inn: legger du til et felt uten
+// å oversette det, feiler den her med feltets navn.
+setLang("no");
+// Sjekker at oppføringen FINNES, ikke at strengen er ulik — «Signal» og
+// «Kill-signal» heter det samme på begge språk, og det er ikke manglende arbeid.
+const mangler = [];
+for (const coll of Object.keys(FIELDS)) {
+  for (const f of FIELDS[coll]) {
+    const e = FLD_NO[coll] && FLD_NO[coll][f.k];
+    if (!e) { mangler.push(`${coll}.${f.k} (ingen oppføring)`); continue; }
+    if (typeof e[0] !== "string" || !e[0]) mangler.push(`${coll}.${f.k} (tom etikett)`);
+    if (f.ph && !e[1]) mangler.push(`${coll}.${f.k} (tom plassholder)`);
+  }
+}
+ok(mangler.length === 0, "alle FIELDS-felt har norsk oppføring: mangler " + mangler.join(", "));
+// Og motsatt: ingen døde oppføringer i overlayet etter at et felt fjernes.
+const doede = [];
+for (const coll of Object.keys(FLD_NO)) {
+  const kjente = new Set((FIELDS[coll] || []).map(f => f.k));
+  for (const k of Object.keys(FLD_NO[coll])) if (!kjente.has(k)) doede.push(`${coll}.${k}`);
+}
+ok(doede.length === 0, "ingen døde oppføringer i FLD_NO: " + doede.join(", "));
+ok(Object.keys(SING).every(k => SING_NO[k] !== undefined), "alle entitetsnavn har norsk");
+ok(singL("assumptions") === "Antakelse", "singL bytter språk");
+ok(fldL("signals", { k: "thresh", l: "Threshold (number)" }) === "Terskel (tall)", "fldL slår opp riktig");
+ok(fldPh("goals", { k: "horizon", ph: "e.g. 2026" }) === "f.eks. 2026", "fldPh slår opp riktig");
+setLang("en");
+ok(fldL("signals", { k: "thresh", l: "Threshold (number)" }) === "Threshold (number)",
+   "engelsk kommer fra FIELDS, ikke fra overlayet");
+ok(fldL("signals", { k: "finnesikke", l: "Fallback" }) === "Fallback",
+   "ukjent felt faller tilbake til engelsk, ikke til en rå nøkkel");
+setLang("no");
+ok(fldL("signals", { k: "finnesikke", l: "Fallback" }) === "Fallback",
+   "ukjent felt på norsk faller også tilbake, aldri tom streng");
+setLang("en");
+
+group("i18n — paritet mellom språkene");
+// Enhver nøkkel i det ene språket må finnes i det andre.
+const bareEn = Object.keys(T.en).filter(k => T.no[k] === undefined);
+const bareNo = Object.keys(T.no).filter(k => T.en[k] === undefined);
+ok(bareEn.length === 0, "nøkler som kun finnes på engelsk: " + bareEn.join(", "));
+ok(bareNo.length === 0, "nøkler som kun finnes på norsk: " + bareNo.join(", "));
+const tomme = Object.keys(T.no).filter(k => T.no[k] === "" || T.no[k] === T.en[k] && /^(rev|sug|form|map|org)\./.test(k));
+ok(tomme.length === 0, "norske nøkler som er tomme eller uoversatt: " + tomme.join(", "));
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,

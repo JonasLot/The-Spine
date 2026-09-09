@@ -752,6 +752,18 @@ const T = {
     "sug.why.steady":"{v} against {th} — back inside the expected shape.",
     "sug.hint.asm":"You confirm — re-rate the bet, or leave it as it stands.",
     "sug.why.signal":"the signal “{s}” is now {state}.",
+    "form.new":"New","form.edit":"Edit","form.oneperline":"One per line",
+    "rev.b.sig":"signal to read","rev.b.sigs":"signals to read",
+    "rev.b.bet":"bet to re-rate","rev.b.bets":"bets to re-rate",
+    "rev.b.sug":"with a suggested state change","rev.b.in":"in",
+    "rev.b.note":"A disagreeing signal must change something. Close the review by logging the decision it produced.",
+    "rev.empty.sig.t":"Nothing drifting.","rev.empty.sig.d":"No signal is disagreeing in this view. Keep the readings flowing on the rhythm anyway.",
+    "rev.empty.asm.t":"All bets steady.","rev.empty.asm.d":"No shaky or broken assumptions in this view.",
+    "rev.3.body":"Capture the call this review produced — a HOLD, a re-scope, a resource move, a kill. It lands in the <b style='color:var(--ink)'>Decision Log</b> with the bets it rests on.",
+    "rev.3.btn":"Log the decision",
+    "map.nod3.t":"Map unavailable.","map.nod3.d":"The D3 library did not load — check the connection and reload.",
+    "map.empty.t":"Nothing to map yet.","map.empty.d":"Add a strategy first — the registers will orbit it here.",
+    "org.empty.t":"No organisations yet.","org.empty.d":"Click “Add organisation” to link one.",
     "sys.families":"The four families","sys.families.h":"Ten systems · four live registers","sys.loop":"The register loop","sys.loop.h":"How the four registers actually talk to each other","sys.register":"register","sys.live":"live register","sys.without":"Without it:","sys.family":"Family:","sys.feeds":"Feeds",
     "loop.1":"Insights feed the diagnosis in Understand.","loop.2":"The diagnosis produces Assumptions — the bets the strategy rests on.","loop.3":"Each Signal watches a named assumption; each Decision records the bets it rests on.","loop.4":"When a signal disagrees or an assumption breaks, you're sent back to the diagnosis.","loop.5":"The Learning Loop writes the lesson from a broken bet back into Insights — and downgrades the falsified one. That's what makes it a flywheel, not a one-off.",
   },
@@ -827,6 +839,18 @@ const T = {
     "sug.why.steady":"{v} mot {th} — tilbake innenfor forventet form.",
     "sug.hint.asm":"Du bekrefter — revurder bettet, eller la det stå.",
     "sug.why.signal":"signalet «{s}» er nå {state}.",
+    "form.new":"Ny","form.edit":"Rediger","form.oneperline":"Ett per linje",
+    "rev.b.sig":"signal å lese","rev.b.sigs":"signaler å lese",
+    "rev.b.bet":"bet å revurdere","rev.b.bets":"bets å revurdere",
+    "rev.b.sug":"med foreslått tilstandsendring","rev.b.in":"i",
+    "rev.b.note":"Et uenig signal må endre noe. Avslutt gjennomgangen med å loggføre beslutningen den ga.",
+    "rev.empty.sig.t":"Ingenting driver.","rev.empty.sig.d":"Ingen signaler er uenige i denne visningen. Hold avlesningene i gang på rytmen likevel.",
+    "rev.empty.asm.t":"Alle bets står støtt.","rev.empty.asm.d":"Ingen vaklende eller brutte antakelser i denne visningen.",
+    "rev.3.body":"Fang beslutningen denne gjennomgangen ga — en HOLD, en omfangsendring, en ressursflytting, en avslutning. Den havner i <b style='color:var(--ink)'>Beslutningsloggen</b> med bettene den hviler på.",
+    "rev.3.btn":"Loggfør beslutningen",
+    "map.nod3.t":"Kartet er utilgjengelig.","map.nod3.d":"D3-biblioteket lastet ikke — sjekk tilkoblingen og last inn på nytt.",
+    "map.empty.t":"Ingenting å kartlegge ennå.","map.empty.d":"Legg til en strategi først — registrene vil kretse rundt den her.",
+    "org.empty.t":"Ingen organisasjoner ennå.","org.empty.d":"Klikk «Legg til organisasjon» for å koble en.",
     "sys.families":"De fire familiene","sys.families.h":"Ti systemer · fire levende registre","sys.loop":"Register-løkken","sys.loop.h":"Hvordan de fire registrene faktisk snakker sammen","sys.register":"register","sys.live":"levende register","sys.without":"Uten det:","sys.family":"Familie:","sys.feeds":"Mater",
     "loop.1":"Innsikter mater diagnosen i Forstå.","loop.2":"Diagnosen produserer Antakelser — bettene strategien hviler på.","loop.3":"Hvert Signal overvåker en navngitt antakelse; hver Beslutning registrerer bettene den hviler på.","loop.4":"Når et signal er uenig eller en antakelse brytes, sendes du tilbake til diagnosen.","loop.5":"Læringsløkken skriver lærdommen fra et brutt bet tilbake inn i Innsikter — og nedgraderer den falsifiserte. Det er det som gjør det til et svinghjul, ikke en engangshendelse.",
   },
@@ -1561,21 +1585,21 @@ function vReview(){
 
   const banner=el("div","rev-banner");
   banner.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-    <div><b>${sigs.length} signal${sigs.length!==1?"s":""}</b> to read · <b>${asmp.length} bet${asmp.length!==1?"s":""}</b> to re-rate${sugCount?` · <b>${sugCount}</b> with a suggested state change`:""}${stratF!=="*"?` · in <b>${esc(stratF)}</b>`:""}.
-    <div style="font-size:12.5px;color:var(--accent-ink);margin-top:3px">A disagreeing signal must change something. Close the review by logging the decision it produced.</div></div>`;
+    <div><b>${sigs.length}</b> ${esc(t(sigs.length===1?"rev.b.sig":"rev.b.sigs"))} · <b>${asmp.length}</b> ${esc(t(asmp.length===1?"rev.b.bet":"rev.b.bets"))}${sugCount?` · <b>${sugCount}</b> ${esc(t("rev.b.sug"))}`:""}${stratF!=="*"?` · ${esc(t("rev.b.in"))} <b>${esc(stratF)}</b>`:""}.
+    <div style="font-size:12.5px;color:var(--accent-ink);margin-top:3px">${esc(t("rev.b.note"))}</div></div>`;
   w.appendChild(banner);
 
   // Step 1 — read signals
   w.appendChild(el("div","rev-step",`<span class="num">1</span><h2>${esc(t("rev.1"))}</h2><span class="hint">${esc(t("rev.1.h"))}</span>`));
   const sp=el("div","grid"); sp.style.gap="12px";
-  if(!sigs.length){ sp.appendChild(el("div","panel",`<div class="empty"><span class="serif">Nothing drifting.</span>No signal is disagreeing in this view. Keep the readings flowing on the rhythm anyway.</div>`)); }
+  if(!sigs.length){ sp.appendChild(el("div","panel",`<div class="empty"><span class="serif">${esc(t("rev.empty.sig.t"))}</span>${esc(t("rev.empty.sig.d"))}</div>`)); }
   sigs.forEach(s=>sp.appendChild(reviewSignalCard(s)));
   w.appendChild(sp);
 
   // Step 2 — re-rate bets
   w.appendChild(el("div","rev-step",`<span class="num">2</span><h2>${esc(t("rev.2"))}</h2><span class="hint">${esc(t("rev.2.h"))}</span>`));
   const ap=el("div","grid"); ap.style.gap="12px";
-  if(!asmp.length){ ap.appendChild(el("div","panel",`<div class="empty"><span class="serif">All bets steady.</span>No shaky or broken assumptions in this view.</div>`)); }
+  if(!asmp.length){ ap.appendChild(el("div","panel",`<div class="empty"><span class="serif">${esc(t("rev.empty.asm.t"))}</span>${esc(t("rev.empty.asm.d"))}</div>`)); }
   asmp.slice().sort((x,y)=>(assumptionFollowUp(y)?1:0)-(assumptionFollowUp(x)?1:0))
       .forEach(a=>ap.appendChild(reviewAssumptionCard(a)));
   w.appendChild(ap);
@@ -1584,8 +1608,8 @@ function vReview(){
   w.appendChild(el("div","rev-step",`<span class="num">3</span><h2>${esc(t("rev.3"))}</h2><span class="hint">${esc(t("rev.3.h"))}</span>`));
   const dp=el("div","panel panel-pad");
   dp.style.display="flex"; dp.style.justifyContent="space-between"; dp.style.alignItems="center"; dp.style.gap="16px"; dp.style.flexWrap="wrap";
-  dp.innerHTML=`<div style="max-width:52ch;color:var(--ink-2);font-size:13.5px">Capture the call this review produced — a HOLD, a re-scope, a resource move, a kill. It lands in the <b style="color:var(--ink)">Decision Log</b> with the bets it rests on.</div>`;
-  const dbtn=el("button","btn pri",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Log the decision`);
+  dp.innerHTML=`<div style="max-width:52ch;color:var(--ink-2);font-size:13.5px">${t("rev.3.body")}</div>`;
+  const dbtn=el("button","btn pri",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>${esc(t("rev.3.btn"))}`);
   dbtn.onclick=()=>{ view="decisions"; render(); newEntry(); };
   dp.appendChild(dbtn);
   w.appendChild(dp);
@@ -1854,8 +1878,8 @@ function buildGraph(mode, focusId){
 function renderGraph(host, graph, opts={}){
   const {nodes,links}=graph;
   host.classList.add("map-wrap");
-  if(typeof d3==="undefined"){ host.innerHTML=`<div class="empty"><span class="serif">Map unavailable.</span>The D3 library did not load — check the connection and reload.</div>`; return; }
-  if(!nodes.length){ host.innerHTML=`<div class="empty"><span class="serif">Nothing to map yet.</span>Add a strategy first — the registers will orbit it here.</div>`; return; }
+  if(typeof d3==="undefined"){ host.innerHTML=`<div class="empty"><span class="serif">${esc(t("map.nod3.t"))}</span>${esc(t("map.nod3.d"))}</div>`; return; }
+  if(!nodes.length){ host.innerHTML=`<div class="empty"><span class="serif">${esc(t("map.empty.t"))}</span>${esc(t("map.empty.d"))}</div>`; return; }
   const W=opts.w||1100, H=opts.h||620, mk="arw"+(opts.mini?"m":"f");
   const svg=d3.select(host).append("svg").attr("viewBox",`0 0 ${W} ${H}`).attr("preserveAspectRatio","xMidYMid meet");
   svg.append("defs").append("marker").attr("id",mk).attr("viewBox","0 -5 10 10").attr("refX",9)
@@ -2055,7 +2079,7 @@ function normalizeEntity(coll, raw){
     if(REF_FIELD_TYPES.includes(f.t)){
       clean[f.k] = (f.t==="multiref"||f.t==="rels") ? [] : "";
       const had = Array.isArray(v) ? v.length : (v!=null && v!=="");
-      if(had) warnings.push(`«${f.l}» (referanse) tømt — koble manuelt etter import`);
+      if(had) warnings.push(`«${fldL(coll,f)}» (referanse) tømt — koble manuelt etter import`);
       return;
     }
     if(f.t==="lines"){
@@ -2067,13 +2091,13 @@ function normalizeEntity(coll, raw){
       const val = v==null ? "" : String(v).trim();
       if(!val){ clean[f.k] = f.opts[0]; }
       else if(f.opts.includes(val)){ clean[f.k] = val; }
-      else { clean[f.k] = f.opts[0]; warnings.push(`«${f.l}»: «${val}» er ikke gyldig — satt til «${f.opts[0]}»`); }
+      else { clean[f.k] = f.opts[0]; warnings.push(`«${fldL(coll,f)}»: «${val}» er ikke gyldig — satt til «${f.opts[0]}»`); }
       return;
     }
     if(f.t==="num"){
       if(v==null || v===""){ clean[f.k]=""; return; }
       const n=numOrBlank(v);
-      if(n==="") warnings.push(`«${f.l}»: «${v}» er ikke et tall — tømt`);
+      if(n==="") warnings.push(`«${fldL(coll,f)}»: «${v}» er ikke et tall — tømt`);
       clean[f.k]=n;
       return;
     }
@@ -2310,7 +2334,7 @@ function vProfile(){
 
   const orgPanel = el("div","panel");
   if(!PROFILE.organizations.length){
-    orgPanel.innerHTML=`<div class="empty"><span class="serif">No organisations yet.</span>Click "Add organisation" to link one.</div>`;
+    orgPanel.innerHTML=`<div class="empty"><span class="serif">${esc(t("org.empty.t"))}</span>${esc(t("org.empty.d"))}</div>`;
   } else {
     PROFILE.organizations.forEach(org=>{
       const row = el("div","org-row");
@@ -2498,6 +2522,66 @@ const FIELDS = {
   ],
 };
 const SING = {strategies:"Strategy",insights:"Insight",decisions:"Decision",assumptions:"Assumption",signals:"Signal",goals:"Goal",outcomes:"Outcome",org:"Organisation"};
+const SING_NO = {strategies:"Strategi",insights:"Innsikt",decisions:"Beslutning",assumptions:"Antakelse",signals:"Signal",goals:"Mål",outcomes:"Resultat",org:"Organisasjon"};
+// Norsk overlay for redigeringsskjemaet: [etikett, plassholder].
+// FIELDS er kilden for engelsk — mangler en nøkkel her, faller den tilbake dit.
+const FLD_NO = {
+  strategies:{
+    name:["Strateginavn","Visningsnavnet på dette arbeidet"],
+    framework:["Rammeverk",""], status:["Status",""], owner:["Eier",""],
+    review:["Neste gjennomgang",""], version:["Versjon","f.eks. 1"],
+    challenge:["1 · Utfordringen","To ærlige setninger. Fra kernel-diagnosen."],
+    approach:["2 · Vår tilnærming","Den styrende policyen, i ord en nyansatt forstår."],
+    moves:["3 · De store trekkene (3–5)","Ett per linje"],
+    notDoing:["4 · Hva vi IKKE gjør","Ett per linje"],
+    howKnow:["5 · Hvordan vi vet at det virker","Ett per linje — synlige signaler"],
+    relations:["Forhold til andre strategier",""], serves:["Tjener mål",""],
+  },
+  insights:{
+    claim:["Påstand","Hva du nå tror er sant…"],
+    evidence:["Bevis","Hva som støtter påstanden"],
+    theme:["Tema","f.eks. Styring"], confidence:["Konfidens",""],
+    captured:["Fanget",""], source:["Kilde","Hvor den kom fra"],
+    feeds:["Mater antakelse",""],
+  },
+  decisions:{
+    title:["Beslutning","Hva som ble besluttet"], strategy:["Strategi",""],
+    area:["Område",""], owner:["Eier",""], door:["Dør",""], decided:["Besluttet",""],
+    reasoning:["Begrunnelse",""], rejected:["Forkastede alternativer",""],
+    trigger:["Gjennomgangstrigger",""], rests:["Hviler på antakelser",""],
+  },
+  assumptions:{
+    statement:["Antakelse","Hva som må være sant for at strategien skal virke"],
+    strategy:["Strategi",""], confidence:["Konfidens",""], consequence:["Konsekvens",""],
+    kill_signal:["Kill-signal","Observasjonen som ville motbevise dette"],
+    state:["Tilstand",""], note:["Notat",""], watchedBy:["Overvåket av signal",""],
+  },
+  signals:{
+    signal:["Signal","Hva du vil observere over tid"], strategy:["Strategi",""],
+    watches:["Overvåker antakelse",""],
+    expected_shape:["Forventet form","f.eks. ≥80 % innen uke 4"],
+    thresh:["Terskel (tall)","f.eks. 80 — la stå tomt for et kvalitativt signal"],
+    dir:["God retning",""], unit:["Enhet","f.eks. %, dager, saker"],
+    band:["Toleranse (±)","f.eks. 5"], owner:["Eier",""], state:["Tilstand",""],
+    last_reading:["Siste avlesning",""],
+  },
+  goals:{
+    title:["Mål","Destinasjonen — hvorfor arbeidet finnes"], type:["Type",""],
+    horizon:["Horisont","f.eks. 2026"], owner:["Eier",""],
+    statement:["Hva dette betyr","Én eller to setninger en nyansatt forstår"],
+    note:["Notat",""],
+  },
+  outcomes:{
+    statement:["Resultat","Den målbare endringen som viser at målet nås"],
+    goalId:["Mål",""], baseline:["Utgangspunkt","Hvor det står i dag"],
+    target:["Målverdi","f.eks. ≥60 %"], by:["Innen","f.eks. 2027-Q2"],
+    measuredBy:["Målt av signal",""], state:["Tilstand",""], note:["Notat",""],
+  },
+};
+function fldTr(coll,k){ return LANG==="no" && FLD_NO[coll] ? FLD_NO[coll][k] : null; }
+function fldL(coll,f){ const e=fldTr(coll,f.k); return (e&&e[0])||f.l; }
+function fldPh(coll,f){ const e=fldTr(coll,f.k); return (e&&e[1])||f.ph||""; }
+function singL(coll){ return (LANG==="no" && SING_NO[coll]) || SING[coll]; }
 FIELDS.org = [
   {k:"name",l:"Organisation name",t:"text",req:1,ph:"e.g. Tet Digital"},
   {k:"role",l:"Your role",t:"text",ph:"e.g. Product Manager"},
@@ -2511,14 +2595,15 @@ function newEntry(){
 function editEntry(coll,id){ closeDrawer(); editing={coll,id,data:structuredClone(byId(coll,id))}; buildForm(); }
 function buildForm(){
   const {coll,id,data} = editing;
-  $("#mEy").textContent = SING[coll];
-  $("#mTitle").textContent = id?("Edit "+SING[coll].toLowerCase()):("New "+SING[coll].toLowerCase());
+  $("#mEy").textContent = singL(coll);
+  $("#mTitle").textContent = (id?t("form.edit"):t("form.new"))+" "+singL(coll).toLowerCase();
   const body = $("#mBody"); body.innerHTML="";
   FIELDS[coll].forEach(f=>{
     const fg = el("div","fg");
-    fg.appendChild(el("label",null,f.l+(f.req?' <span style="color:var(--bad)">*</span>':"")));
+    fg.appendChild(el("label",null,esc(fldL(coll,f))+(f.req?' <span style="color:var(--bad)">*</span>':"")));
     let inp;
-    if(f.t==="textarea"){ inp=el("textarea"); inp.value=data[f.k]||""; inp.placeholder=f.ph||""; }
+    const FPH=fldPh(coll,f);
+    if(f.t==="textarea"){ inp=el("textarea"); inp.value=data[f.k]||""; inp.placeholder=FPH; }
     else if(f.t==="seg"){
       inp=el("div","seg"); inp.dataset.k=f.k;
       const cur=data[f.k]||(f.noDefault?"":f.opts[0]); if(cur) data[f.k]=cur;
@@ -2532,7 +2617,7 @@ function buildForm(){
       inp.onchange=()=>data[f.k]=inp.value;
     }
     else if(f.t==="lines"){
-      inp=el("textarea"); inp.value=(data[f.k]||[]).join("\n"); inp.placeholder=f.ph||"One per line"; inp.rows=4;
+      inp=el("textarea"); inp.value=(data[f.k]||[]).join("\n"); inp.placeholder=FPH||t("form.oneperline"); inp.rows=4;
       inp.oninput=()=>data[f.k]=inp.value.split("\n").map(x=>x.trim()).filter(Boolean);
     }
     else if(f.t==="rels"){
@@ -2575,10 +2660,10 @@ function buildForm(){
     else if(f.t==="num"){
       inp=el("input"); inp.type="text"; inp.inputMode="decimal";
       inp.value=(data[f.k]===""||data[f.k]==null)?"":String(data[f.k]);
-      inp.placeholder=f.ph||"";
+      inp.placeholder=FPH;
       inp.oninput=()=>{ data[f.k]=numOrBlank(inp.value); };
     }
-    else { inp=el("input"); inp.type=f.t==="date"?"text":"text"; inp.value=data[f.k]||""; inp.placeholder=f.ph||(f.t==="date"?"YYYY-MM-DD":""); }
+    else { inp=el("input"); inp.type=f.t==="date"?"text":"text"; inp.value=data[f.k]||""; inp.placeholder=FPH||(f.t==="date"?"YYYY-MM-DD":""); }
     if(!["seg","strat","ref","multiref","lines","rels","num"].includes(f.t)){ inp.oninput=()=>data[f.k]=inp.value; }
     inp.dataset.field=f.k;
     fg.appendChild(inp); body.appendChild(fg);
