@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Spine — Strategy Operating System</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="spine-config.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -460,17 +459,159 @@ a{color:inherit}
 }
 
 /* Strategy map */
-.map-wrap{position:relative;overflow:hidden;min-height:380px}
-.map-wrap>svg{display:block;width:100%;height:auto;border-radius:var(--r-md)}
-.mapnode{cursor:pointer}
-.mapnode text{font-family:"Plus Jakarta Sans",sans-serif;pointer-events:none;paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}
 .map-legend{position:absolute;left:14px;bottom:12px;display:flex;gap:12px;flex-wrap:wrap;font-size:11px;font-weight:500;color:var(--ink-2);background:color-mix(in srgb,var(--panel) 90%,transparent);border:1px solid var(--line);border-radius:8px;padding:6px 11px;backdrop-filter:blur(4px);pointer-events:none}
 .map-legend span{display:inline-flex;align-items:center;gap:5px}
 .map-legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
 .map-legend .ln{width:16px;height:0;border-top:2px solid var(--ink-3);display:inline-block}
 .map-legend .ln.dash{border-top-style:dashed}
-.map-hint{position:absolute;left:0;right:0;top:14px;text-align:center;font-size:12px;color:var(--ink-3);pointer-events:none}
 .map-expand{position:absolute;right:12px;top:10px}
+
+/* ════════════════════════════════════════════════════════════════
+   Strategikartet som lerret. Alt her er prefikset .cv- så det ikke
+   kolliderer med .drawer, .chip eller .topbar som appen allerede har.
+   ════════════════════════════════════════════════════════════════ */
+.view.cv-view{padding:0;max-width:none;display:flex;flex-direction:column;
+  height:calc(100dvh - 63px);min-height:520px;overflow:hidden}
+.cv-head{padding:22px 30px 0}
+.cv-head h1{font-family:"Instrument Serif",serif;font-size:32px;line-height:1.05;font-weight:400;margin:0}
+.cv-head p{margin:5px 0 0;font-size:13px;color:var(--ink-3);max-width:760px;line-height:1.5}
+
+.cv-bar{display:flex;align-items:center;gap:10px;padding:14px 30px 12px;flex-wrap:nowrap}
+.cv-grow{flex:1;min-width:8px}
+.cv-bar .btn{flex:none;white-space:nowrap;font-size:12.5px;padding:7px 12px}
+.cv-layers{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;min-width:0;
+  overflow-x:auto;scrollbar-width:none;padding:2px 0}
+.cv-layers::-webkit-scrollbar{display:none}
+.cv-lgrp{display:flex;align-items:center;gap:4px;padding:3px;flex:none;
+  background:var(--panel);border:1px solid var(--line);border-radius:99px;box-shadow:var(--shadow)}
+.cv-llbl{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:700;padding:0 3px 0 9px}
+.cv-chip{border:1px solid transparent;background:none;border-radius:99px;padding:4px 10px;
+  font-size:12px;font-weight:600;color:var(--ink-3);display:inline-flex;align-items:center;gap:6px;
+  cursor:pointer;white-space:nowrap;transition:background .13s,color .13s,border-color .13s}
+.cv-chip .cv-dot{width:8px;height:8px;border-radius:99px;background:var(--kc,var(--ink-3));opacity:.4}
+.cv-chip[aria-pressed="true"]{color:var(--ink);background:var(--bg)}
+.cv-chip[aria-pressed="true"] .cv-dot{opacity:1}
+.cv-chip:hover{border-color:var(--line)}
+
+.cv-split{flex:1;min-height:0;display:grid;grid-template-columns:1fr 306px;
+  border-top:1px solid var(--line)}
+.cv-stage{position:relative;overflow:hidden;background:var(--bg);cursor:grab;touch-action:none}
+.cv-stage.cv-panning{cursor:grabbing}
+.cv-stage.cv-drop::after{content:"";position:absolute;inset:10px;border:2px dashed var(--accent);
+  border-radius:var(--r-lg);pointer-events:none;background:color-mix(in srgb,var(--accent) 4%,transparent)}
+.cv-grid{position:absolute;inset:0;pointer-events:none;opacity:.7;
+  background-image:radial-gradient(circle,color-mix(in srgb,var(--ink-3) 28%,transparent) 1px,transparent 1px)}
+.cv-world{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
+.cv-edges{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
+.cv-elabel{font-family:"Plus Jakarta Sans",sans-serif;font-size:9.5px;font-weight:700;
+  letter-spacing:.05em;fill:var(--ink-3);paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}
+
+/* ---- kortene ---- */
+.cv-node{position:absolute;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r-md);padding:10px 12px 11px;box-shadow:var(--shadow);
+  cursor:grab;user-select:none;touch-action:none;
+  transition:box-shadow .15s,border-color .15s,opacity .15s}
+.cv-node:hover{box-shadow:var(--shadow-lg)}
+.cv-node:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cv-node.cv-dragging{cursor:grabbing;box-shadow:var(--shadow-lg);z-index:40}
+.cv-node.cv-sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft),var(--shadow-lg)}
+.cv-node.cv-faded{opacity:.26}
+.cv-node.cv-off{opacity:.45}
+.cv-node.cv-static{cursor:pointer}
+.cv-kd{display:flex;align-items:center;gap:6px;font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;font-weight:700;margin-bottom:6px;color:var(--kc)}
+.cv-glyph{width:16px;height:16px;border-radius:5px;display:grid;place-items:center;
+  font-size:9px;font-weight:700;letter-spacing:0;background:var(--kbg);color:var(--kc);flex:none}
+.cv-ttl{font-size:12.5px;font-weight:600;line-height:1.35;color:var(--ink);
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cv-meta{margin-top:7px;font-size:10.5px;color:var(--ink-3);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.cv-st{display:inline-flex;align-items:center;gap:4px;font-weight:600}
+.cv-st i{width:6px;height:6px;border-radius:99px;background:currentColor}
+.cv-act{position:absolute;top:-9px;width:21px;height:21px;border-radius:99px;padding:0;
+  border:1px solid var(--line);background:var(--panel);color:var(--ink-3);
+  display:none;place-items:center;box-shadow:var(--shadow);cursor:pointer;line-height:1}
+.cv-node:hover .cv-act,.cv-node:focus-within .cv-act{display:grid}
+.cv-rm{right:-9px;font-size:14px}
+.cv-open{right:16px}
+.cv-open svg{width:11px;height:11px}
+.cv-rm:hover{color:var(--bad);border-color:var(--bad)}
+.cv-open:hover{color:var(--accent);border-color:var(--accent)}
+
+.cv-goal{--kc:var(--goal);--kbg:var(--goal-bg);width:190px;border-left:3px solid var(--goal)}
+.cv-outcome{--kc:var(--outcome);--kbg:var(--outcome-bg);width:190px;border-left:3px solid var(--outcome)}
+.cv-strategy{--kc:var(--accent);--kbg:var(--accent-soft);width:212px;border-left:3px solid var(--accent)}
+.cv-insight{--kc:var(--sense);--kbg:var(--sense-bg);width:178px;border-left:3px solid var(--sense)}
+.cv-assumption{--kc:var(--align);--kbg:var(--align-bg);width:178px;border-left:3px solid var(--align)}
+.cv-signal{--kc:var(--feed);--kbg:var(--feed-bg);width:178px;border-left:3px solid var(--feed)}
+.cv-decision{--kc:var(--mem);--kbg:var(--mem-bg);width:178px;border-left:3px solid var(--mem)}
+.cv-strategy .cv-ttl{font-size:14px;font-weight:700;-webkit-line-clamp:2}
+
+/* ---- skuffen ---- */
+.cv-drawer{background:var(--bg-2);border-left:1px solid var(--line);
+  display:flex;flex-direction:column;min-height:0}
+.cv-dhead{padding:15px 16px 12px;border-bottom:1px solid var(--line)}
+.cv-dhead h2{margin:0;font-family:"Instrument Serif",serif;font-weight:400;font-size:20px}
+.cv-dhead p{margin:3px 0 0;font-size:11.5px;color:var(--ink-3);line-height:1.45}
+.cv-dsearch{margin-top:10px;width:100%;border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:7px 10px;font-size:12.5px;background:var(--panel);color:var(--ink);font-family:inherit}
+.cv-dsearch:focus{outline:none;border-color:var(--accent)}
+.cv-dbody{overflow-y:auto;padding:6px 12px 24px;min-height:0}
+.cv-dgrp{margin-top:12px}
+.cv-dgrp h3{margin:0 0 7px;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:700;display:flex;align-items:center;gap:7px}
+.cv-n{background:var(--line-2);border-radius:99px;padding:1px 6px;font-size:9.5px;letter-spacing:0;color:var(--ink-3)}
+.cv-pill{display:flex;gap:8px;align-items:flex-start;width:100%;text-align:left;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:8px 9px;margin-bottom:6px;cursor:grab;
+  transition:border-color .13s,box-shadow .13s,transform .1s}
+.cv-pill:hover{border-color:var(--ink-3);box-shadow:var(--shadow)}
+.cv-pill:active{cursor:grabbing;transform:scale(.985)}
+.cv-pill .cv-glyph{margin-top:1px;width:17px;height:17px}
+.cv-ptx{min-width:0}
+.cv-ptx b{display:-webkit-box;font-size:11.5px;font-weight:600;line-height:1.35;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cv-ptx>span{display:block;font-size:10px;color:var(--ink-3);margin-top:2px}
+.cv-sug{border-color:color-mix(in srgb,var(--mem) 30%,var(--line));
+  background:linear-gradient(180deg,color-mix(in srgb,var(--mem-bg) 45%,var(--panel)),var(--panel))}
+.cv-p-goal{--kc:var(--goal);--kbg:var(--goal-bg)}
+.cv-p-outcome{--kc:var(--outcome);--kbg:var(--outcome-bg)}
+.cv-p-strategy{--kc:var(--accent);--kbg:var(--accent-soft)}
+.cv-p-insight{--kc:var(--sense);--kbg:var(--sense-bg)}
+.cv-p-assumption{--kc:var(--align);--kbg:var(--align-bg)}
+.cv-p-signal{--kc:var(--feed);--kbg:var(--feed-bg)}
+.cv-p-decision{--kc:var(--mem);--kbg:var(--mem-bg)}
+.cv-dempty{font-size:11.5px;color:var(--ink-3);padding:12px 2px;line-height:1.5}
+
+/* ---- statuslinje, forklaring, tom tilstand ---- */
+.cv-statusbar{position:absolute;left:14px;bottom:14px;display:flex;gap:8px;align-items:center;
+  background:var(--panel);border:1px solid var(--line);border-radius:99px;
+  padding:5px 6px 5px 14px;box-shadow:var(--shadow);font-size:11.5px;color:var(--ink-3)}
+.cv-zoom{display:flex;gap:5px}
+.cv-zbtn{width:24px;height:24px;border-radius:99px;border:1px solid var(--line);background:var(--panel);
+  color:var(--ink-2);display:grid;place-items:center;font-size:14px;line-height:1;padding:0;cursor:pointer}
+.cv-zbtn:hover{border-color:var(--ink-3);color:var(--ink)}
+.cv-legend{position:absolute;right:14px;bottom:14px;display:flex;gap:12px;align-items:center;
+  background:color-mix(in srgb,var(--panel) 90%,transparent);border:1px solid var(--line);
+  border-radius:var(--r-md);padding:8px 12px;box-shadow:var(--shadow);
+  font-size:10.5px;color:var(--ink-3);backdrop-filter:blur(4px);pointer-events:none}
+.cv-legend .ln{display:inline-block;width:17px;height:0;border-top:1.6px solid var(--ink-3);
+  vertical-align:middle;margin-right:5px}
+.cv-legend .ln.dash{border-top-style:dashed}
+.cv-empty{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;text-align:center;padding:24px}
+.cv-empty[hidden]{display:none}
+.cv-empty .serif{font-size:26px;display:block;margin-bottom:6px;color:var(--ink-2)}
+.cv-empty p{font-size:12.5px;color:var(--ink-3);margin:0;line-height:1.55;max-width:360px}
+
+/* ---- utsnittet i strategidetaljen ---- */
+.cv-stage.cv-mini{height:400px;border-radius:var(--r-md);cursor:default;background:var(--bg-2)}
+.cv-stage.cv-mini .cv-grid{opacity:.5}
+
+@media(max-width:1080px){
+  .cv-split{grid-template-columns:1fr;grid-template-rows:1fr auto}
+  .cv-drawer{border-left:none;border-top:1px solid var(--line);max-height:38vh}
+  .cv-head{padding:18px 20px 0}
+  .cv-bar{padding:12px 20px 10px}
+}
 .rel-row{display:flex;gap:8px;align-items:center}
 .rel-row select{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:var(--r-sm);padding:8px 10px;outline:none}
 .rel-del{border:1px solid var(--line);background:var(--panel);border-radius:8px;width:32px;height:32px;display:grid;place-items:center;color:var(--ink-3);flex:none;font-size:16px;line-height:1}
@@ -737,12 +878,12 @@ function feedsL(x){ return LANG==="no"&&FEEDS_NO[x]?FEEDS_NO[x]:x; }
 let SB = null;        // Supabase client
 let USER = null;      // signed-in user
 let DB = { strategies:[], insights:[], decisions:[], assumptions:[], signals:[], goals:[], outcomes:[] };
-let PROFILE = { full_name:"", organizations:[], lang:"en" };
+let PROFILE = { full_name:"", organizations:[], lang:"en", canvas:{} };
 let view = "dashboard";
 let q = "";
 let stratF = "*";
 let currentStrategy = null; // strategy id when viewing a single strategy
-let mapFocus = null;        // strategy id when the map is in focus mode
+let mapFocus = null;        // id of the selected node on the canvas
 
 /* ============================================================ i18n
    UI-chrome translation. Only interface text is translated — your own
@@ -762,6 +903,32 @@ const T = {
     "nav.insights":"Insights", "nav.decisions":"Decisions", "nav.assumptions":"Assumptions", "nav.signals":"Signals",
     "nav.review":"Operating Rhythm", "nav.flywheel":"The Flywheel", "nav.systems":"Standing Systems", "nav.profile":"Profile",
     "nav.goals":"Goals", "nav.outcomes":"Outcomes", "grp.direction":"Direction",
+    /* ---- strategy canvas ---- */
+    "cv.h1":"Strategy Canvas",
+    "cv.mini.empty.t":"Not on the canvas yet",
+    "cv.mini.empty.d":"This strategy and the entries around it have no place on the canvas yet.",
+    "cv.mini.add":"Put it on the canvas",
+    "cv.lede":"One canvas holding direction, strategies and registers side by side. Drag what belongs here in from the drawer — the links draw themselves.",
+    "cv.k.goal":"Goal", "cv.k.outcome":"Outcome", "cv.k.strategy":"Strategy",
+    "cv.k.insight":"Insight", "cv.k.assumption":"Assumption", "cv.k.signal":"Signal", "cv.k.decision":"Decision",
+    "cv.drawer.t":"The drawer", "cv.drawer.d":"Everything in Direction and the Registers. Drag onto the canvas — or click to place it.",
+    "cv.search.ph":"Search elements…",
+    "cv.suggested":"Suggested", "cv.ties":"connects to {n} on the canvas",
+    "cv.allplaced":"Everything is on the canvas.", "cv.nohits":"No matches.",
+    "cv.tidy":"Tidy up", "cv.tidy.h":"Lay everything out in layers: direction on top, strategies in the middle, registers below",
+    "cv.pull":"Pull neighbours", "cv.pull.h":"Bring in everything directly connected to what is already on the canvas",
+    "cv.clear":"Clear canvas", "cv.clear.ask":"Take everything off the canvas? The entries themselves are kept — only their positions go.",
+    "cv.empty.t":"Empty canvas",
+    "cv.empty.d":"Drag in goals, strategies, assumptions, signals, insights and decisions from the drawer. The links draw themselves when two things that belong together are both here.",
+    "cv.stat":"{n} elements · {e} links",
+    "cv.open":"Open", "cv.remove":"Take off the canvas",
+    "cv.fit":"Fit to window", "cv.zoomin":"Zoom in", "cv.zoomout":"Zoom out",
+    "cv.lg.declared":"declared", "cv.lg.derived":"derived", "cv.lg.state":"edge colour = state",
+    "cv.target":"target:", "cv.conf":"confidence:", "cv.cons":"consequence:",
+    "rel.serves":"serves", "rel.belongs":"belongs to", "rel.measures":"measures",
+    "rel.carries":"carries", "rel.feeds":"feeds", "rel.watches":"watches", "rel.rests":"rests on",
+    "rel.shares":"shares {n}",
+    "rel.depends-on":"depends on", "rel.enables":"enables", "rel.tension":"in tension with", "rel.related":"related to",
     "vh.goals.t":"Goals", "vh.goals.d":"The destinations the strategies ladder up to. Each goal names why the work exists; a goal no strategy serves is a gap, and a strategy that serves no goal has lost its north star.",
     "vh.outcomes.t":"Outcomes", "vh.outcomes.d":"The measurable change that tells you a goal is being reached. Each outcome carries a baseline, a target and — where one exists — the signal that measures it. This is what 'Am I moving toward the goal?' reads.",
     "empty.goals.t":"No goals yet.", "empty.goals.d":"Name a destination the strategies serve — a company objective, a product goal, a team outcome.",
@@ -777,7 +944,6 @@ const T = {
     "kpi.coverage":"Goal coverage", "kpi.coverage.s":"goals served by ≥1 strategy",
     "vh.dashboard":`<h1>Am I moving toward the goal?</h1><p>One read of the whole apparatus. The bets the strategy rests on, the signals watching them, and what disagrees with you right now.</p>`,
     "vh.strategies":`<div><h1>Strategies</h1><p>The canonical artifacts — the single authoritative statement of each strategy that everything else points to. Each one carries a one-page kernel and owns its bets, signals and decisions. This is what the registers orbit.</p></div>`,
-    "vh.map":`<h1>Strategy Map</h1><p>The portfolio as a network. Solid lines are relations you've declared; dashed lines appear when two strategies share insights, bets or decisions. Click a strategy to see everything that influences it.</p>`,
     "vh.review":`<h1>Operating Rhythm</h1><p>The heartbeat. Read the signals, re-rate the bets, and end in a decision — otherwise the review is theatre. Everything you change here is logged.</p>`,
     "vh.flywheel":`<h1>The Flywheel</h1><p>The spine is flow — done once per strategy. The standing systems are reservoirs and loops: they accumulate and feed back, so the organisation gets smarter on every pass instead of starting cold.</p>`,
     "vh.systems":`<h1>Standing Systems</h1><p>The ten systems that make strategy repeatable. Four run as live registers in this app; the other six are the drivetrain around them — reading, re-rating, gating and promoting. Each card names what dies without it.</p>`,
@@ -832,8 +998,6 @@ const T = {
     "rev.empty.asm.t":"All bets steady.","rev.empty.asm.d":"No shaky or broken assumptions in this view.",
     "rev.3.body":"Capture the call this review produced — a HOLD, a re-scope, a resource move, a kill. It lands in the <b style='color:var(--ink)'>Decision Log</b> with the bets it rests on.",
     "rev.3.btn":"Log the decision",
-    "map.nod3.t":"Map unavailable.","map.nod3.d":"The D3 library did not load — check the connection and reload.",
-    "map.empty.t":"Nothing to map yet.","map.empty.d":"Add a strategy first — the registers will orbit it here.",
     "org.empty.t":"No organisations yet.","org.empty.d":"Click “Add organisation” to link one.",
     "smell.head":"Self-test — how this lens goes wrong",
     "smell.checked":"Self-tested","smell.never":"Never self-tested. The questions above are the lens's own quality bar.",
@@ -888,6 +1052,32 @@ const T = {
     "nav.insights":"Innsikter", "nav.decisions":"Beslutninger", "nav.assumptions":"Antakelser", "nav.signals":"Signaler",
     "nav.review":"Driftsrytme", "nav.flywheel":"Svinghjulet", "nav.systems":"Stående systemer", "nav.profile":"Profil",
     "nav.goals":"Mål", "nav.outcomes":"Utfall", "grp.direction":"Retning",
+    /* ---- strategikart som lerret ---- */
+    "cv.h1":"Strategikart",
+    "cv.mini.empty.t":"Ikke på lerretet ennå",
+    "cv.mini.empty.d":"Denne strategien og oppføringene rundt den har ingen plass på lerretet ennå.",
+    "cv.mini.add":"Legg den på lerretet",
+    "cv.lede":"Ett lerret som holder retning, strategier og registre side om side. Dra inn det som hører hjemme her fra skuffen — koblingene tegner seg selv.",
+    "cv.k.goal":"Mål", "cv.k.outcome":"Utfall", "cv.k.strategy":"Strategi",
+    "cv.k.insight":"Innsikt", "cv.k.assumption":"Antakelse", "cv.k.signal":"Signal", "cv.k.decision":"Beslutning",
+    "cv.drawer.t":"Skuffen", "cv.drawer.d":"Alt som finnes i Retning og Registrene. Dra ut på lerretet — eller klikk for å plassere.",
+    "cv.search.ph":"Søk i elementer…",
+    "cv.suggested":"Foreslått", "cv.ties":"kobler til {n} på lerretet",
+    "cv.allplaced":"Alt ligger på lerretet.", "cv.nohits":"Ingen treff.",
+    "cv.tidy":"Rydd opp", "cv.tidy.h":"Legg alt i lag: retning øverst, strategier i midten, registre under",
+    "cv.pull":"Hent naboer", "cv.pull.h":"Hent inn alt som henger direkte sammen med det som ligger på lerretet",
+    "cv.clear":"Tøm lerret", "cv.clear.ask":"Ta alt av lerretet? Selve oppføringene beholdes — det er bare posisjonene som forsvinner.",
+    "cv.empty.t":"Tomt lerret",
+    "cv.empty.d":"Dra inn mål, strategier, antakelser, signaler, innsikter og beslutninger fra skuffen. Koblingene tegner seg selv når to ting som hører sammen ligger her.",
+    "cv.stat":"{n} elementer · {e} koblinger",
+    "cv.open":"Åpne", "cv.remove":"Ta av lerretet",
+    "cv.fit":"Tilpass til vinduet", "cv.zoomin":"Zoom inn", "cv.zoomout":"Zoom ut",
+    "cv.lg.declared":"erklært", "cv.lg.derived":"avledet", "cv.lg.state":"farge på kant = tilstand",
+    "cv.target":"mål:", "cv.conf":"tiltro:", "cv.cons":"konsekvens:",
+    "rel.serves":"tjener", "rel.belongs":"hører til", "rel.measures":"måler",
+    "rel.carries":"bærer", "rel.feeds":"mater", "rel.watches":"overvåker", "rel.rests":"hviler på",
+    "rel.shares":"deler {n}",
+    "rel.depends-on":"avhenger av", "rel.enables":"muliggjør", "rel.tension":"i spenning med", "rel.related":"beslektet med",
     "vh.goals.t":"Mål", "vh.goals.d":"Destinasjonene strategiene ruller opp mot. Hvert mål navngir hvorfor arbeidet finnes; et mål ingen strategi tjener er et gap, og en strategi som ikke tjener noe mål har mistet ledestjernen.",
     "vh.outcomes.t":"Utfall", "vh.outcomes.d":"Den målbare endringen som forteller at et mål nås. Hvert utfall bærer en baseline, et mål-tall og — der det finnes — signalet som måler det. Det er dette «Beveger jeg meg mot målet?» leser.",
     "empty.goals.t":"Ingen mål ennå.", "empty.goals.d":"Navngi en destinasjon strategiene tjener — et selskapsmål, et produktmål, et teamutfall.",
@@ -903,7 +1093,6 @@ const T = {
     "kpi.coverage":"Måldekning", "kpi.coverage.s":"mål tjent av ≥1 strategi",
     "vh.dashboard":`<h1>Beveger jeg meg mot målet?</h1><p>Ett blikk på hele apparatet. Bettene strategien hviler på, signalene som overvåker dem, og hva som er uenig med deg akkurat nå.</p>`,
     "vh.strategies":`<div><h1>Strategier</h1><p>De kanoniske artefaktene — den ene autoritative formuleringen av hver strategi som alt annet peker mot. Hver bærer en énsides kjerne og eier sine bets, signaler og beslutninger. Det er dette registrene kretser rundt.</p></div>`,
-    "vh.map":`<h1>Strategikart</h1><p>Porteføljen som et nettverk. Heltrukne linjer er relasjoner du har erklært; stiplede linjer dukker opp når to strategier deler innsikter, bets eller beslutninger. Klikk en strategi for å se alt som påvirker den.</p>`,
     "vh.review":`<h1>Driftsrytme</h1><p>Hjerteslaget. Les signalene, revurder bettene, og avslutt med en beslutning — ellers er gjennomgangen teater. Alt du endrer her blir logget.</p>`,
     "vh.flywheel":`<h1>Svinghjulet</h1><p>Ryggraden er flyt — gjøres én gang per strategi. De stående systemene er reservoarer og løkker: de akkumulerer og gir tilbakekobling, så organisasjonen blir smartere for hver runde i stedet for å starte kaldt.</p>`,
     "vh.systems":`<h1>Stående systemer</h1><p>De ti systemene som gjør strategi repeterbar. Fire kjører som levende registre i denne appen; de seks andre er drivverket rundt dem — lesing, revurdering, porting og promotering. Hvert kort navngir hva som dør uten det.</p>`,
@@ -958,8 +1147,6 @@ const T = {
     "rev.empty.asm.t":"Alle bets står støtt.","rev.empty.asm.d":"Ingen vaklende eller brutte antakelser i denne visningen.",
     "rev.3.body":"Fang beslutningen denne gjennomgangen ga — en HOLD, en omfangsendring, en ressursflytting, en avslutning. Den havner i <b style='color:var(--ink)'>Beslutningsloggen</b> med bettene den hviler på.",
     "rev.3.btn":"Loggfør beslutningen",
-    "map.nod3.t":"Kartet er utilgjengelig.","map.nod3.d":"D3-biblioteket lastet ikke — sjekk tilkoblingen og last inn på nytt.",
-    "map.empty.t":"Ingenting å kartlegge ennå.","map.empty.d":"Legg til en strategi først — registrene vil kretse rundt den her.",
     "org.empty.t":"Ingen organisasjoner ennå.","org.empty.d":"Klikk «Legg til organisasjon» for å koble en.",
     "smell.head":"Selvtest — slik går denne linsen galt",
     "smell.checked":"Selvtestet","smell.never":"Aldri selvtestet. Spørsmålene over er linsens egen kvalitetsterskel.",
@@ -1791,15 +1978,29 @@ function vStrategyDetail(id){
 
   // influence map
   w.appendChild(el("div","sect-h",`<h2>${esc(t("sect.influence"))}</h2><span class="hint">${esc(t("sect.influence.h"))}</span>`));
-  const mp=el("div","panel map-wrap");
-  renderGraph(mp, buildGraph("focus",s.id), {h:380, mini:true, onNode:n=>{
-    if(n.kind==="strategy"&&n.id!==s.id){ currentStrategy=n.id; render(); }
-    else openFromMap(n);
-  }});
-  const ex=el("button","btn map-expand",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>${esc(t("btn.expand"))}`);
-  ex.onclick=()=>{ currentStrategy=null; mapFocus=s.id; view="map"; render(); };
-  mp.appendChild(ex);
-  mp.appendChild(mapLegend("focus"));
+  const mp=el("div","panel");
+  mp.style.cssText="padding:0;overflow:hidden;position:relative";
+  // samme kodebane som lerretet — bare avgrenset til strategien og naboene dens
+  const near=new Set([s.id]);
+  cvRelations().forEach(r=>{ if(r.a===s.id) near.add(r.b); if(r.b===s.id) near.add(r.a); });
+  const anyPlaced=[...near].some(id=>{ const e=cvEntity(id); return e&&e.o.pos; });
+  if(anyPlaced){
+    renderCanvas(mp,{readonly:true, only:near});
+    const ex=el("button","btn map-expand",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>${esc(t("btn.expand"))}`);
+    ex.onclick=()=>{ currentStrategy=null; mapFocus=s.id; view="map"; render(); };
+    mp.appendChild(ex);
+  }else{
+    // ingenting av dette ligger på lerretet ennå — si det, og tilby å legge det dit
+    const e2=el("div","empty",`<span class="serif">${esc(t("cv.mini.empty.t"))}</span>${esc(t("cv.mini.empty.d"))}`);
+    const go=el("button","btn pri",esc(t("cv.mini.add")));
+    go.style.marginTop="14px";
+    go.onclick=()=>{
+      let x=60,y=60;
+      near.forEach(id=>{ const e=cvEntity(id); if(e&&!e.o.pos){ e.o.pos=cvFreeSpot(x,y); x+=230; if(x>1400){x=60;y+=170;} } });
+      save(); currentStrategy=null; mapFocus=s.id; view="map"; render();
+    };
+    e2.appendChild(go); mp.appendChild(e2);
+  }
   w.appendChild(mp);
 
   // linked registers
@@ -2171,15 +2372,6 @@ const REL_TYPES = {
   "tension":{label:"in tension with", dir:false},
   "related":{label:"related to", dir:false},
 };
-const KIND_COLOR = {
-  strategy:{c:"var(--accent)", bg:"var(--accent-soft)"},
-  insight:{c:"var(--sense)", bg:"var(--sense-bg)"},
-  decision:{c:"var(--mem)", bg:"var(--mem-bg)"},
-  assumption:{c:"var(--align)", bg:"var(--align-bg)"},
-  signal:{c:"var(--feed)", bg:"var(--feed-bg)"},
-  goal:{c:"var(--goal)", bg:"var(--goal-bg)"},
-  outcome:{c:"var(--outcome)", bg:"var(--outcome-bg)"},
-};
 function stateColor(state){
   const m=STATE_MAP[state]; if(!m) return "var(--line)";
   return m[0]==="b-bad"?"var(--bad)":m[0]==="b-warn"?"var(--warn)":m[0]==="b-good"?"var(--good)":"var(--mute)";
@@ -2289,205 +2481,526 @@ function stratObjectSet(s){
   return set;
 }
 
-/* pure graph builder — returns {nodes,links}; no rendering */
-function buildGraph(mode, focusId){
-  const nodes=[], links=[];
-  if(mode==="portfolio"){
-    const strats=DB.strategies.filter(s=>s.status!=="archived");
-    strats.forEach(s=>{
-      const k=stratStats(s.name);
-      nodes.push({id:s.id, kind:"strategy", label:s.name, flashing:k.flashing,
-        warn:!(s.serves&&s.serves.length),
-        r:24+Math.min(16,(k.bets+k.sigs+k.decs)*1.4),
-        dim:stratF!=="*"&&s.name!==stratF,
-        sub:`${k.bets} bets · ${k.sigs} signals · ${k.decs} decisions`});
-    });
-    // direction layer: goals sit above the strategies that serve them
-    DB.goals.forEach(g=>{
-      const servedBy=strats.filter(s=>(s.serves||[]).includes(g.id));
-      nodes.push({id:g.id, kind:"goal", label:L(g,"title"), r:22, warn:!servedBy.length,
-        dim:stratF!=="*"&&!servedBy.some(s=>s.name===stratF),
-        sub:`${servedBy.length} strategies · ${goalOutcomes(g.id).length} outcomes`});
-      servedBy.forEach(s=>links.push({source:s.id, target:g.id, kind:"serves"}));
-    });
-    const have=new Set(strats.map(s=>s.id));
-    strats.forEach(s=>(s.relations||[]).forEach(r=>{
-      if(have.has(r.to)) links.push({source:s.id, target:r.to, kind:"explicit", label:(REL_TYPES[r.type]||{}).label||r.type, dir:(REL_TYPES[r.type]||{}).dir});
-    }));
-    for(let i=0;i<strats.length;i++) for(let j=i+1;j<strats.length;j++){
-      const A=stratObjectSet(strats[i]), B=stratObjectSet(strats[j]);
-      let n=0; A.forEach(x=>{ if(B.has(x)) n++; });
-      const already=links.some(l=>(l.source===strats[i].id&&l.target===strats[j].id)||(l.source===strats[j].id&&l.target===strats[i].id));
-      if(n>0&&!already) links.push({source:strats[i].id, target:strats[j].id, kind:"derived", label:`shares ${n}`});
+/* ════════════════════════════════════════════════════════════════
+   STRATEGIKARTET SOM LERRET
+   Ett lerret som holder Retning (mål, utfall), strategiene og
+   Registrene (innsikt, antakelse, signal, beslutning) samtidig.
+
+   Datamodell — bevisst minimal, ingen schemaendring i Supabase:
+     • pos:{x,y} på entiteten. Å HA en pos er det samme som å ligge
+       på lerretet; å fjerne noe fra lerretet er å slette pos.
+       Posisjonen ligger på objektet, altså er den felles for hele
+       organisasjonen — alle ser samme oppsett. Det er ett lerret.
+     • PROFILE.canvas = {layers:{...}} — hvilke lag som er tent.
+       Ett lerret per organisasjon, så dette hører hjemme på kontoen,
+       ikke i nettleseren. Utsnittet (pan/zoom) er derimot personlig
+       og ligger i localStorage.
+   ════════════════════════════════════════════════════════════════ */
+
+const CV_KINDS = ["goal","outcome","strategy","insight","assumption","signal","decision"];
+const CV_COLL = {goal:"goals", outcome:"outcomes", strategy:"strategies",
+  insight:"insights", assumption:"assumptions", signal:"signals", decision:"decisions"};
+const CV_GLYPH = {goal:"M", outcome:"U", strategy:"S", insight:"I", assumption:"A", signal:"G", decision:"B"};
+const CV_W = {strategy:212, goal:190, outcome:190, insight:178, assumption:178, signal:178, decision:178};
+
+/* ---- ett oppslag over alt som kan ligge på lerretet ---- */
+function cvEntity(id){
+  for(const k of CV_KINDS){ const o=byId(CV_COLL[k],id); if(o) return {kind:k, o}; }
+  return null;
+}
+function cvAll(){
+  const out=[];
+  CV_KINDS.forEach(k=>DB[CV_COLL[k]].forEach(o=>out.push({id:o.id, kind:k, o})));
+  return out;
+}
+function cvTitle(k,o){
+  return k==="goal"?L(o,"title") : k==="outcome"?L(o,"statement") : k==="strategy"?o.name
+       : k==="insight"?L(o,"claim") : k==="assumption"?L(o,"statement")
+       : k==="signal"?L(o,"signal") : L(o,"title");
+}
+function cvSub(k,o){
+  if(k==="goal")      return (o.horizon||"");
+  if(k==="outcome")   return o.target? t("cv.target")+" "+o.target : "";
+  if(k==="strategy")  return statusL(o.status)+" · v"+(o.version||1);
+  if(k==="insight")   return t("cv.conf")+" "+lvl(o.confidence||"medium");
+  if(k==="assumption")return t("cv.cons")+" "+lvl(o.consequence||"medium");
+  if(k==="signal")    return o.owner||"";
+  if(k==="decision")  return t("door."+o.door)||o.door;
+  return "";
+}
+/* hvilken strategi hører elementet til? brukes av det globale strategifilteret */
+function cvStrat(k,o){
+  if(k==="strategy") return o.name;
+  if(k==="assumption"||k==="signal"||k==="decision") return o.strategy||"";
+  if(k==="insight"){ const a=o.feeds?byId("assumptions",o.feeds):null; return a?a.strategy:""; }
+  if(k==="outcome"){ const g=o.goalId?byId("goals",o.goalId):null;
+    const s=g?DB.strategies.find(x=>(x.serves||[]).includes(g.id)):null; return s?s.name:""; }
+  if(k==="goal"){ const s=DB.strategies.find(x=>(x.serves||[]).includes(o.id)); return s?s.name:""; }
+  return "";
+}
+
+/* ---- relasjonene: én sannhet, brukt både til kanter og til naboer ---- */
+function cvRelations(){
+  const out=[];
+  const add=(a,b,label,kind,state)=>{ if(cvEntity(a)&&cvEntity(b)) out.push({a,b,label,kind,state:state||""}); };
+  const byName={}; DB.strategies.forEach(s=>byName[s.name]=s.id);
+  DB.strategies.forEach(s=>{
+    (s.serves||[]).forEach(g=>add(s.id,g,t("rel.serves"),"declared"));
+    (s.relations||[]).forEach(r=>add(s.id,r.to,(REL_TYPES[r.type]||{}).label?t("rel."+r.type):r.type,"declared"));
+  });
+  DB.outcomes.forEach(o=>{
+    if(o.goalId) add(o.id,o.goalId,t("rel.belongs"),"declared",o.state);
+    if(o.measuredBy) add(o.measuredBy,o.id,t("rel.measures"),"declared",o.state);
+  });
+  DB.assumptions.forEach(a=>{ const sid=byName[a.strategy]; if(sid) add(a.id,sid,t("rel.carries"),"declared",a.state); });
+  DB.insights.forEach(i=>{ if(i.feeds) add(i.id,i.feeds,t("rel.feeds"),"declared"); });
+  DB.signals.forEach(g=>{
+    if(g.watches) add(g.id,g.watches,t("rel.watches"),"declared",g.state);
+    else { const sid=byName[g.strategy]; if(sid) add(g.id,sid,t("rel.watches"),"derived",g.state); }
+  });
+  DB.decisions.forEach(d=>{
+    const rests=(d.rests||[]).filter(r=>byId("assumptions",r));
+    if(rests.length) rests.forEach(r=>add(d.id,r,t("rel.rests"),"declared"));
+    else { const sid=byName[d.strategy]; if(sid) add(d.id,sid,t("rel.rests"),"derived"); }
+  });
+  // to strategier som deler underlag — den avledede kanten fra det gamle kartet
+  const strats=DB.strategies.filter(s=>s.status!=="archived");
+  for(let i=0;i<strats.length;i++) for(let j=i+1;j<strats.length;j++){
+    const A=stratObjectSet(strats[i]), B=stratObjectSet(strats[j]);
+    let n=0; A.forEach(x=>{ if(B.has(x)) n++; });
+    const already=out.some(r=>(r.a===strats[i].id&&r.b===strats[j].id)||(r.a===strats[j].id&&r.b===strats[i].id));
+    if(n>0&&!already) out.push({a:strats[i].id, b:strats[j].id, label:t("rel.shares").replace("{n}",n), kind:"derived", state:""});
+  }
+  return out;
+}
+function cvNeighbourMap(rels){
+  const m={};
+  rels.forEach(r=>{ (m[r.a]=m[r.a]||new Set()).add(r.b); (m[r.b]=m[r.b]||new Set()).add(r.a); });
+  return m;
+}
+
+/* ---- lagene: lagret på kontoen, altså delt i organisasjonen ---- */
+function cvLayers(){
+  if(!PROFILE.canvas) PROFILE.canvas={};
+  if(!PROFILE.canvas.layers){ PROFILE.canvas.layers={}; CV_KINDS.forEach(k=>PROFILE.canvas.layers[k]=true); }
+  CV_KINDS.forEach(k=>{ if(PROFILE.canvas.layers[k]===undefined) PROFILE.canvas.layers[k]=true; });
+  return PROFILE.canvas.layers;
+}
+let _cvProfileTimer=null;
+function cvSaveLayers(){ clearTimeout(_cvProfileTimer); _cvProfileTimer=setTimeout(()=>saveProfile(true),700); }
+
+/* ---- utsnittet er personlig, ikke delt ---- */
+const CV_VIEW_KEY="spine.canvas.view";
+let CV_VIEW={x:0,y:0,z:1};
+try{ const v=JSON.parse(localStorage.getItem(CV_VIEW_KEY)||"null"); if(v&&Number.isFinite(v.z)) CV_VIEW=v; }catch(e){}
+function cvSaveView(){ try{ localStorage.setItem(CV_VIEW_KEY,JSON.stringify(CV_VIEW)); }catch(e){} }
+
+/* ---- plassering ---- */
+function cvPlaced(){ return cvAll().filter(n=>n.o.pos && Number.isFinite(n.o.pos.x)); }
+function cvFreeSpot(x,y){
+  const taken=cvPlaced().map(n=>n.o.pos);
+  let tries=0;
+  while(taken.some(p=>Math.abs(p.x-x)<170 && Math.abs(p.y-y)<80) && tries++<60){ x+=34; y+=30; }
+  return {x:Math.round(x), y:Math.round(y)};
+}
+function cvPlace(id,x,y){ const e=cvEntity(id); if(!e) return; e.o.pos=cvFreeSpot(x,y); save(); }
+function cvRemove(id){ const e=cvEntity(id); if(e){ delete e.o.pos; save(); } }
+
+/* ---- der linja fra C mot O treffer kortkanten ---- */
+function cvEdgePoint(C,O,size){
+  const dx=O.x-C.x, dy=O.y-C.y;
+  if(!dx&&!dy) return C;
+  const hw=size.w/2+6, hh=size.h/2+6;
+  const s=Math.min(Math.abs(dx)?hw/Math.abs(dx):Infinity, Math.abs(dy)?hh/Math.abs(dy):Infinity);
+  return {x:C.x+dx*s, y:C.y+dy*s};
+}
+
+/* ════════════════════════════════════════════════════════════════
+   LERRETET — én kodebane, to bruksmåter:
+   full (Strategikart-visningen) og utsnitt (mini-kartet i
+   strategidetaljen, som bare viser strategien og naboene dens).
+   ════════════════════════════════════════════════════════════════ */
+function renderCanvas(host, opts={}){
+  const readonly = !!opts.readonly;
+  const only = opts.only || null;                 // Set av id-er, eller null for hele lerretet
+  const layers = cvLayers();
+  const rels = cvRelations();
+  const NB = cvNeighbourMap(rels);
+  const SIZE = {};
+  let sel = readonly ? null : mapFocus;
+
+  const stage=el("div","cv-stage"+(readonly?" cv-mini":""));
+  const grid=el("div","cv-grid");
+  const world=el("div","cv-world");
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("class","cv-edges");
+  world.appendChild(svg);
+  stage.appendChild(grid); stage.appendChild(world);
+
+  const vp = readonly ? {x:0,y:0,z:1} : CV_VIEW;
+
+  const shown = () => cvPlaced().filter(n=>layers[n.kind] && (!only || only.has(n.id)));
+  const isShown = id => { const e=cvEntity(id); return !!(e && e.o.pos && layers[e.kind] && (!only || only.has(id))); };
+
+  /* ---- kortene ---- */
+  function card(n){
+    const c=el("div","cv-node cv-"+n.kind);
+    c.dataset.id=n.id;
+    c.style.left=n.o.pos.x+"px"; c.style.top=n.o.pos.y+"px";
+    const st=n.o.state?STATE_MAP[n.o.state]:null;
+    const tone=st?(st[0]==="b-bad"?"--bad":st[0]==="b-warn"?"--warn":st[0]==="b-good"?"--good":"--mute"):null;
+    const sub=cvSub(n.kind,n.o);
+    c.innerHTML=
+      `<div class="cv-kd"><span class="cv-glyph">${CV_GLYPH[n.kind]}</span>${esc(t("cv.k."+n.kind))}</div>
+       <div class="cv-ttl">${esc(cvTitle(n.kind,n.o))}</div>
+       <div class="cv-meta">${sub?`<span>${esc(sub)}</span>`:""}${
+         n.o.state?`<span class="cv-st" style="color:var(${tone})"><i></i>${esc(T.en["state."+n.o.state]?t("state."+n.o.state):n.o.state)}</span>`:""}</div>`;
+    // dempet når det globale strategifilteret peker et annet sted
+    const own=cvStrat(n.kind,n.o);
+    if(stratF!=="*" && own && own!==stratF) c.classList.add("cv-off");
+    if(!readonly){
+      const open=el("button","cv-act cv-open",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M9 7h8v8"/></svg>`);
+      open.title=t("cv.open"); open.setAttribute("aria-label",t("cv.open")+": "+cvTitle(n.kind,n.o));
+      open.onclick=ev=>{ ev.stopPropagation(); cvOpen(n); };
+      const rm=el("button","cv-act cv-rm","×");
+      rm.title=t("cv.remove"); rm.setAttribute("aria-label",t("cv.remove"));
+      rm.onclick=ev=>{ ev.stopPropagation(); cvRemove(n.id); if(sel===n.id){ sel=null; mapFocus=null; } paint(); };
+      c.appendChild(open); c.appendChild(rm);
+      c.tabIndex=0;
+      c.onclick=ev=>{ ev.stopPropagation(); if(c.dataset.moved) return; sel = sel===n.id?null:n.id; mapFocus=sel; paint(); };
+      c.onkeydown=ev=>{ if(ev.key==="Enter"){ ev.preventDefault(); cvOpen(n); } };
+      drag(c,n);
+    } else {
+      c.classList.add("cv-static");
+      c.onclick=()=>cvOpen(n);
+      clickableHint(c,n);
     }
-  } else {
-    const s=byId("strategies",focusId); if(!s) return {nodes,links};
-    nodes.push({id:s.id, kind:"strategy", label:s.name, r:32, center:true});
-    (s.serves||[]).forEach(gid=>{ const gg=byId("goals",gid); if(gg){
-      nodes.push({id:gg.id, kind:"goal", label:L(gg,"title"), r:16, dim:true});
-      links.push({source:s.id, target:gg.id, kind:"serves"}); } });
-    const asmp=DB.assumptions.filter(a=>a.strategy===s.name);
-    asmp.forEach(a=>{ nodes.push({id:a.id, kind:"assumption", label:L(a,"statement"), state:a.state, r:11});
-      links.push({source:a.id, target:s.id, kind:"spoke", state:a.state}); });
-    const inSet=new Set(asmp.map(a=>a.id));
-    DB.insights.forEach(i=>{ if(i.feeds&&inSet.has(i.feeds)){
-      nodes.push({id:i.id, kind:"insight", label:L(i,"claim"), r:9, sub:lvl(i.confidence)+" "+t("conf.suffix")});
-      links.push({source:i.id, target:i.feeds, kind:"feeds"}); } });
-    DB.signals.forEach(g=>{ if(g.strategy===s.name){
-      nodes.push({id:g.id, kind:"signal", label:L(g,"signal"), state:g.state, r:9});
-      links.push({source:g.id, target:(g.watches&&inSet.has(g.watches))?g.watches:s.id, kind:"watches", state:g.state}); } });
-    DB.decisions.forEach(d=>{ if(d.strategy===s.name){
-      nodes.push({id:d.id, kind:"decision", label:L(d,"title"), r:10, sub:(t("door."+d.door)||d.door)});
-      let tied=false; (d.rests||[]).forEach(r=>{ if(inSet.has(r)){ links.push({source:d.id, target:r, kind:"rests"}); tied=true; } });
-      if(!tied) links.push({source:d.id, target:s.id, kind:"rests"}); } });
-    DB.strategies.forEach(o=>{ if(o.id===s.id) return;
-      const rel=(s.relations||[]).find(r=>r.to===o.id)||(o.relations||[]).find(r=>r.to===s.id);
-      if(rel){ nodes.push({id:o.id, kind:"strategy", label:o.name, r:15, dim:true});
-        links.push({source:s.id, target:o.id, kind:"explicit", label:(REL_TYPES[rel.type]||{}).label||rel.type}); } });
+    if(sel===n.id) c.classList.add("cv-sel");
+    else if(sel && !(NB[sel]||new Set()).has(n.id)) c.classList.add("cv-faded");
+    return c;
   }
-  return {nodes,links};
-}
+  function clickableHint(c,n){ c.tabIndex=0; c.setAttribute("role","button");
+    c.setAttribute("aria-label",t("cv.k."+n.kind)+": "+cvTitle(n.kind,n.o));
+    c.onkeydown=ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); cvOpen(n); } }; }
 
-/* D3-force renderer — one code path for the Map view and the strategy-detail mini map */
-function renderGraph(host, graph, opts={}){
-  const {nodes,links}=graph;
-  host.classList.add("map-wrap");
-  if(typeof d3==="undefined"){ host.innerHTML=`<div class="empty"><span class="serif">${esc(t("map.nod3.t"))}</span>${esc(t("map.nod3.d"))}</div>`; return; }
-  if(!nodes.length){ host.innerHTML=`<div class="empty"><span class="serif">${esc(t("map.empty.t"))}</span>${esc(t("map.empty.d"))}</div>`; return; }
-  const W=opts.w||1100, H=opts.h||620, mk="arw"+(opts.mini?"m":"f");
-  const svg=d3.select(host).append("svg").attr("viewBox",`0 0 ${W} ${H}`).attr("preserveAspectRatio","xMidYMid meet");
-  svg.append("defs").append("marker").attr("id",mk).attr("viewBox","0 -5 10 10").attr("refX",9)
-    .attr("markerWidth",7).attr("markerHeight",7).attr("orient","auto")
-    .append("path").attr("d","M0,-5L10,0L0,5").attr("fill","var(--ink-3)");
-  const g=svg.append("g");
-  if(!opts.mini) svg.call(d3.zoom().scaleExtent([0.35,2.5]).filter(e=>e.type!=="dblclick").on("zoom",e=>g.attr("transform",e.transform)));
-
-  nodes.forEach((n,i)=>{ const ang=2*Math.PI*i/nodes.length;
-    n.x=W/2+Math.cos(ang)*180; n.y=H/2+Math.sin(ang)*130;
-    if(n.center){ n.fx=W/2; n.fy=H/2; } });
-
-  const sim=d3.forceSimulation(nodes)
-    .force("link",d3.forceLink(links).id(d=>d.id)
-      .distance(l=>l.kind==="feeds"?60:l.kind==="watches"||l.kind==="rests"?85:l.kind==="spoke"?125:180)
-      .strength(l=>l.kind==="derived"?0.25:0.55))
-    .force("charge",d3.forceManyBody().strength(opts.mini?-240:-360))
-    .force("center",d3.forceCenter(W/2,H/2))
-    .force("collide",d3.forceCollide(d=>d.r+(d.kind==="strategy"?36:20)))
-    .force("x",d3.forceX(W/2).strength(0.05))
-    .force("y",d3.forceY(H/2).strength(0.08));
-
-  const link=g.append("g").selectAll("g").data(links).join("g");
-  const line=link.append("line")
-    .attr("stroke",l=>l.state?stateColor(l.state):l.kind==="explicit"?"var(--ink-3)":"var(--line)")
-    .attr("stroke-width",l=>l.kind==="explicit"?1.8:1.4)
-    .attr("stroke-dasharray",l=>l.kind==="derived"?"5 5":l.kind==="feeds"?"2 4":null)
-    .attr("marker-end",l=>l.dir?`url(#${mk})`:null)
-    .attr("opacity",.85);
-  const ltext=link.filter(l=>l.label).append("text")
-    .attr("text-anchor","middle").attr("font-size",10.5).attr("font-weight",600)
-    .attr("fill","var(--ink-3)").style("paint-order","stroke").style("stroke","var(--panel)").style("stroke-width","3px")
-    .text(l=>l.label);
-
-  const node=g.append("g").selectAll("g").data(nodes).join("g").attr("class","mapnode");
-  node.append("circle").attr("r",d=>d.r)
-    .attr("fill",d=>KIND_COLOR[d.kind].bg)
-    .attr("stroke",d=>d.state?stateColor(d.state):KIND_COLOR[d.kind].c)
-    .attr("stroke-width",d=>d.kind==="strategy"?2:1.7)
-    .attr("opacity",d=>d.dim?.5:1);
-  node.filter(d=>d.flashing||d.warn).append("circle").attr("r",d=>d.r+5)
-    .attr("fill","none").attr("stroke",d=>d.flashing?"var(--bad)":"var(--warn)").attr("stroke-width",1.4).attr("stroke-dasharray","3 4");
-  node.filter(d=>d.kind!=="strategy").append("text")
-    .attr("text-anchor","middle").attr("dy","0.35em").attr("font-size",d=>d.kind==="goal"?11:9).attr("font-weight",700)
-    .attr("fill",d=>KIND_COLOR[d.kind].c)
-    .text(d=>({insight:"I",decision:"D",assumption:"A",signal:"S",goal:"G",outcome:"O"})[d.kind]);
-  node.append("text").attr("text-anchor","middle")
-    .attr("font-size",d=>d.kind==="strategy"?12.5:10.5)
-    .attr("font-weight",d=>d.kind==="strategy"?700:500)
-    .attr("fill","var(--ink)").attr("dy",d=>d.r+14)
-    .text(d=>trunc(d.label,d.kind==="strategy"?34:30));
-  node.append("title").text(d=>d.label+(d.sub?`\n${d.sub}`:"")+(d.state?`\nstate: ${d.state}`:""));
-
-  const near=(a,b)=>a===b||links.some(l=>{
-    const s=l.source.id||l.source, t=l.target.id||l.target;
-    return (s===a&&t===b)||(s===b&&t===a);
-  });
-  node.on("mouseenter",(e,d)=>{
-    node.attr("opacity",o=>near(d.id,o.id)?1:.2);
-    link.attr("opacity",l=>((l.source.id||l.source)===d.id||(l.target.id||l.target)===d.id)?1:.1);
-  }).on("mouseleave",()=>{ node.attr("opacity",1); link.attr("opacity",1); });
-
-  if(opts.onNode){
-    node.on("click",(e,d)=>{ e.stopPropagation(); opts.onNode(d); });
-    node.attr("role","button").attr("tabindex",0).attr("aria-label",d=>d.kind+": "+d.label)
-      .on("keydown",(e,d)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); opts.onNode(d); } });
+  function cvOpen(n){
+    if(n.kind==="strategy"){ currentStrategy=n.id; view_go("strategies"); return; }
+    if(n.kind==="insight") openInsight(n.id);
+    else if(n.kind==="decision") openDecision(n.id);
+    else if(n.kind==="assumption") openAssumption(n.id);
+    else if(n.kind==="signal") openSignal(n.id);
+    else if(n.kind==="goal") openGoal(n.id);
+    else if(n.kind==="outcome") openOutcome(n.id);
   }
-  node.call(d3.drag()
-    .on("start",(e,d)=>{ if(!e.active) sim.alphaTarget(.25).restart(); d.fx=d.x; d.fy=d.y; })
-    .on("drag",(e,d)=>{ d.fx=e.x; d.fy=e.y; })
-    .on("end",(e,d)=>{ if(!e.active) sim.alphaTarget(0); if(!d.center){ d.fx=null; d.fy=null; } }));
+  function view_go(v){ view=v; mapFocus=null; render(); }
 
-  sim.on("tick",()=>{
-    line.attr("x1",l=>l.source.x).attr("y1",l=>l.source.y).attr("x2",l=>l.target.x).attr("y2",l=>l.target.y);
-    ltext.attr("x",l=>(l.source.x+l.target.x)/2).attr("y",l=>(l.source.y+l.target.y)/2-5);
-    node.attr("transform",d=>`translate(${d.x},${d.y})`);
-  });
-  setTimeout(()=>sim.stop(),4000); // settle, then rest
+  /* ---- kantene ---- */
+  function centre(id){
+    const e=cvEntity(id), s=SIZE[id]||{w:CV_W[e.kind],h:92};
+    return {x:e.o.pos.x+s.w/2, y:e.o.pos.y+s.h/2};
+  }
+  function paintEdges(){
+    const live=rels.filter(r=>isShown(r.a)&&isShown(r.b));
+    let minX=0,minY=0,maxX=1200,maxY=800;
+    shown().forEach(n=>{ const p=n.o.pos;
+      minX=Math.min(minX,p.x-80); minY=Math.min(minY,p.y-80);
+      maxX=Math.max(maxX,p.x+340); maxY=Math.max(maxY,p.y+240); });
+    svg.setAttribute("viewBox",`${minX} ${minY} ${maxX-minX} ${maxY-minY}`);
+    svg.setAttribute("width",maxX-minX); svg.setAttribute("height",maxY-minY);
+    svg.style.left=minX+"px"; svg.style.top=minY+"px";
+    const ink3=getComputedStyle(document.documentElement).getPropertyValue("--ink-3").trim();
+    let d=`<defs><marker id="cvarw" viewBox="0 -5 10 10" refX="10" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,-5L10,0L0,5" fill="${ink3}"/></marker></defs>`;
+    live.forEach(r=>{
+      const A=centre(r.a), B=centre(r.b);
+      const ea=cvEntity(r.a), eb=cvEntity(r.b);
+      const P=cvEdgePoint(A,B,SIZE[r.a]||{w:CV_W[ea.kind],h:92});
+      const Q=cvEdgePoint(B,A,SIZE[r.b]||{w:CV_W[eb.kind],h:92});
+      const gap=Math.hypot(Q.x-P.x,Q.y-P.y);
+      const dim = sel && r.a!==sel && r.b!==sel;
+      const col = r.state ? stateColor(r.state) : (r.kind==="declared"?"var(--ink-3)":"var(--line)");
+      d+=`<line x1="${P.x.toFixed(1)}" y1="${P.y.toFixed(1)}" x2="${Q.x.toFixed(1)}" y2="${Q.y.toFixed(1)}"
+          stroke="${col}" stroke-width="${r.kind==="declared"?1.7:1.4}"
+          ${r.kind==="derived"?'stroke-dasharray="5 5"':""} marker-end="url(#cvarw)" opacity="${dim?.12:.85}"/>`;
+      if(!dim && gap>64 && !readonly)
+        d+=`<text class="cv-elabel" x="${((P.x+Q.x)/2).toFixed(1)}" y="${((P.y+Q.y)/2-5).toFixed(1)}" text-anchor="middle">${esc(r.label)}</text>`;
+    });
+    svg.innerHTML=d;
+    return live.length;
+  }
+
+  /* Kortene måles etter at de er i DOM-en. Ligger verten utenfor DOM-en er
+     offsetHeight 0 — da beholder vi forrige måling heller enn å lagre null,
+     ellers regner fit() med kort uten høyde og kutter nederste rad. */
+  function measure(){
+    world.querySelectorAll(".cv-node").forEach(x=>{
+      if(x.offsetWidth) SIZE[x.dataset.id]={w:x.offsetWidth,h:x.offsetHeight};
+    });
+  }
+  /* ---- full opptegning ---- */
+  let statusEl=null, drawerEl=null, layerEl=null;
+  function paint(){
+    world.querySelectorAll(".cv-node").forEach(x=>x.remove());
+    const list=shown();
+    list.forEach(n=>world.appendChild(card(n)));
+    measure();
+    const links=paintEdges();
+    transform();
+    if(empty) empty.hidden = list.length>0;
+    if(statusEl) statusEl.innerHTML=`<span>${esc(t("cv.stat").replace("{n}",list.length).replace("{e}",links))}</span>`;
+    if(drawerEl) paintDrawer();
+    if(layerEl) paintLayers();
+  }
+  function transform(){
+    world.style.transform=`translate(${vp.x}px,${vp.y}px) scale(${vp.z})`;
+    const g=26*vp.z;
+    grid.style.backgroundSize=`${g}px ${g}px`;
+    grid.style.backgroundPosition=`${vp.x}px ${vp.y}px`;
+  }
+
+  /* ---- dra kortene ---- */
+  function drag(node,n){
+    node.addEventListener("pointerdown",e=>{
+      if(e.target.closest(".cv-act")) return;
+      e.stopPropagation();
+      node.setPointerCapture(e.pointerId); node.classList.add("cv-dragging");
+      const x0=e.clientX, y0=e.clientY, px=n.o.pos.x, py=n.o.pos.y; let moved=false;
+      const move=ev=>{
+        const dx=(ev.clientX-x0)/vp.z, dy=(ev.clientY-y0)/vp.z;
+        if(Math.abs(dx)>2||Math.abs(dy)>2) moved=true;
+        n.o.pos={x:Math.round(px+dx), y:Math.round(py+dy)};
+        node.style.left=n.o.pos.x+"px"; node.style.top=n.o.pos.y+"px";
+        paintEdges();
+      };
+      const up=()=>{
+        node.removeEventListener("pointermove",move); node.removeEventListener("pointerup",up);
+        node.classList.remove("cv-dragging");
+        if(moved){ node.dataset.moved="1"; setTimeout(()=>delete node.dataset.moved,0); save(); }
+      };
+      node.addEventListener("pointermove",move); node.addEventListener("pointerup",up);
+    });
+  }
+
+  /* ---- panorering og zoom ---- */
+  if(!readonly){
+    stage.addEventListener("pointerdown",e=>{
+      if(e.target.closest(".cv-node")||e.target.closest(".cv-status")) return;
+      stage.classList.add("cv-panning"); stage.setPointerCapture(e.pointerId);
+      const x0=e.clientX,y0=e.clientY,px=vp.x,py=vp.y; let moved=false;
+      const move=ev=>{ moved=true; vp.x=px+(ev.clientX-x0); vp.y=py+(ev.clientY-y0); transform(); };
+      const up=()=>{ stage.removeEventListener("pointermove",move); stage.removeEventListener("pointerup",up);
+        stage.classList.remove("cv-panning"); cvSaveView();
+        if(!moved && sel){ sel=null; mapFocus=null; paint(); } };
+      stage.addEventListener("pointermove",move); stage.addEventListener("pointerup",up);
+    });
+    stage.addEventListener("wheel",e=>{
+      e.preventDefault();
+      const r=stage.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+      const z=Math.min(2,Math.max(.35,vp.z*Math.exp(-e.deltaY*0.0016)));
+      vp.x=mx-(mx-vp.x)*(z/vp.z); vp.y=my-(my-vp.y)*(z/vp.z);
+      vp.z=z; transform(); cvSaveView();
+    },{passive:false});
+    stage.addEventListener("dragover",e=>{ e.preventDefault(); e.dataTransfer.dropEffect="copy"; stage.classList.add("cv-drop"); });
+    stage.addEventListener("dragleave",e=>{ if(e.target===stage) stage.classList.remove("cv-drop"); });
+    stage.addEventListener("drop",e=>{
+      e.preventDefault(); stage.classList.remove("cv-drop");
+      const id=e.dataTransfer.getData("text/plain"); const ent=cvEntity(id); if(!ent) return;
+      if(!layers[ent.kind]){ layers[ent.kind]=true; cvSaveLayers(); }
+      const r=stage.getBoundingClientRect();
+      const wx=(e.clientX-r.left-vp.x)/vp.z, wy=(e.clientY-r.top-vp.y)/vp.z;
+      cvPlace(id, wx-CV_W[ent.kind]/2, wy-42); paint();
+    });
+  }
+  function fit(){
+    const list=shown(); if(!list.length) return;
+    let x1=1e9,y1=1e9,x2=-1e9,y2=-1e9;
+    list.forEach(n=>{ const p=n.o.pos, s=SIZE[n.id]||{w:CV_W[n.kind],h:92};
+      x1=Math.min(x1,p.x); y1=Math.min(y1,p.y); x2=Math.max(x2,p.x+s.w); y2=Math.max(y2,p.y+s.h); });
+    const r=stage.getBoundingClientRect(); if(!r.width) return;
+    const pad=readonly?44:70;
+    vp.z=Math.max(.35,Math.min(readonly?1:1.3,(r.width-pad*2)/(x2-x1||1),(r.height-pad*2)/(y2-y1||1)));
+    vp.x=(r.width-(x2-x1)*vp.z)/2-x1*vp.z;
+    vp.y=(r.height-(y2-y1)*vp.z)/2-y1*vp.z;
+    transform(); if(!readonly) cvSaveView();
+  }
+
+  /* ---- tom tilstand ---- */
+  const empty = readonly ? null : el("div","cv-empty",
+    `<div><span class="serif">${esc(t("cv.empty.t"))}</span><p>${esc(t("cv.empty.d"))}</p></div>`);
+  if(empty) stage.appendChild(empty);
+
+  /* Vent til scenen faktisk har en bredde. Verten er som regel ikke i DOM-en
+     ennå når renderCanvas kjører, og da gir getBoundingClientRect() null —
+     en fit() der ville stille gjort ingenting. */
+  function whenSized(fn){
+    if(stage.clientWidth>0){ fn(); return; }
+    if(typeof ResizeObserver==="undefined"){ setTimeout(fn,60); return; }
+    const ro=new ResizeObserver(()=>{ if(stage.clientWidth>0){ ro.disconnect(); fn(); } });
+    ro.observe(stage);
+  }
+
+  /* ---- mini-utgaven er ferdig her ---- */
+  if(readonly){
+    host.appendChild(stage);
+    paint(); whenSized(()=>{ measure(); paintEdges(); fit(); });
+    return {fit};
+  }
+
+  /* ════════ full utgave: lagbrytere, skuff, statuslinje ════════ */
+  const ties = id => [...(NB[id]||[])].filter(isShown).length;
+
+  layerEl=el("div","cv-layers");
+  function paintLayers(){
+    layerEl.innerHTML="";
+    [[t("grp.direction"),["goal","outcome"]],["",["strategy"]],[t("grp.registers"),["insight","assumption","signal","decision"]]]
+    .forEach(([lbl,kinds])=>{
+      const g=el("div","cv-lgrp");
+      if(lbl) g.appendChild(el("span","cv-llbl",esc(lbl)));
+      kinds.forEach(k=>{
+        const b=el("button","cv-chip",`<span class="cv-dot"></span>${esc(t("cv.k."+k))}`);
+        b.type="button"; b.setAttribute("aria-pressed",String(!!layers[k]));
+        b.style.setProperty("--kc",`var(${({goal:"--goal",outcome:"--outcome",strategy:"--accent",insight:"--sense",assumption:"--align",signal:"--feed",decision:"--mem"})[k]})`);
+        b.onclick=()=>{ layers[k]=!layers[k]; cvSaveLayers(); paint(); };
+        g.appendChild(b);
+      });
+      layerEl.appendChild(g);
+    });
+  }
+
+  drawerEl=el("div","cv-dbody");
+  const searchInp=el("input","cv-dsearch"); searchInp.type="search";
+  searchInp.placeholder=t("cv.search.ph"); searchInp.setAttribute("aria-label",t("cv.search.ph"));
+  let dq="";
+  searchInp.oninput=()=>{ dq=searchInp.value.toLowerCase().trim(); paintDrawer(); };
+
+  function pill(n,suggest){
+    const b=el("button","cv-pill cv-p-"+n.kind+(suggest?" cv-sug":""));
+    b.type="button"; b.draggable=true; b.dataset.id=n.id;
+    const k=ties(n.id);
+    const line = suggest&&k ? t("cv.ties").replace("{n}",k) : cvSub(n.kind,n.o);
+    b.innerHTML=`<span class="cv-glyph">${CV_GLYPH[n.kind]}</span>
+      <span class="cv-ptx"><b>${esc(cvTitle(n.kind,n.o))}</b><span>${esc(t("cv.k."+n.kind))}${line?" · "+esc(line):""}</span></span>`;
+    b.onclick=()=>placeSmart(n.id);
+    b.addEventListener("dragstart",ev=>{ ev.dataTransfer.setData("text/plain",n.id); ev.dataTransfer.effectAllowed="copy"; });
+    return b;
+  }
+  function placeSmart(id){
+    const ent=cvEntity(id); if(!ent) return;
+    if(!layers[ent.kind]){ layers[ent.kind]=true; cvSaveLayers(); }
+    const near=[...(NB[id]||[])].filter(isShown).map(n=>cvEntity(n).o.pos);
+    if(near.length){
+      const c=near.reduce((a,p)=>({x:a.x+p.x/near.length, y:a.y+p.y/near.length}),{x:0,y:0});
+      const below=["insight","signal","decision","assumption"].includes(ent.kind);
+      cvPlace(id, c.x+(below?0:230), c.y+(below?150:0));
+    } else {
+      const r=stage.getBoundingClientRect();
+      cvPlace(id, (r.width/2-vp.x)/vp.z-95, (r.height/2-vp.y)/vp.z-45);
+    }
+    paint();
+  }
+  function paintDrawer(){
+    const placedIds=new Set(cvPlaced().map(n=>n.id));
+    const pool=cvAll().filter(n=>!placedIds.has(n.id))
+      .filter(n=>!dq || cvTitle(n.kind,n.o).toLowerCase().includes(dq) || t("cv.k."+n.kind).toLowerCase().includes(dq));
+    const sug=pool.filter(n=>ties(n.id)>0).sort((a,b)=>ties(b.id)-ties(a.id));
+    const sset=new Set(sug.map(n=>n.id));
+    drawerEl.innerHTML="";
+    const group=(lbl,list,isSug)=>{
+      if(!list.length) return;
+      const g=el("div","cv-dgrp",`<h3>${esc(lbl)} <span class="cv-n">${list.length}</span></h3>`);
+      list.forEach(n=>g.appendChild(pill(n,isSug)));
+      drawerEl.appendChild(g);
+    };
+    group(t("cv.suggested"), sug.slice(0,10), true);
+    group(t("grp.direction"), pool.filter(n=>["goal","outcome"].includes(n.kind)&&!sset.has(n.id)), false);
+    group(t("nav.strategies"), pool.filter(n=>n.kind==="strategy"&&!sset.has(n.id)), false);
+    group(t("grp.registers"), pool.filter(n=>["insight","assumption","signal","decision"].includes(n.kind)&&!sset.has(n.id)), false);
+    if(!drawerEl.children.length) drawerEl.appendChild(el("div","cv-dempty",esc(dq?t("cv.nohits"):t("cv.allplaced"))));
+  }
+
+  /* ---- Rydd opp: lag på lag, sortert etter naboen, brekt og sentrert ---- */
+  function tidy(){
+    const rows=[["goal"],["outcome"],["strategy"],["assumption"],["insight","signal","decision"]];
+    const GAPX=40, GAPY=68, MAXW=1560;
+    let y=40;
+    const anchorX=id=>{ const ns=[...(NB[id]||[])].filter(x=>{const e=cvEntity(x);return e&&e.o.pos;});
+      return ns.length? ns.reduce((s,x)=>s+cvEntity(x).o.pos.x,0)/ns.length : 9999; };
+    rows.forEach(kinds=>{
+      const list=shown().filter(n=>kinds.includes(n.kind)).sort((a,b)=>anchorX(a.id)-anchorX(b.id));
+      if(!list.length) return;
+      const lines=[[]]; let wsum=0;
+      list.forEach(n=>{ const w=CV_W[n.kind];
+        if(wsum+w>MAXW && lines[lines.length-1].length){ lines.push([]); wsum=0; }
+        lines[lines.length-1].push(n); wsum+=w+GAPX; });
+      lines.forEach(line=>{
+        const total=line.reduce((s,n)=>s+CV_W[n.kind]+GAPX,0)-GAPX;
+        let x=Math.round((MAXW-total)/2)+40, h=0;
+        line.forEach(n=>{ n.o.pos={x,y}; x+=CV_W[n.kind]+GAPX; h=Math.max(h,SIZE[n.id]?SIZE[n.id].h:92); });
+        y+=h+GAPY;
+      });
+    });
+    save(); paint(); requestAnimationFrame(fit);
+  }
+  /* ---- Hent naboer ---- */
+  function pull(){
+    const add=new Set();
+    shown().forEach(n=>[...(NB[n.id]||[])].forEach(x=>{ const e=cvEntity(x); if(e&&!e.o.pos) add.add(x); }));
+    if(!add.size) return;
+    add.forEach(id=>{ const e=cvEntity(id); if(!layers[e.kind]) layers[e.kind]=true; });
+    cvSaveLayers();
+    add.forEach(id=>placeSmart(id));
+    paint();
+  }
+
+  /* ---- statuslinje og forklaring ---- */
+  statusEl=el("div","cv-status");
+  const zwrap=el("div","cv-zoom");
+  const zb=(txt,lab,fn)=>{ const b=el("button","cv-zbtn",txt); b.type="button"; b.title=lab; b.setAttribute("aria-label",lab); b.onclick=fn; return b; };
+  zwrap.appendChild(zb("−",t("cv.zoomout"),()=>{ vp.z=Math.max(.35,vp.z-.15); transform(); cvSaveView(); }));
+  zwrap.appendChild(zb("+",t("cv.zoomin"),()=>{ vp.z=Math.min(2,vp.z+.15); transform(); cvSaveView(); }));
+  zwrap.appendChild(zb("⤢",t("cv.fit"),fit));
+  const statusWrap=el("div","cv-statusbar"); statusWrap.appendChild(statusEl); statusWrap.appendChild(zwrap);
+  stage.appendChild(statusWrap);
+  stage.appendChild(el("div","cv-legend",
+    `<span><span class="ln"></span>${esc(t("cv.lg.declared"))}</span>
+     <span><span class="ln dash"></span>${esc(t("cv.lg.derived"))}</span>
+     <span>${esc(t("cv.lg.state"))}</span>`));
+
+  /* ---- sett det sammen ---- */
+  const bar=el("div","cv-bar");
+  bar.appendChild(layerEl);
+  bar.appendChild(el("div","cv-grow"));
+  const bTidy=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h10M4 18h13"/></svg>${esc(t("cv.tidy"))}`);
+  bTidy.title=t("cv.tidy.h"); bTidy.onclick=tidy;
+  const bPull=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>${esc(t("cv.pull"))}`);
+  bPull.title=t("cv.pull.h"); bPull.onclick=pull;
+  const bClear=el("button","btn",esc(t("cv.clear")));
+  bClear.onclick=()=>{ if(!confirm(t("cv.clear.ask"))) return; cvPlaced().forEach(n=>delete n.o.pos); sel=null; mapFocus=null; save(); paint(); };
+  bar.appendChild(bTidy); bar.appendChild(bPull); bar.appendChild(bClear);
+
+  const dr=el("aside","cv-drawer");
+  dr.appendChild(el("div","cv-dhead",
+    `<h2>${esc(t("cv.drawer.t"))}</h2><p>${esc(t("cv.drawer.d"))}</p>`));
+  dr.querySelector(".cv-dhead").appendChild(searchInp);
+  dr.appendChild(drawerEl);
+
+  const split=el("div","cv-split");
+  split.appendChild(stage); split.appendChild(dr);
+  host.appendChild(bar); host.appendChild(split);
+
+  paint();
+  whenSized(()=>{ measure(); paintEdges();
+    if(!CV_VIEW.seen){ fit(); CV_VIEW.seen=true; cvSaveView(); } else transform(); });
+  return {fit, paint};
 }
 
-function mapLegend(mode){
-  const inner = mode==="portfolio"
-    ? `<span><i style="background:var(--goal)"></i>goal</span>
-       <span><i style="background:var(--accent)"></i>strategy</span>
-       <span><span class="ln"></span>declared relation</span>
-       <span><span class="ln dash"></span>shared underpinnings</span>
-       <span><i style="background:none;border:1.5px dashed var(--warn)"></i>unserved goal / orphan strategy</span>`
-    : `<span><i style="background:var(--goal)"></i>goal</span>
-       <span><i style="background:var(--sense)"></i>insight</span>
-       <span><i style="background:var(--align)"></i>assumption</span>
-       <span><i style="background:var(--feed)"></i>signal</span>
-       <span><i style="background:var(--mem)"></i>decision</span>
-       <span>edge colour = state</span>`;
-  return el("div","map-legend",inner);
-}
-function openFromMap(n){
-  if(n.kind==="insight") openInsight(n.id);
-  else if(n.kind==="decision") openDecision(n.id);
-  else if(n.kind==="assumption") openAssumption(n.id);
-  else if(n.kind==="signal") openSignal(n.id);
-  else if(n.kind==="goal") openGoal(n.id);
-  else if(n.kind==="outcome") openOutcome(n.id);
-}
-
+/* ---------- Strategikart-visningen ---------- */
 function vMap(){
-  const w=el("div","view");
-  const focus=mapFocus?byId("strategies",mapFocus):null;
-  if(!focus){
-    mapFocus=null;
-    w.appendChild(el("div","view-head",t("vh.map")));
-    const panel=el("div","panel map-wrap");
-    const graph=buildGraph("portfolio");
-    renderGraph(panel,graph,{onNode:n=>{ if(n.kind==="strategy"){ mapFocus=n.id; render(); } else if(n.kind==="goal"){ openGoal(n.id); } }});
-    if(graph.nodes.length&&!graph.links.length) panel.appendChild(el("div","map-hint","No connections yet — declare a relation in the strategy editor, or let registers span strategies."));
-    if(graph.nodes.length) panel.appendChild(mapLegend("portfolio"));
-    w.appendChild(panel);
-  }else{
-    const back=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M15 18l-6-6 6-6"/></svg>Portfolio map`);
-    back.style.marginBottom="16px"; back.onclick=()=>{ mapFocus=null; render(); };
-    w.appendChild(back);
-    const head=el("div","view-head");
-    head.style.cssText="display:flex;justify-content:space-between;align-items:flex-start;gap:20px";
-    head.innerHTML=`<div><h1>${esc(focus.name)}</h1><p>Everything that influences this strategy — insights feed the bets, signals watch them, decisions rest on them. Edge colour shows where reality disagrees. Click any node to open it.</p></div>`;
-    const open=el("button","btn",`Open strategy`); open.style.cssText="flex:none;margin-top:8px";
-    open.onclick=()=>{ currentStrategy=focus.id; view="strategies"; render(); };
-    head.appendChild(open); w.appendChild(head);
-    const panel=el("div","panel map-wrap");
-    renderGraph(panel,buildGraph("focus",mapFocus),{onNode:n=>{
-      if(n.kind==="strategy"&&n.id!==mapFocus){ mapFocus=n.id; render(); }
-      else openFromMap(n);
-    }});
-    panel.appendChild(mapLegend("focus"));
-    w.appendChild(panel);
-  }
+  const w=el("div","view cv-view");
+  const head=el("div","cv-head");
+  head.innerHTML=`<h1>${esc(t("cv.h1"))}</h1><p>${esc(t("cv.lede"))}</p>`;
+  w.appendChild(head);
+  renderCanvas(w);
   return w;
 }
 
@@ -2805,7 +3318,7 @@ function initials(name, email){
 async function saveProfile(){
   if(!SB) return;
   setSync("saving");
-  const {error} = await SB.auth.updateUser({data:{full_name:PROFILE.full_name, organizations:PROFILE.organizations, lang:PROFILE.lang}});
+  const {error} = await SB.auth.updateUser({data:{full_name:PROFILE.full_name, organizations:PROFILE.organizations, lang:PROFILE.lang, canvas:PROFILE.canvas}});
   if(error){ setSync("error"); return; }
   const {data:{user}} = await SB.auth.getUser();
   if(user) USER = user;
@@ -3514,6 +4027,7 @@ async function boot(){
   USER = session.user;
   PROFILE.full_name = USER.user_metadata?.full_name || "";
   PROFILE.organizations = USER.user_metadata?.organizations || [];
+  PROFILE.canvas = USER.user_metadata?.canvas || {};   // ett lerret per organisasjon
   LANG = PROFILE.lang = (USER.user_metadata?.lang==="no"?"no":"en");
   setAccount();
   applyChrome();
