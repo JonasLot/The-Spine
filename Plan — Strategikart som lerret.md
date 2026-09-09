@@ -1,6 +1,6 @@
 # Plan — Strategikart som lerret
 > Relatert: [[Plan — Interaktivt strategikart]] · [[Plan — Goals & Outcomes]] · [[Plan — Rammeverk-router & lenser]] · [[Plan — Delbar kanonisk strategi]] · [[Backend Setup — Supabase]] · `app.html` · `canvas-prototype.html`
-> Status: **Bygget og verifisert i `app.html`** (2026-09-09), inkludert dra-for-å-koble. Prototypen ligger igjen som `canvas-prototype.html`.
+> Status: **Bygget og verifisert i `app.html`** (2026-09-09) — lerret, dra-for-å-koble og sidepanel-inspektør. Prototypen ligger igjen som `canvas-prototype.html`.
 
 ## Hvorfor
 Det gamle `vMap()` var et *diagram*: D3-force plasserte nodene, du kunne se på det og klikke deg videre, men ikke jobbe i det. Og det var ikke ett kart — det var to moduser (portefølje / fokus) du hoppet mellom, og mistet konteksten hver gang.
@@ -97,9 +97,44 @@ Lerretet er nå et sted du *bygger* strategien, ikke bare ordner den.
 
 **To ekte feil ble funnet og rettet:** panoreringen fanget pekeren på alt som ikke var et kort, så angre-knappen, zoom-knappene og saksa aldri fikk klikket sitt — nå slipper kontrollene unna eksplisitt. Og gummistrikken lå i et eget SVG-lag uten egen `viewBox`, altså usynlig; den tegnes nå rett inn i kantlaget som allerede har riktig koordinatsystem.
 
+## Runde 3 — inspektør og lukkbar kolonne
+**Høyrekolonnen ble én kolonne med to tilstander.** Skuffen står der som standard; velger du et kort bytter kolonnen til inspektøren, med «‹ Skuffen» tilbake. To paneler side om side ville delt 306 px på to og gjort begge ubrukelige — å bytte er ærligere enn å klemme.
+
+**Inspektøren** (`paintInspector`) henter feltdefinisjonene fra `FIELDS`, så etiketter og valg følger språket uten en egen kopi å holde synkron. `CV_QUICK` sier hvilke felt som hører hjemme i kartet:
+
+| Type | Felt i inspektøren |
+|---|---|
+| Mål | type, horisont, eier |
+| Utfall | tilstand, mål, frist, utgangspunkt |
+| Strategi | status, eier, neste gjennomgang, versjon |
+| Innsikt | tiltro, tema, kilde |
+| Antakelse | tiltro, konsekvens, tilstand |
+| Signal | tilstand, eier, forventet form |
+| Beslutning | dør, eier, område, besluttet |
+
+Tittelen ligger øverst som et redigerbart felt. Under feltene listes **koblingene** — de samme som tegnes på lerretet, med retningspil, samme saks, og en ›-knapp som velger den andre enden. Ligger den andre enden ikke på lerretet, blir ›-en en + som legger den dit. Alt lagres med én gang; «Åpne skjema» tar resten.
+
+**Lukking:** ×-en skjuler hele kolonnen, en fane på kanten henter den tilbake. Når kolonnen er lukket sier fanen hva som venter der inne — «Antakelse», eller «Skuffen» om ingenting er valgt. Tilstanden ligger i `localStorage` sammen med utsnittet: personlig, ikke delt — i motsetning til selve lerretet.
+
+**To justeringer som fulgte av at et valg nå er normaltilstanden:**
+- Dempingen av ikke-naboer gikk fra 26 % til 40 %. Da et valg var unntaket var 26 % riktig; nå som hvert kortklikk velger, ble kartet dødt.
+- Tittelfeltet oppdaterer kortets tekst direkte mens du skriver (`liveTitle`) i stedet for å tegne alt på nytt — en full `paint()` per tastetrykk ville tatt fokus ut av feltet.
+
+### Verifisering (Playwright mot seed)
+| Sjekk | Resultat |
+|---|---|
+| Klikk kort → inspektør | 3 felt, 5 koblinger, tittel fylt |
+| Etiketter og valg på norsk | Konfidens / Konsekvens / Tilstand; Holder / Vaklende / Brutt / Pensjonert |
+| Endre tilstand | `a1.state` shaky → broken, kortets merke og kantfargen fulgte med |
+| Rediger tittel | kortets tekst oppdatert uten full opptegning |
+| Tilbake til skuffen | valget tømt, skuffen tilbake |
+| Lukk kolonnen | lerretet 1352 px, fane synlig med «Antakelse» |
+| Dra-koble, klipp, angre, lag, filter, mini-kart | uendret |
+| JS-feil | ingen, norsk og engelsk |
+
 ## Ikke med — bevisst
-- **Sidepanel-inspektør** (redigere uten å forlate lerretet — i dag åpner registerskuffen)
 - **Opprette nye entiteter fra lerretet**
+- **Re-tilpasning av utsnittet når kolonnen lukkes** — lerretet blir bredere uten at innholdet flytter seg. ⤢ ordner det manuelt.
 
 ## Avgjort
 - **`pos` forkastes ved import.** `REF_FIELD_TYPES` og `normalizeEntity` tar den ikke med, så et importert element havner i skuffen og må plasseres bevisst. Det er riktig: en posisjon fra et annet lerret betyr ingenting på dette.
