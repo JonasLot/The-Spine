@@ -602,6 +602,62 @@ a{color:inherit}
 .cv-empty .serif{font-size:26px;display:block;margin-bottom:6px;color:var(--ink-2)}
 .cv-empty p{font-size:12.5px;color:var(--ink-3);margin:0;line-height:1.55;max-width:360px}
 
+/* ---- dra for å koble ---- */
+.cv-plug{position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);
+  width:20px;height:20px;border-radius:99px;padding:0;display:none;place-items:center;
+  border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow);cursor:crosshair}
+.cv-plug::after{content:"";width:7px;height:7px;border-radius:99px;background:var(--ink-3)}
+.cv-node:hover .cv-plug,.cv-node:focus-within .cv-plug{display:grid}
+.cv-plug:hover{border-color:var(--accent)}
+.cv-plug:hover::after{background:var(--accent)}
+
+line.cv-rubber{stroke:var(--accent);stroke-width:2.2;stroke-dasharray:6 5;stroke-linecap:round;pointer-events:none}
+.cv-stage.cv-connecting{cursor:crosshair}
+.cv-stage.cv-connecting .cv-node{transition:opacity .12s,box-shadow .12s,border-color .12s}
+.cv-node.cv-conn-no{opacity:.22;pointer-events:none}
+.cv-node.cv-conn-done{opacity:.5;border-style:dashed}
+.cv-node.cv-conn-ok{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.cv-node.cv-conn-hot{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft),var(--shadow-lg)}
+.cv-node.cv-conn-src{box-shadow:0 0 0 2px var(--accent-soft),var(--shadow-lg)}
+.cv-stage.cv-connecting .cv-act,.cv-stage.cv-connecting .cv-cutbtn{display:none}
+
+/* ---- klipp en kobling ---- */
+.cv-edges{pointer-events:none}
+.cv-edge{pointer-events:none}
+.cv-edge.cv-cuttable{pointer-events:auto}
+.cv-hit{stroke:transparent;stroke-width:16;pointer-events:stroke;cursor:pointer}
+.cv-edge.cv-cuttable:hover .cv-elabel{fill:var(--ink-2)}
+/* saksa lever i scenens koordinater, så den er like stor uansett zoom */
+.cv-cutbtn{position:absolute;z-index:45;display:none;place-items:center;
+  width:22px;height:22px;margin:-11px 0 0 -11px;padding:0;border-radius:99px;
+  border:1px solid var(--line);background:var(--panel);color:var(--ink-3);
+  font-size:14px;line-height:1;box-shadow:var(--shadow);cursor:pointer}
+.cv-cutbtn.on{display:grid}
+.cv-cutbtn:hover{color:var(--bad);border-color:var(--bad)}
+
+/* ---- typevelger for strategi ↔ strategi ---- */
+.cv-pick{position:absolute;z-index:60;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r-md);box-shadow:var(--shadow-lg);padding:8px;min-width:178px;
+  display:flex;flex-direction:column;gap:2px}
+.cv-pick-h{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:700;padding:3px 8px 6px}
+.cv-pick-b{border:none;background:none;text-align:left;border-radius:var(--r-sm);
+  padding:7px 9px;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer}
+.cv-pick-b:hover{background:var(--accent-soft);color:var(--accent-ink)}
+
+/* ---- melding med angre ---- */
+.cv-toast{position:absolute;left:50%;top:16px;transform:translate(-50%,-14px);
+  display:none;align-items:center;gap:12px;max-width:min(620px,86%);
+  background:var(--ink);color:var(--bg-2);border-radius:99px;padding:9px 10px 9px 18px;
+  box-shadow:var(--shadow-lg);font-size:12.5px;font-weight:500;z-index:55;
+  opacity:0;transition:opacity .18s,transform .18s}
+.cv-toast.on{display:flex;opacity:1;transform:translate(-50%,0)}
+.cv-toast>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cv-undo{flex:none;border:1px solid color-mix(in srgb,var(--bg-2) 34%,transparent);
+  background:none;color:var(--bg-2);border-radius:99px;padding:4px 12px;
+  font-size:12px;font-weight:700;cursor:pointer}
+.cv-undo:hover{background:color-mix(in srgb,var(--bg-2) 16%,transparent)}
+
 /* ---- utsnittet i strategidetaljen ---- */
 .cv-stage.cv-mini{height:400px;border-radius:var(--r-md);cursor:default;background:var(--bg-2)}
 .cv-stage.cv-mini .cv-grid{opacity:.5}
@@ -905,10 +961,17 @@ const T = {
     "nav.goals":"Goals", "nav.outcomes":"Outcomes", "grp.direction":"Direction",
     /* ---- strategy canvas ---- */
     "cv.h1":"Strategy Canvas",
+    "cv.connect.h":"Drag to connect",
+    "cv.connected":"Connected: {a} {r} {b}",
+    "cv.replaced":"replaced {x}",
+    "cv.cut":"Remove this link",
+    "cv.cut.done":"Link removed: {r}",
+    "cv.undo":"Undo",
+    "cv.pick.h":"How do they relate?",
     "cv.mini.empty.t":"Not on the canvas yet",
     "cv.mini.empty.d":"This strategy and the entries around it have no place on the canvas yet.",
     "cv.mini.add":"Put it on the canvas",
-    "cv.lede":"One canvas holding direction, strategies and registers side by side. Drag what belongs here in from the drawer — the links draw themselves.",
+    "cv.lede":"One canvas holding direction, strategies and registers side by side. Drag what belongs here in from the drawer; existing links draw themselves, and you declare new ones by dragging from the dot under a card to another card.",
     "cv.k.goal":"Goal", "cv.k.outcome":"Outcome", "cv.k.strategy":"Strategy",
     "cv.k.insight":"Insight", "cv.k.assumption":"Assumption", "cv.k.signal":"Signal", "cv.k.decision":"Decision",
     "cv.drawer.t":"The drawer", "cv.drawer.d":"Everything in Direction and the Registers. Drag onto the canvas — or click to place it.",
@@ -1054,10 +1117,17 @@ const T = {
     "nav.goals":"Mål", "nav.outcomes":"Utfall", "grp.direction":"Retning",
     /* ---- strategikart som lerret ---- */
     "cv.h1":"Strategikart",
+    "cv.connect.h":"Dra for å koble",
+    "cv.connected":"Koblet: {a} {r} {b}",
+    "cv.replaced":"erstattet {x}",
+    "cv.cut":"Fjern denne koblingen",
+    "cv.cut.done":"Kobling fjernet: {r}",
+    "cv.undo":"Angre",
+    "cv.pick.h":"Hvordan henger de sammen?",
     "cv.mini.empty.t":"Ikke på lerretet ennå",
     "cv.mini.empty.d":"Denne strategien og oppføringene rundt den har ingen plass på lerretet ennå.",
     "cv.mini.add":"Legg den på lerretet",
-    "cv.lede":"Ett lerret som holder retning, strategier og registre side om side. Dra inn det som hører hjemme her fra skuffen — koblingene tegner seg selv.",
+    "cv.lede":"Ett lerret som holder retning, strategier og registre side om side. Dra inn det som hører hjemme her fra skuffen; koblingene som finnes tegner seg selv, og nye erklærer du ved å dra fra prikken under et kort til et annet.",
     "cv.k.goal":"Mål", "cv.k.outcome":"Utfall", "cv.k.strategy":"Strategi",
     "cv.k.insight":"Innsikt", "cv.k.assumption":"Antakelse", "cv.k.signal":"Signal", "cv.k.decision":"Beslutning",
     "cv.drawer.t":"Skuffen", "cv.drawer.d":"Alt som finnes i Retning og Registrene. Dra ut på lerretet — eller klikk for å plassere.",
@@ -2539,37 +2609,121 @@ function cvStrat(k,o){
   return "";
 }
 
+/* ════════════════════════════════════════════════════════════════
+   KOBLINGSREGLENE
+   Én tabell som sier hvilke par som kan kobles, hvilken vei pilen
+   går, og hvilket felt koblingen faktisk bor i. Både dra-for-å-koble,
+   klipp-koblingen og kanttegningen leser fra den samme tabellen —
+   så det finnes ingen kobling du kan se men ikke lage, eller lage
+   men ikke fjerne.
+
+   `one:true` betyr at feltet bare rommer én verdi: en ny kobling
+   erstatter den gamle. set() returnerer da hva som ble erstattet,
+   så brukeren får vite det i stedet for å oppdage det senere.
+   ════════════════════════════════════════════════════════════════ */
+function stratName(id){ const s=byId("strategies",id); return s?s.name:""; }
+function stratIdByName(n){ const s=DB.strategies.find(x=>x.name===n); return s?s.id:""; }
+
+const CV_LINKS = {
+  serves:{ from:"strategy", to:"goal", rel:"rel.serves",
+    has:(s,g)=>(s.serves||[]).includes(g.id),
+    set:(s,g)=>{ (s.serves=s.serves||[]).push(g.id); return null; },
+    cut:(s,g)=>{ s.serves=(s.serves||[]).filter(x=>x!==g.id); } },
+  belongs:{ from:"outcome", to:"goal", rel:"rel.belongs", one:true,
+    has:(o,g)=>o.goalId===g.id,
+    set:(o,g)=>{ const old=o.goalId?byId("goals",o.goalId):null; o.goalId=g.id; return old?cvTitle("goal",old):null; },
+    cut:(o)=>{ o.goalId=""; } },
+  measures:{ from:"signal", to:"outcome", rel:"rel.measures", one:true,
+    has:(s,o)=>o.measuredBy===s.id,
+    set:(s,o)=>{ const old=o.measuredBy?byId("signals",o.measuredBy):null; o.measuredBy=s.id; return old?cvTitle("signal",old):null; },
+    cut:(s,o)=>{ o.measuredBy=""; } },
+  carries:{ from:"assumption", to:"strategy", rel:"rel.carries", one:true,
+    has:(a,s)=>a.strategy===s.name,
+    set:(a,s)=>{ const old=a.strategy||null; a.strategy=s.name; return old; },
+    cut:(a)=>{ a.strategy=""; } },
+  feeds:{ from:"insight", to:"assumption", rel:"rel.feeds", one:true,
+    has:(i,a)=>i.feeds===a.id,
+    set:(i,a)=>{ const old=i.feeds?byId("assumptions",i.feeds):null; i.feeds=a.id; return old?cvTitle("assumption",old):null; },
+    cut:(i)=>{ i.feeds=""; } },
+  watches:{ from:"signal", to:"assumption", rel:"rel.watches", one:true,
+    has:(s,a)=>s.watches===a.id,
+    set:(s,a)=>{
+      const old=s.watches?byId("assumptions",s.watches):null;
+      if(old) old.watchedBy = (old.watchedBy===s.id) ? "" : old.watchedBy;
+      s.watches=a.id;
+      // watchedBy er antakelsens speil av det samme. Flere signaler kan
+      // overvåke samme bet, så vi skriver bare speilet når det står tomt.
+      if(!a.watchedBy) a.watchedBy=s.id;
+      return old?cvTitle("assumption",old):null; },
+    cut:(s,a)=>{ s.watches=""; if(a.watchedBy===s.id) a.watchedBy=""; } },
+  rests:{ from:"decision", to:"assumption", rel:"rel.rests",
+    has:(d,a)=>(d.rests||[]).includes(a.id),
+    set:(d,a)=>{ (d.rests=d.rests||[]).push(a.id); return null; },
+    cut:(d,a)=>{ d.rests=(d.rests||[]).filter(x=>x!==a.id); } },
+  owns_d:{ from:"decision", to:"strategy", rel:"rel.rests", one:true,
+    has:(d,s)=>d.strategy===s.name,
+    set:(d,s)=>{ const old=d.strategy||null; d.strategy=s.name; return old; },
+    cut:(d)=>{ d.strategy=""; } },
+  owns_s:{ from:"signal", to:"strategy", rel:"rel.watches", one:true,
+    has:(g,s)=>g.strategy===s.name,
+    set:(g,s)=>{ const old=g.strategy||null; g.strategy=s.name; return old; },
+    cut:(g)=>{ g.strategy=""; } },
+  strat:{ from:"strategy", to:"strategy", rel:null, pick:true,
+    has:(a,b)=>(a.relations||[]).some(r=>r.to===b.id)||(b.relations||[]).some(r=>r.to===a.id),
+    set:(a,b,type)=>{ (a.relations=a.relations||[]).push({to:b.id, type:type||"related"}); return null; },
+    cut:(a,b)=>{ if(a.relations) a.relations=a.relations.filter(r=>r.to!==b.id);
+                 if(b.relations) b.relations=b.relations.filter(r=>r.to!==a.id); } },
+};
+/* Hvilken regel gjelder for dette paret? Dra-retningen spiller ingen rolle —
+   pilen peker alltid dit datamodellen sier den skal. */
+function cvRuleFor(k1,k2){
+  for(const key in CV_LINKS){
+    const r=CV_LINKS[key];
+    if(r.from===k1 && r.to===k2) return {key, rule:r, flip:false};
+    if(r.from===k2 && r.to===k1) return {key, rule:r, flip:true};
+  }
+  return null;
+}
+/* Signal→strategi og beslutning→strategi er «eierskap», og gir bare mening
+   når det ikke allerede finnes en spissere kobling. Ellers ville et signal
+   som overvåker et bet også få en egen linje til strategien. */
+function cvRuleAllowed(key, src, dst){
+  if(key==="owns_s" && src.watches) return false;
+  if(key==="owns_d" && (src.rests||[]).length) return false;
+  return true;
+}
+
 /* ---- relasjonene: én sannhet, brukt både til kanter og til naboer ---- */
 function cvRelations(){
   const out=[];
-  const add=(a,b,label,kind,state)=>{ if(cvEntity(a)&&cvEntity(b)) out.push({a,b,label,kind,state:state||""}); };
+  const add=(a,b,label,kind,state,rule)=>{ if(cvEntity(a)&&cvEntity(b)) out.push({a,b,label,kind,state:state||"",rule:rule||null}); };
   const byName={}; DB.strategies.forEach(s=>byName[s.name]=s.id);
   DB.strategies.forEach(s=>{
-    (s.serves||[]).forEach(g=>add(s.id,g,t("rel.serves"),"declared"));
-    (s.relations||[]).forEach(r=>add(s.id,r.to,(REL_TYPES[r.type]||{}).label?t("rel."+r.type):r.type,"declared"));
+    (s.serves||[]).forEach(g=>add(s.id,g,t("rel.serves"),"declared","","serves"));
+    (s.relations||[]).forEach(r=>add(s.id,r.to,(REL_TYPES[r.type]||{}).label?t("rel."+r.type):r.type,"declared","","strat"));
   });
   DB.outcomes.forEach(o=>{
-    if(o.goalId) add(o.id,o.goalId,t("rel.belongs"),"declared",o.state);
-    if(o.measuredBy) add(o.measuredBy,o.id,t("rel.measures"),"declared",o.state);
+    if(o.goalId) add(o.id,o.goalId,t("rel.belongs"),"declared",o.state,"belongs");
+    if(o.measuredBy) add(o.measuredBy,o.id,t("rel.measures"),"declared",o.state,"measures");
   });
-  DB.assumptions.forEach(a=>{ const sid=byName[a.strategy]; if(sid) add(a.id,sid,t("rel.carries"),"declared",a.state); });
-  DB.insights.forEach(i=>{ if(i.feeds) add(i.id,i.feeds,t("rel.feeds"),"declared"); });
+  DB.assumptions.forEach(a=>{ const sid=byName[a.strategy]; if(sid) add(a.id,sid,t("rel.carries"),"declared",a.state,"carries"); });
+  DB.insights.forEach(i=>{ if(i.feeds) add(i.id,i.feeds,t("rel.feeds"),"declared","","feeds"); });
   DB.signals.forEach(g=>{
-    if(g.watches) add(g.id,g.watches,t("rel.watches"),"declared",g.state);
-    else { const sid=byName[g.strategy]; if(sid) add(g.id,sid,t("rel.watches"),"derived",g.state); }
+    if(g.watches) add(g.id,g.watches,t("rel.watches"),"declared",g.state,"watches");
+    else { const sid=byName[g.strategy]; if(sid) add(g.id,sid,t("rel.watches"),"derived",g.state,"owns_s"); }
   });
   DB.decisions.forEach(d=>{
     const rests=(d.rests||[]).filter(r=>byId("assumptions",r));
-    if(rests.length) rests.forEach(r=>add(d.id,r,t("rel.rests"),"declared"));
-    else { const sid=byName[d.strategy]; if(sid) add(d.id,sid,t("rel.rests"),"derived"); }
+    if(rests.length) rests.forEach(r=>add(d.id,r,t("rel.rests"),"declared","","rests"));
+    else { const sid=byName[d.strategy]; if(sid) add(d.id,sid,t("rel.rests"),"derived","","owns_d"); }
   });
-  // to strategier som deler underlag — den avledede kanten fra det gamle kartet
+  // to strategier som deler underlag — avledet, og derfor ikke noe du kan klippe
   const strats=DB.strategies.filter(s=>s.status!=="archived");
   for(let i=0;i<strats.length;i++) for(let j=i+1;j<strats.length;j++){
     const A=stratObjectSet(strats[i]), B=stratObjectSet(strats[j]);
     let n=0; A.forEach(x=>{ if(B.has(x)) n++; });
     const already=out.some(r=>(r.a===strats[i].id&&r.b===strats[j].id)||(r.a===strats[j].id&&r.b===strats[i].id));
-    if(n>0&&!already) out.push({a:strats[i].id, b:strats[j].id, label:t("rel.shares").replace("{n}",n), kind:"derived", state:""});
+    if(n>0&&!already) out.push({a:strats[i].id, b:strats[j].id, label:t("rel.shares").replace("{n}",n), kind:"derived", state:"", rule:null});
   }
   return out;
 }
@@ -2624,8 +2778,8 @@ function renderCanvas(host, opts={}){
   const readonly = !!opts.readonly;
   const only = opts.only || null;                 // Set av id-er, eller null for hele lerretet
   const layers = cvLayers();
-  const rels = cvRelations();
-  const NB = cvNeighbourMap(rels);
+  let rels = cvRelations();
+  let NB = cvNeighbourMap(rels);
   const SIZE = {};
   let sel = readonly ? null : mapFocus;
 
@@ -2665,7 +2819,12 @@ function renderCanvas(host, opts={}){
       const rm=el("button","cv-act cv-rm","×");
       rm.title=t("cv.remove"); rm.setAttribute("aria-label",t("cv.remove"));
       rm.onclick=ev=>{ ev.stopPropagation(); cvRemove(n.id); if(sel===n.id){ sel=null; mapFocus=null; } paint(); };
-      c.appendChild(open); c.appendChild(rm);
+      // koblingshåndtaket. Eget håndtak, ikke hele kortet, så det å dra
+      // kortet og det å dra en kobling aldri kan forveksles.
+      const plug=el("button","cv-plug");
+      plug.title=t("cv.connect.h"); plug.setAttribute("aria-label",t("cv.connect.h"));
+      plug.addEventListener("pointerdown",ev=>{ ev.stopPropagation(); ev.preventDefault(); startConnect(n,ev); });
+      c.appendChild(open); c.appendChild(rm); c.appendChild(plug);
       c.tabIndex=0;
       c.onclick=ev=>{ ev.stopPropagation(); if(c.dataset.moved) return; sel = sel===n.id?null:n.id; mapFocus=sel; paint(); };
       c.onkeydown=ev=>{ if(ev.key==="Enter"){ ev.preventDefault(); cvOpen(n); } };
@@ -2700,6 +2859,7 @@ function renderCanvas(host, opts={}){
     return {x:e.o.pos.x+s.w/2, y:e.o.pos.y+s.h/2};
   }
   function paintEdges(){
+    MIDS={};
     const live=rels.filter(r=>isShown(r.a)&&isShown(r.b));
     let minX=0,minY=0,maxX=1200,maxY=800;
     shown().forEach(n=>{ const p=n.o.pos;
@@ -2711,7 +2871,7 @@ function renderCanvas(host, opts={}){
     const ink3=getComputedStyle(document.documentElement).getPropertyValue("--ink-3").trim();
     let d=`<defs><marker id="cvarw" viewBox="0 -5 10 10" refX="10" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0,-5L10,0L0,5" fill="${ink3}"/></marker></defs>`;
-    live.forEach(r=>{
+    live.forEach((r,idx)=>{
       const A=centre(r.a), B=centre(r.b);
       const ea=cvEntity(r.a), eb=cvEntity(r.b);
       const P=cvEdgePoint(A,B,SIZE[r.a]||{w:CV_W[ea.kind],h:92});
@@ -2719,14 +2879,63 @@ function renderCanvas(host, opts={}){
       const gap=Math.hypot(Q.x-P.x,Q.y-P.y);
       const dim = sel && r.a!==sel && r.b!==sel;
       const col = r.state ? stateColor(r.state) : (r.kind==="declared"?"var(--ink-3)":"var(--line)");
+      const mx=(P.x+Q.x)/2, my=(P.y+Q.y)/2;
+      // Kanter du kan klippe er de som faktisk bor i et felt. «Deler N» er
+      // regnet ut, ikke erklært, og har derfor ingen saks.
+      const cuttable = !readonly && r.rule && gap>44;
+      d+=`<g class="cv-edge${cuttable?" cv-cuttable":""}" data-i="${idx}">`;
+      if(cuttable) d+=`<line class="cv-hit" x1="${P.x.toFixed(1)}" y1="${P.y.toFixed(1)}" x2="${Q.x.toFixed(1)}" y2="${Q.y.toFixed(1)}"/>`;
       d+=`<line x1="${P.x.toFixed(1)}" y1="${P.y.toFixed(1)}" x2="${Q.x.toFixed(1)}" y2="${Q.y.toFixed(1)}"
           stroke="${col}" stroke-width="${r.kind==="declared"?1.7:1.4}"
           ${r.kind==="derived"?'stroke-dasharray="5 5"':""} marker-end="url(#cvarw)" opacity="${dim?.12:.85}"/>`;
       if(!dim && gap>64 && !readonly)
-        d+=`<text class="cv-elabel" x="${((P.x+Q.x)/2).toFixed(1)}" y="${((P.y+Q.y)/2-5).toFixed(1)}" text-anchor="middle">${esc(r.label)}</text>`;
+        d+=`<text class="cv-elabel" x="${mx.toFixed(1)}" y="${(my-5).toFixed(1)}" text-anchor="middle">${esc(r.label)}</text>`;
+      if(cuttable) MIDS[idx]={x:mx, y:my};
+      d+=`</g>`;
     });
     svg.innerHTML=d;
+    LIVE=live;
     return live.length;
+  }
+  /* Klipp en kobling.
+     Saksa er et HTML-element i scenens koordinater, ikke en SVG-form inne i
+     lerretet — ellers ville den krympe med zoomen og bli umulig å treffe når
+     du er zoomet ut. Kanten selv beholder en usynlig, tykk trefflinje. */
+  let LIVE=[], MIDS={}, cutRel=null, cutTimer=null;
+  const cutBtn = readonly ? null : el("button","cv-cutbtn","×");
+  if(cutBtn){
+    cutBtn.title=t("cv.cut"); cutBtn.setAttribute("aria-label",t("cv.cut"));
+    cutBtn.onclick=ev=>{
+      ev.stopPropagation();
+      const r=cutRel; hideCut(); if(!r||!r.rule) return;
+      const src=cvEntity(r.a).o, dst=cvEntity(r.b).o;
+      const before=structuredClone({a:src,b:dst});
+      CV_LINKS[r.rule].cut(src,dst);
+      save(); refresh();
+      toast(t("cv.cut.done").replace("{r}", r.label), ()=>{
+        Object.assign(src, before.a); Object.assign(dst, before.b); save(); refresh(); });
+    };
+    cutBtn.onpointerenter=()=>clearTimeout(cutTimer);
+    cutBtn.onpointerleave=()=>hideCut(260);
+    stage.appendChild(cutBtn);
+    svg.addEventListener("pointerover",ev=>{
+      const g=ev.target.closest&&ev.target.closest(".cv-edge.cv-cuttable"); if(!g) return;
+      const i=+g.dataset.i, m=MIDS[i]; if(!m) return;
+      clearTimeout(cutTimer);
+      cutRel=LIVE[i];
+      cutBtn.style.left=(vp.x+m.x*vp.z)+"px";
+      cutBtn.style.top=(vp.y+m.y*vp.z)+"px";
+      cutBtn.classList.add("on");
+    });
+    svg.addEventListener("pointerout",ev=>{
+      if(ev.relatedTarget===cutBtn) return;
+      if(ev.target.closest&&ev.target.closest(".cv-edge.cv-cuttable")) hideCut(260);
+    });
+  }
+  function hideCut(delay){
+    clearTimeout(cutTimer);
+    const go=()=>{ cutBtn&&cutBtn.classList.remove("on"); cutRel=null; };
+    if(delay) cutTimer=setTimeout(go,delay); else go();
   }
 
   /* Kortene måles etter at de er i DOM-en. Ligger verten utenfor DOM-en er
@@ -2738,7 +2947,7 @@ function renderCanvas(host, opts={}){
     });
   }
   /* ---- full opptegning ---- */
-  let statusEl=null, drawerEl=null, layerEl=null;
+  let statusEl=null, drawerEl=null, layerEl=null, toastEl=null;
   function paint(){
     world.querySelectorAll(".cv-node").forEach(x=>x.remove());
     const list=shown();
@@ -2752,6 +2961,7 @@ function renderCanvas(host, opts={}){
     if(layerEl) paintLayers();
   }
   function transform(){
+    if(typeof hideCut==='function') hideCut();
     world.style.transform=`translate(${vp.x}px,${vp.y}px) scale(${vp.z})`;
     const g=26*vp.z;
     grid.style.backgroundSize=`${g}px ${g}px`;
@@ -2781,10 +2991,134 @@ function renderCanvas(host, opts={}){
     });
   }
 
+  /* ════════════════════════════════════════════════════════════════
+     DRA FOR Å KOBLE
+     Dra fra håndtaket på ett kort til et annet. Mens du drar viser
+     lerretet hvilke kort som kan ta imot koblingen — resten dempes,
+     så du ser svaret før du slipper i stedet for etterpå.
+     ════════════════════════════════════════════════════════════════ */
+  let CONN=null;
+  // Gummistrikken tegnes rett inn i kantlaget, som allerede har riktig
+  // koordinatsystem. Et eget SVG-lag ville trengt sin egen viewBox å holde
+  // synkron — og en feil der er usynlig helt til linja ikke dukker opp.
+  const rubber=document.createElementNS("http://www.w3.org/2000/svg","line");
+  rubber.setAttribute("class","cv-rubber");
+
+  function toWorld(cx,cy){
+    const r=stage.getBoundingClientRect();
+    return {x:(cx-r.left-vp.x)/vp.z, y:(cy-r.top-vp.y)/vp.z};
+  }
+  /* Kan src kobles til denne noden? Returnerer regelen, eller null. */
+  function candidateFor(src,n){
+    if(n.id===src.id) return null;
+    const m=cvRuleFor(src.kind,n.kind); if(!m) return null;
+    const from = m.flip ? n : src, to = m.flip ? src : n;
+    if(!cvRuleAllowed(m.key, from.o, to.o)) return null;
+    if(m.rule.has(from.o,to.o)) return {...m, from, to, already:true};
+    return {...m, from, to, already:false};
+  }
+  function startConnect(src,ev){
+    CONN={src, cand:null};
+    stage.classList.add("cv-connecting");
+    // marker hvert kort som mulig eller umulig mål
+    world.querySelectorAll(".cv-node").forEach(c=>{
+      if(c.dataset.id===src.id){ c.classList.add("cv-conn-src"); return; }
+      const e=cvEntity(c.dataset.id); if(!e) return;
+      const cd=candidateFor(src,{id:c.dataset.id, kind:e.kind, o:e.o});
+      c.classList.add(cd ? (cd.already?"cv-conn-done":"cv-conn-ok") : "cv-conn-no");
+    });
+    svg.appendChild(rubber);
+    const move=e2=>{
+      const p=toWorld(e2.clientX,e2.clientY), A=centre(src.id);
+      const el2=document.elementFromPoint(e2.clientX,e2.clientY);
+      const card2=el2&&el2.closest? el2.closest(".cv-node") : null;
+      const over = card2 && card2.dataset.id!==src.id && card2.classList.contains("cv-conn-ok");
+      CONN.cand = over ? candidateFor(src,{id:card2.dataset.id, kind:cvEntity(card2.dataset.id).kind, o:cvEntity(card2.dataset.id).o}) : null;
+      world.querySelectorAll(".cv-conn-hot").forEach(c=>c.classList.remove("cv-conn-hot"));
+      if(over) card2.classList.add("cv-conn-hot");
+      // trim linja til kortkantene, ellers ligger den oppå kortene i stedet
+      // for i luftrommet mellom dem
+      const end = over ? centre(card2.dataset.id) : p;
+      const P = cvEdgePoint(A, end, SIZE[src.id]||{w:CV_W[src.kind],h:92});
+      const Q = over ? cvEdgePoint(end, A, SIZE[card2.dataset.id]||{w:190,h:92}) : end;
+      rubber.setAttribute("x1",P.x.toFixed(1)); rubber.setAttribute("y1",P.y.toFixed(1));
+      rubber.setAttribute("x2",Q.x.toFixed(1)); rubber.setAttribute("y2",Q.y.toFixed(1));
+    };
+    const up=e2=>{
+      window.removeEventListener("pointermove",move); window.removeEventListener("pointerup",up);
+      window.removeEventListener("keydown",esckey);
+      const cand=CONN&&CONN.cand;
+      endConnect();
+      if(!cand || cand.already) return;
+      if(cand.rule.pick) pickType(cand, e2.clientX, e2.clientY);
+      else commit(cand, null);
+    };
+    const esckey=e2=>{ if(e2.key==="Escape"){ window.removeEventListener("pointermove",move);
+      window.removeEventListener("pointerup",up); window.removeEventListener("keydown",esckey); endConnect(); } };
+    window.addEventListener("pointermove",move);
+    window.addEventListener("pointerup",up);
+    window.addEventListener("keydown",esckey);
+  }
+  function endConnect(){
+    CONN=null; if(rubber.parentNode) rubber.remove();
+    stage.classList.remove("cv-connecting");
+    world.querySelectorAll(".cv-node").forEach(c=>c.classList.remove(
+      "cv-conn-ok","cv-conn-no","cv-conn-done","cv-conn-hot","cv-conn-src"));
+  }
+  /* To strategier kan henge sammen på fire måter — den kan ingen gjette. */
+  function pickType(cand,cx,cy){
+    const pop=el("div","cv-pick");
+    pop.innerHTML=`<div class="cv-pick-h">${esc(t("cv.pick.h"))}</div>`;
+    Object.keys(REL_TYPES).forEach(k=>{
+      const b=el("button","cv-pick-b",esc(t("rel."+k)));
+      b.onclick=()=>{ close(); commit(cand,k); };
+      pop.appendChild(b);
+    });
+    const r=stage.getBoundingClientRect();
+    pop.style.left=Math.min(cx-r.left, r.width-190)+"px";
+    pop.style.top=Math.min(cy-r.top, r.height-180)+"px";
+    stage.appendChild(pop);
+    const close=()=>{ pop.remove(); document.removeEventListener("pointerdown",away,true); };
+    const away=e=>{ if(!pop.contains(e.target)) close(); };
+    setTimeout(()=>document.addEventListener("pointerdown",away,true),0);
+  }
+  function commit(cand,type){
+    const from=cand.from.o, to=cand.to.o;
+    const before=structuredClone({a:from,b:to});
+    const replaced=cand.rule.set(from,to,type);
+    save(); refresh();
+    const label = type ? t("rel."+type) : t(cand.rule.rel);
+    let msg=t("cv.connected").replace("{a}",trunc(cvTitle(cand.from.kind,from),26))
+                            .replace("{r}",label)
+                            .replace("{b}",trunc(cvTitle(cand.to.kind,to),26));
+    if(replaced) msg += " · " + t("cv.replaced").replace("{x}",trunc(replaced,26));
+    toast(msg, ()=>{ Object.assign(from,before.a); Object.assign(to,before.b); save(); refresh(); });
+  }
+  /* Grafen er endret — bygg relasjonene på nytt før vi tegner. */
+  function refresh(){ rels=cvRelations(); NB=cvNeighbourMap(rels); paint(); }
+
+  /* ---- kort melding med angre, i statuslinja ---- */
+  let toastTimer=null;
+  function toast(msg,undo){
+    if(!toastEl) return;
+    clearTimeout(toastTimer);
+    toastEl.innerHTML=`<span>${esc(msg)}</span>`;
+    if(undo){
+      const u=el("button","cv-undo",esc(t("cv.undo")));
+      u.onclick=()=>{ clearTimeout(toastTimer); toastEl.classList.remove("on"); undo(); };
+      toastEl.appendChild(u);
+    }
+    toastEl.classList.add("on");
+    toastTimer=setTimeout(()=>toastEl.classList.remove("on"), undo?9000:4000);
+  }
+
   /* ---- panorering og zoom ---- */
   if(!readonly){
     stage.addEventListener("pointerdown",e=>{
-      if(e.target.closest(".cv-node")||e.target.closest(".cv-status")) return;
+      // Panorering fanger pekeren, så alt som er en kontroll må slippe unna
+      // her — ellers havner det påfølgende klikket på scenen i stedet for på
+      // knappen, og angre-knappen, zoom og saksa på kantene slutter å virke.
+      if(e.target.closest(".cv-node,.cv-statusbar,.cv-toast,.cv-pick,.cv-legend,.cv-edge,.cv-cutbtn")) return;
       stage.classList.add("cv-panning"); stage.setPointerCapture(e.pointerId);
       const x0=e.clientX,y0=e.clientY,px=vp.x,py=vp.y; let moved=false;
       const move=ev=>{ moved=true; vp.x=px+(ev.clientX-x0); vp.y=py+(ev.clientY-y0); transform(); };
@@ -2961,6 +3295,7 @@ function renderCanvas(host, opts={}){
   zwrap.appendChild(zb("⤢",t("cv.fit"),fit));
   const statusWrap=el("div","cv-statusbar"); statusWrap.appendChild(statusEl); statusWrap.appendChild(zwrap);
   stage.appendChild(statusWrap);
+  toastEl=el("div","cv-toast"); stage.appendChild(toastEl);
   stage.appendChild(el("div","cv-legend",
     `<span><span class="ln"></span>${esc(t("cv.lg.declared"))}</span>
      <span><span class="ln dash"></span>${esc(t("cv.lg.derived"))}</span>
