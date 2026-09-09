@@ -515,7 +515,7 @@ a{color:inherit}
 .cv-node:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .cv-node.cv-dragging{cursor:grabbing;box-shadow:var(--shadow-lg);z-index:40}
 .cv-node.cv-sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft),var(--shadow-lg)}
-.cv-node.cv-faded{opacity:.26}
+.cv-node.cv-faded{opacity:.4}
 .cv-node.cv-off{opacity:.45}
 .cv-node.cv-static{cursor:pointer}
 .cv-kd{display:flex;align-items:center;gap:6px;font-size:9.5px;letter-spacing:.13em;
@@ -547,8 +547,6 @@ a{color:inherit}
 .cv-strategy .cv-ttl{font-size:14px;font-weight:700;-webkit-line-clamp:2}
 
 /* ---- skuffen ---- */
-.cv-drawer{background:var(--bg-2);border-left:1px solid var(--line);
-  display:flex;flex-direction:column;min-height:0}
 .cv-dhead{padding:15px 16px 12px;border-bottom:1px solid var(--line)}
 .cv-dhead h2{margin:0;font-family:"Instrument Serif",serif;font-weight:400;font-size:20px}
 .cv-dhead p{margin:3px 0 0;font-size:11.5px;color:var(--ink-3);line-height:1.45}
@@ -601,6 +599,74 @@ a{color:inherit}
 .cv-empty[hidden]{display:none}
 .cv-empty .serif{font-size:26px;display:block;margin-bottom:6px;color:var(--ink-2)}
 .cv-empty p{font-size:12.5px;color:var(--ink-3);margin:0;line-height:1.55;max-width:360px}
+
+/* ---- høyrekolonnen: skuff eller inspektør, og lukkbar ---- */
+.cv-side{background:var(--bg-2);border-left:1px solid var(--line);
+  display:flex;flex-direction:column;min-height:0;position:relative}
+.cv-pane{display:flex;flex-direction:column;min-height:0;flex:1}
+.cv-pane[hidden]{display:none}
+.cv-sclose{position:absolute;top:12px;right:12px;z-index:2;
+  width:26px;height:26px;border-radius:8px;padding:0;display:grid;place-items:center;
+  border:1px solid transparent;background:none;color:var(--ink-3);cursor:pointer}
+.cv-sclose svg{width:15px;height:15px}
+.cv-sclose:hover{border-color:var(--line);background:var(--panel);color:var(--ink)}
+.cv-split.cv-collapsed{grid-template-columns:1fr}
+.cv-split.cv-collapsed .cv-side{display:none}
+.cv-sopen{position:absolute;right:0;top:20px;z-index:12;display:none;align-items:center;gap:6px;
+  border:1px solid var(--line);border-right:none;border-radius:var(--r-sm) 0 0 var(--r-sm);
+  background:var(--panel);color:var(--ink-2);box-shadow:var(--shadow);
+  padding:8px 12px 8px 10px;font-size:12px;font-weight:600;cursor:pointer}
+.cv-sopen svg{width:15px;height:15px;flex:none}
+.cv-sopen:hover{color:var(--ink);border-color:var(--ink-3)}
+.cv-split.cv-collapsed .cv-sopen{display:flex}
+
+/* ---- inspektøren ---- */
+.cv-ihead{padding:13px 16px 11px;border-bottom:1px solid var(--line);
+  display:flex;flex-direction:column;gap:9px;align-items:flex-start}
+.cv-iback{border:none;background:none;padding:0;cursor:pointer;
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11.5px;font-weight:600;color:var(--ink-3)}
+.cv-iback svg{width:13px;height:13px}
+.cv-iback:hover{color:var(--ink)}
+.cv-ikind{display:inline-flex;align-items:center;gap:7px;
+  font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--kc)}
+.cv-ibody{overflow-y:auto;padding:14px 16px 8px;min-height:0;flex:1}
+.cv-ititle{width:100%;border:1px solid transparent;border-radius:var(--r-sm);
+  background:none;padding:7px 8px;margin:0 0 12px -8px;resize:none;overflow:hidden;
+  font-family:"Instrument Serif",Georgia,serif;font-size:19px;line-height:1.25;color:var(--ink)}
+.cv-ititle:hover{border-color:var(--line)}
+.cv-ititle:focus{outline:none;border-color:var(--accent);background:var(--panel)}
+.cv-ifield{margin-bottom:11px}
+.cv-ilabel{display:block;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:700;margin-bottom:5px}
+.cv-iinput{width:100%;border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:6px 9px;font-size:12.5px;background:var(--panel);color:var(--ink);font-family:inherit}
+.cv-iinput:focus{outline:none;border-color:var(--accent)}
+.cv-iseg{display:flex;gap:4px;flex-wrap:wrap}
+.cv-iseg button{border:1px solid var(--line);background:var(--panel);border-radius:7px;
+  padding:5px 9px;font-size:11.5px;font-weight:600;color:var(--ink-2);cursor:pointer}
+.cv-iseg button:hover{border-color:var(--ink-3)}
+.cv-iseg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.cv-ish{margin:18px 0 8px;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:700;display:flex;align-items:center;gap:7px}
+.cv-inone{font-size:11.5px;color:var(--ink-3);padding:2px 0 6px}
+.cv-ilink{display:flex;gap:7px;align-items:flex-start;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 6px 7px 9px;margin-bottom:5px}
+.cv-ilink .cv-glyph{width:16px;height:16px;margin-top:2px}
+.cv-iltx{min-width:0;flex:1}
+.cv-ilrel{display:block;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:700}
+.cv-iltx b{display:-webkit-box;font-size:11.5px;font-weight:600;line-height:1.35;margin-top:2px;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cv-ilgo,.cv-ilcut{flex:none;width:22px;height:22px;border-radius:6px;padding:0;
+  display:grid;place-items:center;border:1px solid transparent;background:none;
+  color:var(--ink-3);cursor:pointer;line-height:1}
+.cv-ilgo svg{width:13px;height:13px}
+.cv-ilcut{font-size:14px}
+.cv-ilgo:hover{border-color:var(--line);color:var(--ink)}
+.cv-ilcut:hover{border-color:var(--bad);color:var(--bad)}
+.cv-ifoot{border-top:1px solid var(--line);padding:11px 16px;display:flex;gap:8px;flex-wrap:wrap}
+.cv-ifoot .btn{font-size:12px;padding:6px 11px;box-shadow:none}
 
 /* ---- dra for å koble ---- */
 .cv-plug{position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);
@@ -664,7 +730,7 @@ line.cv-rubber{stroke:var(--accent);stroke-width:2.2;stroke-dasharray:6 5;stroke
 
 @media(max-width:1080px){
   .cv-split{grid-template-columns:1fr;grid-template-rows:1fr auto}
-  .cv-drawer{border-left:none;border-top:1px solid var(--line);max-height:38vh}
+  .cv-side{border-left:none;border-top:1px solid var(--line);max-height:38vh}
   .cv-head{padding:18px 20px 0}
   .cv-bar{padding:12px 20px 10px}
 }
@@ -961,6 +1027,13 @@ const T = {
     "nav.goals":"Goals", "nav.outcomes":"Outcomes", "grp.direction":"Direction",
     /* ---- strategy canvas ---- */
     "cv.h1":"Strategy Canvas",
+    "cv.side.close":"Close the panel",
+    "cv.side.open":"Open the panel",
+    "cv.links":"Links",
+    "cv.links.none":"Nothing is linked to this yet.",
+    "cv.links.go":"Select on the canvas",
+    "cv.links.place":"Put it on the canvas",
+    "cv.form":"Open the form",
     "cv.connect.h":"Drag to connect",
     "cv.connected":"Connected: {a} {r} {b}",
     "cv.replaced":"replaced {x}",
@@ -1117,6 +1190,13 @@ const T = {
     "nav.goals":"Mål", "nav.outcomes":"Utfall", "grp.direction":"Retning",
     /* ---- strategikart som lerret ---- */
     "cv.h1":"Strategikart",
+    "cv.side.close":"Lukk panelet",
+    "cv.side.open":"Åpne panelet",
+    "cv.links":"Koblinger",
+    "cv.links.none":"Ingenting er koblet til denne ennå.",
+    "cv.links.go":"Velg på lerretet",
+    "cv.links.place":"Legg den på lerretet",
+    "cv.form":"Åpne skjema",
     "cv.connect.h":"Dra for å koble",
     "cv.connected":"Koblet: {a} {r} {b}",
     "cv.replaced":"erstattet {x}",
@@ -2957,7 +3037,7 @@ function renderCanvas(host, opts={}){
     transform();
     if(empty) empty.hidden = list.length>0;
     if(statusEl) statusEl.innerHTML=`<span>${esc(t("cv.stat").replace("{n}",list.length).replace("{e}",links))}</span>`;
-    if(drawerEl) paintDrawer();
+    if(drawerEl) paintSide();
     if(layerEl) paintLayers();
   }
   function transform(){
@@ -3252,6 +3332,143 @@ function renderCanvas(host, opts={}){
     if(!drawerEl.children.length) drawerEl.appendChild(el("div","cv-dempty",esc(dq?t("cv.nohits"):t("cv.allplaced"))));
   }
 
+  /* ════════════════════════════════════════════════════════════════
+     INSPEKTØREN
+     De feltene du faktisk endrer mens du står i kartet — tilstand,
+     tiltro, konsekvens, eier — ligger her og lagres med én gang.
+     Resten bor fortsatt i det fulle skjemaet; å gjengi hele skjemaet
+     i 306 px ville gitt et dårligere skjema, ikke en bedre inspektør.
+     Feltdefinisjonene hentes fra FIELDS, så etiketter og valg følger
+     språket uten en egen kopi å holde synkron.
+     ════════════════════════════════════════════════════════════════ */
+  const CV_TITLE_F = {goal:"title", outcome:"statement", strategy:"name",
+    insight:"claim", assumption:"statement", signal:"signal", decision:"title"};
+  const CV_QUICK = {
+    goal:      ["type","horizon","owner"],
+    outcome:   ["state","target","by","baseline"],
+    strategy:  ["status","owner","review","version"],
+    insight:   ["confidence","theme","source"],
+    assumption:["confidence","consequence","state"],
+    signal:    ["state","owner","expected_shape"],
+    decision:  ["door","owner","area","decided"],
+  };
+  /* segment-valgene har egne oversettelser rundt om i appen — bruk dem */
+  function cvOptL(k,opt){
+    if(k==="status")   return statusL(opt);
+    if(k==="framework")return fwL(opt);
+    if(k==="confidence"||k==="consequence") return lvl(opt);
+    if(k==="state")    return T.en["state."+opt] ? t("state."+opt) : opt;
+    if(k==="door")     return T.en["door."+opt] ? t("door."+opt) : opt;
+    return T.en["gtype."+opt] ? t("gtype."+opt) : opt;
+  }
+  function paintInspector(n){
+    const coll=CV_COLL[n.kind], flds=FIELDS[coll]||[];
+    const byKey={}; flds.forEach(f=>byKey[f.k]=f);
+    inspectPane.innerHTML="";
+
+    /* hode: tilbake til skuffen + hva dette er */
+    const head=el("div","cv-ihead");
+    const back=el("button","cv-iback",
+      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>${esc(t("cv.drawer.t"))}`);
+    back.onclick=()=>{ sel=null; mapFocus=null; paint(); };
+    head.appendChild(back);
+    head.appendChild(el("div","cv-ikind cv-p-"+n.kind,
+      `<span class="cv-glyph">${CV_GLYPH[n.kind]}</span>${esc(t("cv.k."+n.kind))}`));
+    inspectPane.appendChild(head);
+
+    const body=el("div","cv-ibody");
+    inspectPane.appendChild(body);
+
+    /* tittelen — det ene lange feltet som hører hjemme her */
+    const tf=CV_TITLE_F[n.kind];
+    const ta=el("textarea","cv-ititle"); ta.rows=2; ta.value=n.o[tf]||"";
+    ta.setAttribute("aria-label", fldL(coll, byKey[tf]||{l:"Title",k:tf}));
+    const grow=()=>{ ta.style.height="auto"; ta.style.height=(ta.scrollHeight+2)+"px"; };
+    ta.oninput=()=>{ n.o[tf]=ta.value; grow(); save(); liveTitle(n.id, ta.value); };
+    ta.onchange=()=>refresh();
+    body.appendChild(ta); requestAnimationFrame(grow);
+
+    /* de raske feltene */
+    (CV_QUICK[n.kind]||[]).forEach(k=>{
+      const f=byKey[k]; if(!f) return;
+      const row=el("div","cv-ifield");
+      row.appendChild(el("label","cv-ilabel",esc(fldL(coll,f))));
+      if(f.t==="seg"){
+        const seg=el("div","cv-iseg");
+        const cur=n.o[k]||(f.noDefault?"":f.opts[0]);
+        f.opts.forEach(o=>{
+          const b=el("button", o===cur?"on":"", esc(cvOptL(k,o))); b.type="button";
+          b.onclick=()=>{ n.o[k]=o; save(); refresh(); };
+          seg.appendChild(b);
+        });
+        row.appendChild(seg);
+      } else {
+        const inp=el("input","cv-iinput");
+        inp.type = f.t==="date" ? "date" : "text";
+        inp.value = n.o[k]==null ? "" : n.o[k];
+        inp.placeholder = fldPh(coll,f);
+        inp.oninput=()=>{ n.o[k]=inp.value; save(); };
+        inp.onchange=()=>refresh();
+        row.appendChild(inp);
+      }
+      body.appendChild(row);
+    });
+
+    /* koblingene — de samme som tegnes på lerretet, med samme saks */
+    const mine=rels.filter(r=>r.a===n.id||r.b===n.id);
+    body.appendChild(el("div","cv-ish",
+      `${esc(t("cv.links"))} <span class="cv-n">${mine.length}</span>`));
+    if(!mine.length) body.appendChild(el("div","cv-inone",esc(t("cv.links.none"))));
+    mine.forEach(r=>{
+      const otherId = r.a===n.id ? r.b : r.a;
+      const oe = cvEntity(otherId); if(!oe) return;
+      const out = r.a===n.id;
+      const row=el("div","cv-ilink cv-p-"+oe.kind);
+      row.innerHTML=`<span class="cv-glyph">${CV_GLYPH[oe.kind]}</span>
+        <span class="cv-iltx"><span class="cv-ilrel">${out?"→":"←"} ${esc(r.label)}</span>
+        <b>${esc(cvTitle(oe.kind,oe.o))}</b></span>`;
+      const go=el("button","cv-ilgo"); go.title=t("cv.links.go");
+      if(oe.o.pos){
+        go.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>`;
+        go.onclick=()=>{ sel=otherId; mapFocus=sel; paint(); };
+      }else{
+        // den andre enden ligger ikke på lerretet — tilby å legge den dit
+        go.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>`;
+        go.title=t("cv.links.place");
+        go.onclick=()=>{ placeSmart(otherId); };
+      }
+      row.appendChild(go);
+      if(r.rule){
+        const cut=el("button","cv-ilcut","×"); cut.title=t("cv.cut");
+        cut.onclick=()=>{
+          const src=cvEntity(r.a).o, dst=cvEntity(r.b).o;
+          const before=structuredClone({a:src,b:dst});
+          CV_LINKS[r.rule].cut(src,dst); save(); refresh();
+          toast(t("cv.cut.done").replace("{r}", r.label), ()=>{
+            Object.assign(src,before.a); Object.assign(dst,before.b); save(); refresh(); });
+        };
+        row.appendChild(cut);
+      }
+      body.appendChild(row);
+    });
+
+    /* resten bor i skjemaet */
+    const foot=el("div","cv-ifoot");
+    const openF=el("button","btn",
+      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>${esc(t("cv.form"))}`);
+    openF.onclick=()=>editEntry(coll, n.id);
+    const off=el("button","btn",esc(t("cv.remove")));
+    off.onclick=()=>{ cvRemove(n.id); sel=null; mapFocus=null; paint(); };
+    foot.appendChild(openF); foot.appendChild(off);
+    inspectPane.appendChild(foot);
+  }
+  /* Oppdater kortets tekst mens du skriver, uten å tegne alt på nytt —
+     en full paint() ville tatt fokus ut av feltet ved hvert tastetrykk. */
+  function liveTitle(id,txt){
+    const c=world.querySelector('.cv-node[data-id="'+CSS.escape(id)+'"] .cv-ttl');
+    if(c) c.textContent=txt;
+  }
+
   /* ---- Rydd opp: lag på lag, sortert etter naboen, brekt og sentrert ---- */
   function tidy(){
     const rows=[["goal"],["outcome"],["strategy"],["assumption"],["insight","signal","decision"]];
@@ -3313,15 +3530,63 @@ function renderCanvas(host, opts={}){
   bClear.onclick=()=>{ if(!confirm(t("cv.clear.ask"))) return; cvPlaced().forEach(n=>delete n.o.pos); sel=null; mapFocus=null; save(); paint(); };
   bar.appendChild(bTidy); bar.appendChild(bPull); bar.appendChild(bClear);
 
-  const dr=el("aside","cv-drawer");
-  dr.appendChild(el("div","cv-dhead",
+  /* ════════════════════════════════════════════════════════════════
+     HØYREKOLONNEN — én kolonne, to tilstander
+     Skuffen står der som standard. Velger du et kort bytter kolonnen
+     til inspektøren. To paneler side om side ville delt 306 px på to
+     og gjort begge ubrukelige; å bytte er ærligere enn å klemme.
+     Hele kolonnen kan lukkes — da får lerretet full bredde, og en
+     fane på kanten tar deg tilbake.
+     ════════════════════════════════════════════════════════════════ */
+  const drawerPane=el("div","cv-pane");
+  drawerPane.appendChild(el("div","cv-dhead",
     `<h2>${esc(t("cv.drawer.t"))}</h2><p>${esc(t("cv.drawer.d"))}</p>`));
-  dr.querySelector(".cv-dhead").appendChild(searchInp);
-  dr.appendChild(drawerEl);
+  drawerPane.querySelector(".cv-dhead").appendChild(searchInp);
+  drawerPane.appendChild(drawerEl);
+
+  const inspectPane=el("div","cv-pane"); inspectPane.hidden=true;
+
+  const side=el("aside","cv-side");
+  const sideClose=el("button","cv-sclose",
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>`);
+  sideClose.title=t("cv.side.close"); sideClose.setAttribute("aria-label",t("cv.side.close"));
+  sideClose.onclick=()=>setSide(false);
+  side.appendChild(sideClose);
+  side.appendChild(drawerPane); side.appendChild(inspectPane);
+
+  // fanen som henter kolonnen tilbake
+  const sideOpen=el("button","cv-sopen",
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg><span></span>`);
+  sideOpen.title=t("cv.side.open"); sideOpen.setAttribute("aria-label",t("cv.side.open"));
+  sideOpen.onclick=()=>setSide(true);
+  stage.appendChild(sideOpen);
 
   const split=el("div","cv-split");
-  split.appendChild(stage); split.appendChild(dr);
+  split.appendChild(stage); split.appendChild(side);
   host.appendChild(bar); host.appendChild(split);
+
+  function setSide(open){
+    CV_VIEW.side = !!open; cvSaveView();
+    split.classList.toggle("cv-collapsed", !open);
+    paintSideTab();
+  }
+  function paintSideTab(){
+    const on = CV_VIEW.side!==false;
+    const e = sel ? cvEntity(sel) : null;
+    // når kolonnen er lukket sier fanen hva som venter der inne
+    sideOpen.querySelector("span").textContent =
+      on ? "" : (e ? t("cv.k."+e.kind) : t("cv.drawer.t"));
+  }
+  setSide(CV_VIEW.side!==false);
+
+  /* velger vi hva kolonnen skal vise */
+  function paintSide(){
+    const e = sel ? cvEntity(sel) : null;
+    drawerPane.hidden = !!e;
+    inspectPane.hidden = !e;
+    if(e) paintInspector({id:sel, kind:e.kind, o:e.o}); else paintDrawer();
+    paintSideTab();
+  }
 
   paint();
   whenSized(()=>{ measure(); paintEdges();
