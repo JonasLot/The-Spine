@@ -214,6 +214,12 @@ a{color:inherit}
 .linkc .tk{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3)}
 .logitem{display:flex;gap:11px;padding:9px 0;border-bottom:1px dashed var(--line)}
 .logitem .d{font-family:"Spline Sans Mono",monospace;font-size:11.5px;color:var(--ink-3);flex:none;width:84px}
+.logitem .v{font-family:"Spline Sans Mono",monospace;font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink);font-weight:500;flex:none;margin-left:auto;padding-left:12px}
+.spark{display:block;overflow:visible}
+.spark-wrap{display:flex;align-items:center;gap:10px}
+.spark-now{font-family:"Spline Sans Mono",monospace;font-size:12.5px;font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap}
+.spark-th{font-family:"Spline Sans Mono",monospace;font-size:10.5px;color:var(--ink-3);white-space:nowrap}
+.spark-empty{font-size:12px;color:var(--ink-3)}
 .drawer-foot{margin-top:auto;padding:16px 24px;border-top:1px solid var(--line);display:flex;gap:10px}
 .btn.danger{color:var(--bad);border-color:var(--line)}
 .btn.danger:hover{border-color:var(--bad);background:var(--bad-bg)}
@@ -308,6 +314,12 @@ a{color:inherit}
 .rev-card .ctrl input{flex:1;min-width:180px;border:1px solid var(--line);background:var(--panel);border-radius:var(--r-sm);padding:8px 10px;outline:none}
 .rev-card .ctrl input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .rev-card .lbl{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.sug-note{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;border-radius:var(--r-sm);
+  background:var(--accent-soft);color:var(--accent-ink);font-size:13px;line-height:1.45;order:-1}
+.sug-note svg{width:16px;height:16px;flex:none;margin-top:2px;color:var(--accent)}
+.sug-note .hint{font-size:12px;color:var(--accent-ink);opacity:.72;margin-top:2px}
+.sug-chip{display:inline-block;font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;
+  background:var(--accent-soft);color:var(--accent-ink);white-space:nowrap;margin-left:4px}
 .rev-step{margin:26px 0 12px;display:flex;align-items:baseline;gap:10px}
 .rev-step .num{font-family:"Spline Sans Mono",monospace;font-size:12px;color:#fff;background:var(--accent);width:22px;height:22px;border-radius:50%;display:inline-grid;place-items:center;flex:none}
 .rev-step h2{font-family:"Instrument Serif",serif;font-weight:400;font-size:22px}
@@ -583,14 +595,14 @@ const SEED = {
     {id:"a6", strategy:"On-Demand Transit Planning", statement:"School admins will self-serve onboarding without support calls.", confidence:"low", consequence:"high", kill_signal:"Support tickets per new admin stays above 2 after week 4.", state:"holding", watchedBy:"s4", note:"Carried over from the On-Demand pilot; the riskiest bet of that strategy."},
   ],
   signals: [
-    {id:"s1", strategy:"Tet Vedtak — Case Platform", signal:"Appeal-overturn rate on school-transport decisions, and the understood cause", watches:"a1", expected_shape:"Cause understood in M0; rate falls as the Tet Vedtak pilot rolls out.", owner:"Jonas", state:"disagreeing", last_reading:"~90% overturn — cause (decision error / rule interpretation / applicant quality) not yet understood (M0)",
-     log:[{d:"2026-05-13", t:"~90% overturn rate documented but not yet understood. Appeals analysis in progress. High rate is a red flag against the automation assumption."}]},
+    {id:"s1", strategy:"Tet Vedtak — Case Platform", signal:"Appeal-overturn rate on school-transport decisions, and the understood cause", watches:"a1", expected_shape:"Cause understood in M0; rate falls as the Tet Vedtak pilot rolls out.", owner:"Jonas", unit:"%", dir:"down", thresh:"", band:"", state:"disagreeing", last_reading:"~90% overturn — cause (decision error / rule interpretation / applicant quality) not yet understood (M0)",
+     log:[{d:"2026-05-13", t:"~90% overturn rate documented but not yet understood. Appeals analysis in progress. High rate is a red flag against the automation assumption.", v:90}]},
     {id:"s2", strategy:"Tet Vedtak — Case Platform", signal:"DPIA approval status for automated casework", watches:"a2", expected_shape:"Approved by the data-protection officer before the planned M2 start.", owner:"Jonas", state:"drifting", last_reading:"In progress — new DPIA started, new counsel engaged, real-time-location info submitted (2026-06-11)",
      log:[{d:"2026-06-11", t:"New school-transport DPIA started, new counsel engaged. Still not approved → blocks Gate 1."},{d:"2026-05-13", t:"DPIA not advanced/approved. Active blocker on the critical path."}]},
-    {id:"s3", strategy:"TØFF Migration", signal:"Service interruption during the TØFF migration window", watches:"a4", expected_shape:"Zero statutory-service breaks; all deadlines met.", owner:"Jonas", state:"agreeing", last_reading:"No migration activity yet — baseline clean (2026-06-01)",
-     log:[{d:"2026-06-01", t:"Pre-migration baseline established. No interruptions. Migration not yet started."}]},
-    {id:"s4", strategy:"On-Demand Transit Planning", signal:"New admins self-onboarding without a support call", watches:"a6", expected_shape:"≥80% self-onboard by week 4.", owner:"Jonas", state:"drifting", last_reading:"62% at week 4 — below the ≥80% expected shape (2026-06-12)",
-     log:[{d:"2026-06-12", t:"62% at week 4. Drifting below the ≥80% expected shape."},{d:"2026-05-29", t:"71% at week 2. On track."}]},
+    {id:"s3", strategy:"TØFF Migration", signal:"Service interruption during the TØFF migration window", watches:"a4", expected_shape:"Zero statutory-service breaks; all deadlines met.", owner:"Jonas", unit:" breaks", dir:"down", thresh:0, band:"", state:"agreeing", last_reading:"No migration activity yet — baseline clean (2026-06-01)",
+     log:[{d:"2026-06-01", t:"Pre-migration baseline established. No interruptions. Migration not yet started.", v:0}]},
+    {id:"s4", strategy:"On-Demand Transit Planning", signal:"New admins self-onboarding without a support call", watches:"a6", expected_shape:"≥80% self-onboard by week 4.", owner:"Jonas", unit:"%", dir:"up", thresh:80, band:"", state:"drifting", last_reading:"62% at week 4 — below the ≥80% expected shape (2026-06-12)",
+     log:[{d:"2026-06-12", t:"62% at week 4. Drifting below the ≥80% expected shape.", v:62},{d:"2026-05-29", t:"71% at week 2. On track.", v:71},{d:"2026-05-15", t:"78% at week 1. Just under the expected shape.", v:78}]},
     {id:"s5", strategy:"Tet Vedtak — Case Platform", signal:"Rule-engine verification against historical appeals", watches:"a5", expected_shape:"Reproduces correct outcomes on ≥30 historical appeal cases.", owner:"Jonas", state:"agreeing", last_reading:"Verification set being assembled — 18 of 30 cases loaded (2026-06-18)",
      log:[{d:"2026-06-18", t:"18 of 30 historical appeals loaded into the verification set. Early reproductions matching."}]},
   ],
@@ -716,7 +728,7 @@ const T = {
     "sect.radar":"Strategy review radar","sect.radar.h":"Who's due — overdue and committed first","sect.spine":"The spine","sect.spine.h":"What you do per strategy — flow, not loop","sect.attention":"Needs attention","sect.attention.h":"Agenda items for the next review — not footnotes",
     "empty.quiet.t":"All quiet.","empty.quiet.d":"No drifting signals or shaky bets in view. A signal that only ever confirms is decoration — keep designing sharper ones.",
     "th.what":"What","th.type":"Type","th.state":"State","th.reading":"Reading / kill-signal","th.strategy":"Strategy","th.status":"Status","th.flashing":"Flashing","th.reviewdue":"Review due",
-    "th.claim":"Claim","th.theme":"Theme","th.confidence":"Confidence","th.captured":"Captured","th.feeds":"Feeds","th.decision":"Decision","th.door":"Door","th.rests":"Rests on","th.owner":"Owner","th.decided":"Decided","th.assumption":"Assumption","th.confcons":"Conf × Cons","th.killsignal":"Kill-signal","th.watchedby":"Watched by","th.signal":"Signal","th.watches":"Watches","th.latest":"Latest reading",
+    "th.claim":"Claim","th.theme":"Theme","th.confidence":"Confidence","th.captured":"Captured","th.feeds":"Feeds","th.decision":"Decision","th.door":"Door","th.rests":"Rests on","th.owner":"Owner","th.decided":"Decided","th.assumption":"Assumption","th.confcons":"Conf × Cons","th.killsignal":"Kill-signal","th.watchedby":"Watched by","th.signal":"Signal","th.watches":"Watches","th.trend":"Trend","th.latest":"Latest reading",
     "empty.insights.t":"No insights yet.","empty.insights.d":"Capture what you've learned — one claim, its evidence, a confidence level.","empty.decisions.t":"No decisions logged.","empty.decisions.d":"Log the next real choice — what was decided, and what you rejected.","empty.assumptions.t":"No assumptions yet.","empty.assumptions.d":"Harvest bets from your diagnosis and pre-mortem failure modes.","empty.signals.t":"No signals yet.","empty.signals.d":"Design 3–5 per strategy. Each watches one assumption.","empty.strat.t":"No strategies yet.","empty.strat.d":"Create one — name it, pick a framework, and write the one-page artifact.",
     "btn.back.strat":"All strategies","btn.edit":"Edit","btn.expand":"Expand",
     "strat.canon":"Canonical artifact","strat.owner":"owner","strat.derived":"derived from the","strat.cites":"Everything else cites this.","strat.unowned":"unowned",
@@ -732,7 +744,12 @@ const T = {
     "dt.source":"Source","dt.area":"Area","dt.consequence":"Consequence","dt.expected":"Expected shape","dt.strategy":"Strategy",
     "dr.evidence":"Evidence","dr.feeds":"Feeds the bet","dr.reasoning":"Reasoning","dr.rejected":"Options rejected","dr.restson":"Rests on assumptions","dr.trigger":"Review trigger","dr.kill":"Kill-signal — what would prove this false","dr.watchedby":"Watched by","dr.decresting":"Decisions resting on it","dr.watchesasm":"Watches assumption","dr.readinglog":"Reading log","dr.noreadings":"No readings yet.","dr.blindspot":"unwatched — a blind spot",
     "tk.assumption":"assumption","tk.decision":"decision","tk.signal":"signal",
-    "rev.expected":"Expected","rev.watches":"watches","rev.latest":"Latest","rev.newreading":"New reading, e.g. 58% at week 6…","rev.logreading":"Log reading","rev.logged":"✓ logged","rev.rerate":"Re-rate","rev.saved":"✓ saved",
+    "rev.expected":"Expected","rev.watches":"watches","rev.latest":"Latest","rev.newreading":"New reading, e.g. 58% at week 6…","rev.value":"Value","rev.logreading":"Log reading","rev.logged":"✓ logged","rev.rerate":"Re-rate","rev.saved":"✓ saved",
+    "spark.target":"target","spark.aria":"{n} readings, latest {v}",
+    "sug.prefix":"Suggested","sug.hint":"You confirm — nothing changes until you log the reading.",
+    "sug.why.breach2":"{v} against {th} — second breach in a row.",
+    "sug.why.breach1":"{v} against {th}, and moving the wrong way.",
+    "sug.why.steady":"{v} against {th} — back inside the expected shape.",
     "sys.families":"The four families","sys.families.h":"Ten systems · four live registers","sys.loop":"The register loop","sys.loop.h":"How the four registers actually talk to each other","sys.register":"register","sys.live":"live register","sys.without":"Without it:","sys.family":"Family:","sys.feeds":"Feeds",
     "loop.1":"Insights feed the diagnosis in Understand.","loop.2":"The diagnosis produces Assumptions — the bets the strategy rests on.","loop.3":"Each Signal watches a named assumption; each Decision records the bets it rests on.","loop.4":"When a signal disagrees or an assumption breaks, you're sent back to the diagnosis.","loop.5":"The Learning Loop writes the lesson from a broken bet back into Insights — and downgrades the falsified one. That's what makes it a flywheel, not a one-off.",
   },
@@ -784,7 +801,7 @@ const T = {
     "sect.radar":"Radar for strategigjennomgang","sect.radar.h":"Hvem står for tur — på overtid og vedtatt først","sect.spine":"Ryggraden","sect.spine.h":"Det du gjør per strategi — flyt, ikke løkke","sect.attention":"Trenger oppmerksomhet","sect.attention.h":"Agendapunkter til neste gjennomgang — ikke fotnoter",
     "empty.quiet.t":"Alt er rolig.","empty.quiet.d":"Ingen drivende signaler eller vaklende bets i visningen. Et signal som bare bekrefter er dekorasjon — fortsett å designe skarpere.",
     "th.what":"Hva","th.type":"Type","th.state":"Tilstand","th.reading":"Avlesning / kill-signal","th.strategy":"Strategi","th.status":"Status","th.flashing":"Blinker","th.reviewdue":"Gjennomgang",
-    "th.claim":"Påstand","th.theme":"Tema","th.confidence":"Konfidens","th.captured":"Fanget","th.feeds":"Mater","th.decision":"Beslutning","th.door":"Dør","th.rests":"Hviler på","th.owner":"Eier","th.decided":"Besluttet","th.assumption":"Antakelse","th.confcons":"Konf × Kons","th.killsignal":"Kill-signal","th.watchedby":"Overvåket av","th.signal":"Signal","th.watches":"Overvåker","th.latest":"Siste avlesning",
+    "th.claim":"Påstand","th.theme":"Tema","th.confidence":"Konfidens","th.captured":"Fanget","th.feeds":"Mater","th.decision":"Beslutning","th.door":"Dør","th.rests":"Hviler på","th.owner":"Eier","th.decided":"Besluttet","th.assumption":"Antakelse","th.confcons":"Konf × Kons","th.killsignal":"Kill-signal","th.watchedby":"Overvåket av","th.signal":"Signal","th.watches":"Overvåker","th.trend":"Trend","th.latest":"Siste avlesning",
     "empty.insights.t":"Ingen innsikter ennå.","empty.insights.d":"Fang det du har lært — én påstand, beviset, et konfidensnivå.","empty.decisions.t":"Ingen beslutninger loggført.","empty.decisions.d":"Loggfør neste reelle valg — hva som ble besluttet, og hva du forkastet.","empty.assumptions.t":"Ingen antakelser ennå.","empty.assumptions.d":"Høst bets fra diagnosen og pre-mortem-feilmodusene.","empty.signals.t":"Ingen signaler ennå.","empty.signals.d":"Design 3–5 per strategi. Hvert overvåker én antakelse.","empty.strat.t":"Ingen strategier ennå.","empty.strat.d":"Lag én — gi den navn, velg et rammeverk, og skriv énsides-artefaktet.",
     "btn.back.strat":"Alle strategier","btn.edit":"Rediger","btn.expand":"Utvid",
     "strat.canon":"Kanonisk artefakt","strat.owner":"eier","strat.derived":"avledet fra","strat.cites":"Alt annet siterer denne.","strat.unowned":"ingen eier",
@@ -800,7 +817,12 @@ const T = {
     "dt.source":"Kilde","dt.area":"Område","dt.consequence":"Konsekvens","dt.expected":"Forventet form","dt.strategy":"Strategi",
     "dr.evidence":"Bevis","dr.feeds":"Mater bettet","dr.reasoning":"Begrunnelse","dr.rejected":"Forkastede alternativer","dr.restson":"Hviler på antakelser","dr.trigger":"Gjennomgangstrigger","dr.kill":"Kill-signal — hva som ville motbevise dette","dr.watchedby":"Overvåket av","dr.decresting":"Beslutninger som hviler på den","dr.watchesasm":"Overvåker antakelse","dr.readinglog":"Avlesningslogg","dr.noreadings":"Ingen avlesninger ennå.","dr.blindspot":"uovervåket — et blindpunkt",
     "tk.assumption":"antakelse","tk.decision":"beslutning","tk.signal":"signal",
-    "rev.expected":"Forventet","rev.watches":"overvåker","rev.latest":"Siste","rev.newreading":"Ny avlesning, f.eks. 58 % ved uke 6…","rev.logreading":"Loggfør avlesning","rev.logged":"✓ loggført","rev.rerate":"Revurder","rev.saved":"✓ lagret",
+    "rev.expected":"Forventet","rev.watches":"overvåker","rev.latest":"Siste","rev.newreading":"Ny avlesning, f.eks. 58 % ved uke 6…","rev.value":"Verdi","rev.logreading":"Loggfør avlesning","rev.logged":"✓ loggført","rev.rerate":"Revurder","rev.saved":"✓ lagret",
+    "spark.target":"mål","spark.aria":"{n} avlesninger, siste {v}",
+    "sug.prefix":"Foreslått","sug.hint":"Du bekrefter — ingenting endres før du loggfører avlesningen.",
+    "sug.why.breach2":"{v} mot {th} — andre brudd på rad.",
+    "sug.why.breach1":"{v} mot {th}, og på vei feil vei.",
+    "sug.why.steady":"{v} mot {th} — tilbake innenfor forventet form.",
     "sys.families":"De fire familiene","sys.families.h":"Ti systemer · fire levende registre","sys.loop":"Register-løkken","sys.loop.h":"Hvordan de fire registrene faktisk snakker sammen","sys.register":"register","sys.live":"levende register","sys.without":"Uten det:","sys.family":"Familie:","sys.feeds":"Mater",
     "loop.1":"Innsikter mater diagnosen i Forstå.","loop.2":"Diagnosen produserer Antakelser — bettene strategien hviler på.","loop.3":"Hvert Signal overvåker en navngitt antakelse; hver Beslutning registrerer bettene den hviler på.","loop.4":"Når et signal er uenig eller en antakelse brytes, sendes du tilbake til diagnosen.","loop.5":"Læringsløkken skriver lærdommen fra et brutt bet tilbake inn i Innsikter — og nedgraderer den falsifiserte. Det er det som gjør det til et svinghjul, ikke en engangshendelse.",
   },
@@ -896,13 +918,13 @@ const SEED_NO = {
     note:"Videreført fra On-Demand-piloten; det risikableste bettet i den strategien."},
 
   s1:{signal:"Omgjøringsrate på skoleskyss-vedtak, og den forståtte årsaken",expected_shape:"Årsak forstått i M0; raten faller etter hvert som Tet Vedtak-piloten rulles ut.",last_reading:"~90 % omgjøring — årsak (beslutningsfeil / regeltolkning / søkerkvalitet) ennå ikke forstått (M0)",
-    log:[{d:"2026-05-13", t:"~90 % omgjøringsrate dokumentert, men ennå ikke forstått. Klageanalyse pågår. Høy rate er et faresignal mot automatiseringsantakelsen."}]},
+    log:[{d:"2026-05-13", v:90, t:"~90 % omgjøringsrate dokumentert, men ennå ikke forstått. Klageanalyse pågår. Høy rate er et faresignal mot automatiseringsantakelsen."}]},
   s2:{signal:"DPIA-godkjenningsstatus for automatisert saksbehandling",expected_shape:"Godkjent av personvernombudet før planlagt M2-start.",last_reading:"Pågår — ny DPIA startet, ny juridisk rådgiver engasjert, sanntids-lokasjonsinfo innsendt (2026-06-11)",
     log:[{d:"2026-06-11", t:"Ny skoleskyss-DPIA startet, ny juridisk rådgiver engasjert. Fortsatt ikke godkjent → blokkerer Gate 1."},{d:"2026-05-13", t:"DPIA ikke fremmet/godkjent. Aktiv blokker på kritisk sti."}]},
-  s3:{signal:"Tjenesteavbrudd under TØFF-migreringsvinduet",expected_shape:"Null brudd i lovpålagt tjeneste; alle frister overholdt.",last_reading:"Ingen migreringsaktivitet ennå — baseline ren (2026-06-01)",
-    log:[{d:"2026-06-01", t:"Baseline før migrering etablert. Ingen avbrudd. Migrering ikke startet."}]},
+  s3:{signal:"Tjenesteavbrudd under TØFF-migreringsvinduet",expected_shape:"Null brudd i lovpålagt tjeneste; alle frister overholdt.",unit:" avbrudd",last_reading:"Ingen migreringsaktivitet ennå — baseline ren (2026-06-01)",
+    log:[{d:"2026-06-01", v:0, t:"Baseline før migrering etablert. Ingen avbrudd. Migrering ikke startet."}]},
   s4:{signal:"Nye administratorer som selvbetjener onboarding uten en supporttelefon",expected_shape:"≥80 % selvbetjener innen uke 4.",last_reading:"62 % ved uke 4 — under forventet form på ≥80 % (2026-06-12)",
-    log:[{d:"2026-06-12", t:"62 % ved uke 4. Driver under forventet form på ≥80 %."},{d:"2026-05-29", t:"71 % ved uke 2. På sporet."}]},
+    log:[{d:"2026-06-12", v:62, t:"62 % ved uke 4. Driver under forventet form på ≥80 %."},{d:"2026-05-29", v:71, t:"71 % ved uke 2. På sporet."},{d:"2026-05-15", v:78, t:"78 % ved uke 1. Så vidt under forventet form."}]},
   s5:{signal:"Regelmotor-verifisering mot historiske klager",expected_shape:"Reproduserer korrekte utfall på ≥30 historiske klagesaker.",last_reading:"Verifiseringssett settes sammen — 18 av 30 saker lastet (2026-06-18)",
     log:[{d:"2026-06-18", t:"18 av 30 historiske klager lastet inn i verifiseringssettet. Tidlige reproduksjoner stemmer."}]},
 
@@ -1035,7 +1057,7 @@ function render(){
   r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,goals:vGoals,outcomes:vOutcomes,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
 }
 function reviewDueCount(){
-  return DB.signals.filter(s=>(s.state==="disagreeing"||s.state==="drifting")).length
+  return DB.signals.filter(s=>s.state==="disagreeing"||s.state==="drifting"||suggestSignalState(s)).length
        + DB.assumptions.filter(a=>(a.state==="shaky"||a.state==="broken")).length;
 }
 function updateCounts(){
@@ -1051,11 +1073,13 @@ function vDashboard(){
   const broken = DB.assumptions.filter(a=>a.state==="broken" && matchStrat(a.strategy));
   const disag = DB.signals.filter(s=>s.state==="disagreeing" && matchStrat(s.strategy));
   const attention = [
-    ...DB.signals.filter(s=>(s.state==="disagreeing"||s.state==="drifting") && matchStrat(s.strategy)).map(s=>({k:"signal",o:s})),
+    ...DB.signals.filter(s=>(s.state==="disagreeing"||s.state==="drifting"||suggestSignalState(s)) && matchStrat(s.strategy)).map(s=>({k:"signal",o:s})),
     ...DB.assumptions.filter(a=>(a.state==="broken"||a.state==="shaky") && matchStrat(a.strategy)).map(a=>({k:"assumption",o:a})),
   ];
   const order = {disagreeing:0,broken:1,drifting:2,shaky:3};
-  attention.sort((x,y)=>(order[x.o.state]??9)-(order[y.o.state]??9));
+  // Et ubehandlet forslag går først: det er det eneste her du ikke har sett ennå.
+  const rank = it => (it.k==="signal" && suggestSignalState(it.o)) ? -1 : (order[it.o.state]??9);
+  attention.sort((x,y)=>rank(x)-rank(y));
   const strategies = stratF==="*"?DB.strategies:[stratF];
 
   w.innerHTML = `<div class="view-head">${t("vh.dashboard")}</div>`;
@@ -1094,7 +1118,7 @@ function vDashboard(){
       const sub  = k==="signal"?ov.last_reading:ov.kill_signal;
       tr.innerHTML = `<td><div class="stmt">${esc(main)}</div><div class="strat">${esc(o.strategy)}</div></td>
         <td><span class="chip">${esc(t("th."+k))}</span></td>
-        <td>${stateBadge(o.state)}</td>
+        <td>${stateBadge(o.state)}${(()=>{const g=k==="signal"?suggestSignalState(o):null;return g?` <span class="sug-chip">→ ${esc(t("state."+g.state))}?</span>`:"";})()}</td>
         <td><div class="meta" style="max-width:36ch">${esc(sub||"—")}</div></td>`;
       clickable(tr, ()=> k==="signal"?openSignal(o.id):openAssumption(o.id), "Open "+(k==="signal"?o.signal:o.statement));
       body.appendChild(tr);
@@ -1446,7 +1470,7 @@ function vSignals(){
   const panel = el("div","panel");
   if(!rows.length) return emptyInto(w,panel,t("empty.signals.t"),t("empty.signals.d"));
   const tb = el("table","tbl");
-  tb.innerHTML = `<thead><tr><th>${esc(t("th.signal"))}</th><th>${esc(t("th.watches"))}</th><th>${esc(t("th.state"))}</th><th>${esc(t("th.latest"))}</th><th>${esc(t("th.owner"))}</th></tr></thead>`;
+  tb.innerHTML = `<thead><tr><th>${esc(t("th.signal"))}</th><th>${esc(t("th.watches"))}</th><th>${esc(t("th.state"))}</th><th>${esc(t("th.trend"))}</th><th>${esc(t("th.latest"))}</th><th>${esc(t("th.owner"))}</th></tr></thead>`;
   const b = el("tbody");
   rows.forEach(s=>{ s=trView(s);
     const tr = el("tr","row");
@@ -1454,6 +1478,7 @@ function vSignals(){
     tr.innerHTML = `<td><div class="stmt">${esc(s.signal)}</div><div class="strat">${esc(s.strategy)}</div></td>
       <td>${a?`<span class="meta" style="max-width:20ch">${esc(a.statement.slice(0,42))}…</span>`:'<span class="meta">—</span>'}</td>
       <td>${stateBadge(s.state)}</td>
+      <td>${sparkBlock(s)||`<span class="spark-empty">—</span>`}</td>
       <td><div class="meta" style="max-width:28ch">${esc(s.last_reading||"—")}</div></td>
       <td><span class="meta">${esc(s.owner||"")}</span></td>`;
     clickable(tr,()=>openSignal(s.id),"Open signal: "+s.signal);
@@ -1518,12 +1543,15 @@ function matrixPanel(rows){
 function vReview(){
   const w=el("div","view");
   w.innerHTML=`<div class="view-head">${t("vh.review")}</div>`;
-  const sigs=DB.signals.filter(s=>matchStrat(s.strategy)&&(s.state==="disagreeing"||s.state==="drifting"));
+  // Et friskt signal som nettopp begynte å briste må også opp — ellers når
+  // forslaget aldri fram i akkurat det tilfellet som betyr mest.
+  const sigs=DB.signals.filter(s=>matchStrat(s.strategy)&&(s.state==="disagreeing"||s.state==="drifting"||suggestSignalState(s)));
+  const sugCount=sigs.filter(s=>suggestSignalState(s)).length;
   const asmp=DB.assumptions.filter(a=>matchStrat(a.strategy)&&(a.state==="shaky"||a.state==="broken"));
 
   const banner=el("div","rev-banner");
   banner.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-    <div><b>${sigs.length} signal${sigs.length!==1?"s":""}</b> drifting or disagreeing · <b>${asmp.length} bet${asmp.length!==1?"s":""}</b> to re-rate${stratF!=="*"?` · in <b>${esc(stratF)}</b>`:""}.
+    <div><b>${sigs.length} signal${sigs.length!==1?"s":""}</b> to read · <b>${asmp.length} bet${asmp.length!==1?"s":""}</b> to re-rate${sugCount?` · <b>${sugCount}</b> with a suggested state change`:""}${stratF!=="*"?` · in <b>${esc(stratF)}</b>`:""}.
     <div style="font-size:12.5px;color:var(--accent-ink);margin-top:3px">A disagreeing signal must change something. Close the review by logging the decision it produced.</div></div>`;
   w.appendChild(banner);
 
@@ -1557,22 +1585,42 @@ function reviewSignalCard(s){
   const a=s.watches?byId("assumptions",s.watches):null;
   c.innerHTML=`<div class="rh"><div class="stmt">${esc(L(s,"signal"))}</div>${stateBadge(s.state)}</div>
     <div style="font-size:12.5px;color:var(--ink-2)">${esc(t("rev.expected"))}: ${esc(L(s,"expected_shape")||"—")}${a?` · ${esc(t("rev.watches"))} <b>${esc(L(a,"statement").slice(0,40))}…</b>`:""}</div>
-    <div style="font-size:12px;color:var(--ink-3)">${esc(t("rev.latest"))}: ${esc(L(s,"last_reading")||"—")}</div>`;
+    <div style="font-size:12px;color:var(--ink-3)">${esc(t("rev.latest"))}: ${esc(L(s,"last_reading")||"—")}</div>
+    ${sparkBlock(s)}`;
   const ctrl=el("div","ctrl");
   const inp=el("input"); inp.placeholder=t("rev.newreading");
+  const num=el("input","num"); num.placeholder=s.unit?t("rev.value")+" ("+s.unit+")":t("rev.value");
+  num.inputMode="decimal"; num.style.cssText="flex:none;width:104px;min-width:0";
+  const sug=suggestSignalState(s);
+  const pick=sug?sug.state:s.state;
   const seg=el("div","seg");
-  ["agreeing","drifting","disagreeing","retired"].forEach(o=>{ const b=el("button",o===s.state?"on":""); b.type="button"; b.textContent=t("state."+o); b.onclick=()=>{seg.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); seg.dataset.val=o;}; seg.appendChild(b); });
-  seg.dataset.val=s.state;
+  ["agreeing","drifting","disagreeing","retired"].forEach(o=>{ const b=el("button",o===pick?"on":""); b.type="button"; b.textContent=t("state."+o); b.onclick=()=>{seg.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); seg.dataset.val=o;}; seg.appendChild(b); });
+  seg.dataset.val=pick;
+  if(sug){
+    const note=el("div","sug-note");
+    note.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16v-4M12 8h.01"/><circle cx="12" cy="12" r="9"/></svg>
+      <div><b>${esc(t("sug.prefix"))} ${esc(t("state."+sug.state))}</b> — ${esc(suggestionText(sug))}
+      <div class="hint">${esc(t("sug.hint"))}</div></div>`;
+    c.appendChild(note);
+  }
   const save=el("button","btn pri",t("rev.logreading"));
   const flash=el("span","saved-flash",t("rev.logged"));
   save.onclick=()=>{
     const today=new Date().toISOString().slice(0,10);
     const txt=inp.value.trim();
+    const val=numOrBlank(num.value);
     s.state=seg.dataset.val;
-    if(txt){ s.last_reading=txt+" ("+today+")"; (s.log=s.log||[]).unshift({d:today,t:txt}); inp.value=""; }
+    if(txt || val!==""){
+      const shown=txt||(val+(s.unit||""));
+      s.last_reading=shown+" ("+today+")";
+      const entry={d:today,t:shown};
+      if(val!=="") entry.v=val;
+      (s.log=s.log||[]).unshift(entry);
+      inp.value=""; num.value="";
+    }
     saveData(); flash.classList.add("on"); setTimeout(()=>{ render(); },650);
   };
-  ctrl.appendChild(inp); ctrl.appendChild(seg); ctrl.appendChild(save); ctrl.appendChild(flash);
+  ctrl.appendChild(inp); ctrl.appendChild(num); ctrl.appendChild(seg); ctrl.appendChild(save); ctrl.appendChild(flash);
   c.appendChild(ctrl);
   return c;
 }
@@ -1617,6 +1665,74 @@ const KIND_COLOR = {
 function stateColor(state){
   const m=STATE_MAP[state]; if(!m) return "var(--line)";
   return m[0]==="b-bad"?"var(--bad)":m[0]==="b-warn"?"var(--warn)":m[0]==="b-good"?"var(--good)":"var(--mute)";
+}
+// Numeriske avlesninger, eldst først. log er nyest-først (unshift).
+function readings(s){
+  return (s.log||[]).filter(r=>typeof r.v==="number" && Number.isFinite(r.v)).slice(0,8).reverse();
+}
+// Liten inline-SVG. Ingen akser, ingen tooltip — tallene står ved siden av.
+// Stiplet linje er terskelen: poenget er å se kurven krysse den.
+function sparkline(s,w=104,h=26){
+  const pts=readings(s);
+  if(pts.length<2) return "";
+  const vs=pts.map(p=>p.v);
+  const th=(s.thresh===""||s.thresh==null)?null:Number(s.thresh);
+  const hasTh=th!==null && Number.isFinite(th);
+  let lo=Math.min(...vs), hi=Math.max(...vs);
+  if(hasTh){ lo=Math.min(lo,th); hi=Math.max(hi,th); }
+  const span=(hi-lo)||1, pad=span*0.12;
+  lo-=pad; hi+=pad;
+  const x=i=>1+(i/(pts.length-1))*(w-2);
+  const y=v=>h-1-((v-lo)/(hi-lo))*(h-2);
+  const d=pts.map((p,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join("");
+  const c=stateColor(s.state);
+  const thLine=hasTh?`<line x1="0" y1="${y(th).toFixed(1)}" x2="${w}" y2="${y(th).toFixed(1)}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="2 3" opacity=".5"/>`:"";
+  const last=pts[pts.length-1];
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(t("spark.aria").replace("{n}",pts.length).replace("{v}",last.v+(s.unit||"")))}">`
+    +thLine
+    +`<path d="${d}" fill="none" stroke="${c}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>`
+    +`<circle cx="${x(pts.length-1).toFixed(1)}" cy="${y(last.v).toFixed(1)}" r="2.5" fill="${c}"/></svg>`;
+}
+// Sparkline + siste verdi + terskel, som én blokk.
+function sparkBlock(s){
+  const sv=sparkline(s);
+  if(!sv) return "";
+  const pts=readings(s), last=pts[pts.length-1];
+  const u=s.unit?esc(s.unit):"";
+  const th=(s.thresh===""||s.thresh==null)?null:Number(s.thresh);
+  const thTxt=(th!==null&&Number.isFinite(th))?`<span class="spark-th">${esc(t("spark.target"))} ${esc(th)}${u}</span>`:"";
+  return `<div class="spark-wrap">${sv}<div><div class="spark-now" style="color:${stateColor(s.state)}">${esc(last.v)}${u}</div>${thTxt}</div></div>`;
+}
+// Foreslår en tilstand ut fra de siste avlesningene. Returnerer null når den
+// ikke har grunnlag — det er det vanligste og helt akseptable utfallet.
+// Appen setter ALDRI state selv; forslaget må bekreftes av et menneske.
+function suggestSignalState(s){
+  if(!s || s.state==="retired") return null;
+  const th=(s.thresh===""||s.thresh==null)?null:Number(s.thresh);
+  if(th===null || !Number.isFinite(th)) return null;   // ingen terskel → ingen mening
+  const pts=readings(s);
+  if(pts.length<2) return null;                        // for lite historikk
+  const recent=pts.slice(-3).reverse();                // nyest først
+  const band=Number(s.band)||0;
+  const dir=s.dir||"up";
+  const ok=v=> dir==="down" ? v<=th+band
+             : dir==="flat" ? Math.abs(v-th)<=band
+             :                v>=th-band;
+  const b0=!ok(recent[0].v), b1=!ok(recent[1].v);
+  const a=recent[0].v, b=recent[1].v;
+  const worse = dir==="down" ? a>b
+              : dir==="flat" ? Math.abs(a-th)>Math.abs(b-th)
+              :                a<b;
+  let state=null, why=null;
+  if(b0 && b1){ state="disagreeing"; why="sug.why.breach2"; }        // brutt to ganger på rad
+  else if(b0 && worse){ state="drifting"; why="sug.why.breach1"; }   // brutt og på vei feil vei
+  else if(!b0 && !b1 && !worse){ state="agreeing"; why="sug.why.steady"; }
+  if(!state || state===s.state) return null;           // tvetydig, eller allerede der
+  return {state, why, latest:a, thresh:th, unit:s.unit||""};
+}
+function suggestionText(g){
+  const u=g.unit||"";
+  return t(g.why).replace("{v}",g.latest+u).replace("{th}",g.thresh+u);
 }
 function trunc(s,n){ s=String(s||""); return s.length>n?s.slice(0,n-1)+"…":s; }
 
@@ -1876,6 +1992,14 @@ function downloadFile(name,text){
 
 // Felt-typer som er referanser til andre entiteter — importeres alltid tomme i v1.
 const REF_FIELD_TYPES = ["rels","ref","multiref","strat"];
+// Tall eller tom streng — aldri NaN. Godtar norsk desimalkomma.
+function numOrBlank(v){
+  if(v==null) return "";
+  const raw=String(v).trim().replace(",",".");
+  if(raw==="") return "";
+  const n=Number(raw);
+  return Number.isFinite(n) ? n : "";
+}
 
 // Normaliser et løst objekt til et rent entitetsobjekt + advarsler.
 function normalizeEntity(coll, raw){
@@ -1899,6 +2023,13 @@ function normalizeEntity(coll, raw){
       if(!val){ clean[f.k] = f.opts[0]; }
       else if(f.opts.includes(val)){ clean[f.k] = val; }
       else { clean[f.k] = f.opts[0]; warnings.push(`«${f.l}»: «${val}» er ikke gyldig — satt til «${f.opts[0]}»`); }
+      return;
+    }
+    if(f.t==="num"){
+      if(v==null || v===""){ clean[f.k]=""; return; }
+      const n=numOrBlank(v);
+      if(n==="") warnings.push(`«${f.l}»: «${v}» er ikke et tall — tømt`);
+      clean[f.k]=n;
       return;
     }
     clean[f.k] = v==null ? "" : String(v);
@@ -2200,11 +2331,14 @@ function openSignal(id){
   const s = trView(byId("signals",id)); if(!s) return;
   drawerShell(t("dr.eye.signal"), `<div style="margin-top:6px">${stateBadge(s.state)}</div>`);
   const a = s.watches?byId("assumptions",s.watches):null;
-  const log = (s.log||[]).map(r=>`<div class="logitem"><span class="d">${esc(r.d)}</span><span>${esc(r.t)}</span></div>`).join("");
+  const u = s.unit||"";
+  const log = (s.log||[]).map(r=>`<div class="logitem"><span class="d">${esc(r.d)}</span><span>${esc(r.t)}</span>${typeof r.v==="number"?`<span class="v">${esc(r.v)}${esc(u)}</span>`:""}</div>`).join("");
+  const spark = sparkBlock(s);
   $("#drawerB").innerHTML = `<h3>${esc(s.signal)}</h3>
     <dl class="kv"><dt>${esc(t("dt.strategy"))}</dt><dd>${esc(s.strategy)}</dd><dt>${esc(t("th.owner"))}</dt><dd>${esc(s.owner||"—")}</dd><dt>${esc(t("dt.expected"))}</dt><dd>${esc(s.expected_shape||"—")}</dd><dt>${esc(t("th.latest"))}</dt><dd>${esc(s.last_reading||"—")}</dd></dl>
     ${a?`<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">${esc(t("dr.watchesasm"))}</div><div class="link-row"><a class="linkc" onclick="openAssumption('${a.id}')"><span class="tk">${esc(t("state."+a.state)||a.state)}</span>${esc(a.statement.slice(0,38))}…</a></div>`:""}
     <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:16px">${esc(t("dr.readinglog"))}</div>
+    ${spark?`<div style="margin-top:8px">${spark}</div>`:""}
     <div style="margin-top:4px">${log||`<div class="note">${esc(t("dr.noreadings"))}</div>`}</div>`;
   drawerFoot("signals",id); openDrawer();
 }
@@ -2291,6 +2425,10 @@ const FIELDS = {
     {k:"strategy",l:"Strategy",t:"strat"},
     {k:"watches",l:"Watches assumption",t:"ref",ref:"assumptions"},
     {k:"expected_shape",l:"Expected shape",t:"text",ph:"e.g. ≥80% by week 4"},
+    {k:"thresh",l:"Threshold (number)",t:"num",ph:"e.g. 80 — leave empty for a qualitative signal"},
+    {k:"dir",l:"Good direction",t:"seg",opts:["up","down","flat"],noDefault:1},
+    {k:"unit",l:"Unit",t:"text",ph:"e.g. %, days, cases"},
+    {k:"band",l:"Tolerance (±)",t:"num",ph:"e.g. 5"},
     {k:"owner",l:"Owner",t:"text"},
     {k:"state",l:"State",t:"seg",opts:["agreeing","drifting","disagreeing","retired"]},
     {k:"last_reading",l:"Latest reading",t:"text"},
@@ -2338,7 +2476,7 @@ function buildForm(){
     if(f.t==="textarea"){ inp=el("textarea"); inp.value=data[f.k]||""; inp.placeholder=f.ph||""; }
     else if(f.t==="seg"){
       inp=el("div","seg"); inp.dataset.k=f.k;
-      const cur=data[f.k]||f.opts[0]; data[f.k]=cur;
+      const cur=data[f.k]||(f.noDefault?"":f.opts[0]); if(cur) data[f.k]=cur;
       f.opts.forEach(o=>{ const b=el("button",o===cur?"on":""); b.textContent=o; b.type="button";
         b.onclick=()=>{ data[f.k]=o; inp.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x.textContent===o)); };
         inp.appendChild(b); });
@@ -2389,8 +2527,14 @@ function buildForm(){
         inp.appendChild(o); });
       inp.onchange=()=>{ data[f.k]= f.t==="multiref"?Array.from(inp.selectedOptions).map(o=>o.value):inp.value; };
     }
+    else if(f.t==="num"){
+      inp=el("input"); inp.type="text"; inp.inputMode="decimal";
+      inp.value=(data[f.k]===""||data[f.k]==null)?"":String(data[f.k]);
+      inp.placeholder=f.ph||"";
+      inp.oninput=()=>{ data[f.k]=numOrBlank(inp.value); };
+    }
     else { inp=el("input"); inp.type=f.t==="date"?"text":"text"; inp.value=data[f.k]||""; inp.placeholder=f.ph||(f.t==="date"?"YYYY-MM-DD":""); }
-    if(!["seg","strat","ref","multiref","lines","rels"].includes(f.t)){ inp.oninput=()=>data[f.k]=inp.value; }
+    if(!["seg","strat","ref","multiref","lines","rels","num"].includes(f.t)){ inp.oninput=()=>data[f.k]=inp.value; }
     inp.dataset.field=f.k;
     fg.appendChild(inp); body.appendChild(fg);
   });
