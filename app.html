@@ -320,6 +320,21 @@ a{color:inherit}
 .sug-note .hint{font-size:12px;color:var(--accent-ink);opacity:.72;margin-top:2px}
 .sug-chip{display:inline-block;font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;
   background:var(--accent-soft);color:var(--accent-ink);white-space:nowrap;margin-left:4px}
+.smell-panel{display:flex;flex-direction:column;gap:2px}
+.smell-row{display:flex;gap:12px;align-items:flex-start;padding:12px 12px;border-radius:var(--r-sm);
+  cursor:pointer;transition:background .14s}
+.smell-row:hover{background:var(--bg-2)}
+.smell-row + .smell-row{border-top:1px dashed var(--line-2)}
+.smell-row input{margin-top:3px;flex:none;width:15px;height:15px;accent-color:var(--warn);cursor:pointer}
+.smell-row .q{font-size:14px;font-weight:600;color:var(--ink);text-wrap:pretty}
+.smell-row .why{font-size:12.5px;color:var(--ink-3);margin-top:3px;text-wrap:pretty}
+.smell-row.on .q{color:var(--warn)}
+.smell-row.on{background:var(--warn-bg)}
+.smell-row.on:hover{background:var(--warn-bg)}
+.smell-meta{font-size:12px;color:var(--ink-3);padding:12px 12px 2px;border-top:1px solid var(--line-2);margin-top:6px}
+.smell-meta b{color:var(--warn)}
+.smell-chip{display:inline-block;font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;
+  background:var(--warn-bg);color:var(--warn);white-space:nowrap}
 .rev-step{margin:26px 0 12px;display:flex;align-items:baseline;gap:10px}
 .rev-step .num{font-family:"Spline Sans Mono",monospace;font-size:12px;color:#fff;background:var(--accent);width:22px;height:22px;border-radius:50%;display:inline-grid;place-items:center;flex:none}
 .rev-step h2{font-family:"Instrument Serif",serif;font-weight:400;font-size:22px}
@@ -764,6 +779,9 @@ const T = {
     "map.nod3.t":"Map unavailable.","map.nod3.d":"The D3 library did not load — check the connection and reload.",
     "map.empty.t":"Nothing to map yet.","map.empty.d":"Add a strategy first — the registers will orbit it here.",
     "org.empty.t":"No organisations yet.","org.empty.d":"Click “Add organisation” to link one.",
+    "smell.head":"Self-test — how this lens goes wrong",
+    "smell.checked":"Self-tested","smell.never":"Never self-tested. The questions above are the lens's own quality bar.",
+    "smell.clean":"nothing flagged","smell.flag":"flagged","smell.flags":"flagged",
     "sys.families":"The four families","sys.families.h":"Ten systems · four live registers","sys.loop":"The register loop","sys.loop.h":"How the four registers actually talk to each other","sys.register":"register","sys.live":"live register","sys.without":"Without it:","sys.family":"Family:","sys.feeds":"Feeds",
     "loop.1":"Insights feed the diagnosis in Understand.","loop.2":"The diagnosis produces Assumptions — the bets the strategy rests on.","loop.3":"Each Signal watches a named assumption; each Decision records the bets it rests on.","loop.4":"When a signal disagrees or an assumption breaks, you're sent back to the diagnosis.","loop.5":"The Learning Loop writes the lesson from a broken bet back into Insights — and downgrades the falsified one. That's what makes it a flywheel, not a one-off.",
   },
@@ -851,6 +869,9 @@ const T = {
     "map.nod3.t":"Kartet er utilgjengelig.","map.nod3.d":"D3-biblioteket lastet ikke — sjekk tilkoblingen og last inn på nytt.",
     "map.empty.t":"Ingenting å kartlegge ennå.","map.empty.d":"Legg til en strategi først — registrene vil kretse rundt den her.",
     "org.empty.t":"Ingen organisasjoner ennå.","org.empty.d":"Klikk «Legg til organisasjon» for å koble en.",
+    "smell.head":"Selvtest — slik går denne linsen galt",
+    "smell.checked":"Selvtestet","smell.never":"Aldri selvtestet. Spørsmålene over er linsens egen kvalitetsterskel.",
+    "smell.clean":"ingenting flagget","smell.flag":"flagget","smell.flags":"flagget",
     "sys.families":"De fire familiene","sys.families.h":"Ti systemer · fire levende registre","sys.loop":"Register-løkken","sys.loop.h":"Hvordan de fire registrene faktisk snakker sammen","sys.register":"register","sys.live":"levende register","sys.without":"Uten det:","sys.family":"Familie:","sys.feeds":"Mater",
     "loop.1":"Innsikter mater diagnosen i Forstå.","loop.2":"Diagnosen produserer Antakelser — bettene strategien hviler på.","loop.3":"Hvert Signal overvåker en navngitt antakelse; hver Beslutning registrerer bettene den hviler på.","loop.4":"Når et signal er uenig eller en antakelse brytes, sendes du tilbake til diagnosen.","loop.5":"Læringsløkken skriver lærdommen fra et brutt bet tilbake inn i Innsikter — og nedgraderer den falsifiserte. Det er det som gjør det til et svinghjul, ikke en engangshendelse.",
   },
@@ -989,6 +1010,102 @@ const COLLS=["strategies","insights","decisions","assumptions","signals","goals"
 function stratNames(){ return DB.strategies.map(s=>s.name); }
 function stratByName(n){ return DB.strategies.find(s=>s.name===n); }
 const STRAT_FW={kernel:"Strategy Kernel",cascade:"Playing-to-Win Cascade",wardley:"Wardley Map",premortem:"Pre-mortem","one-pager":"One-Page Strategy"};
+// Hver linse redusert til sin arbeidende anatomi: når den brukes, hva den består
+// av, og de luktene som forteller at du gjør den galt. Linsen er ikke en
+// alternativ form for strategien — den er måten du kommer FRAM til det ene
+// kanoniske artefaktet på. Derfor er feltene i artefaktet uendret.
+const LENSES = {
+  kernel:{
+    when:"You know something is wrong, but not what.",
+    anatomy:"Diagnosis → guiding policy → coherent action.",
+    smells:[
+      {k:"goal-as-diagnosis", q:"Is the diagnosis really a goal in disguise?",
+       why:"“We must become more data-driven” is an ambition, not a difficulty."},
+      {k:"incoherent", q:"Do two of the big moves pull in opposite directions?",
+       why:"Coherence is the whole point. Otherwise it is a list, not a strategy."},
+      {k:"no-tradeoff", q:"Is “what we are NOT doing” empty or non-committal?",
+       why:"A strategy without a sacrifice is a budget."},
+    ]},
+  wardley:{
+    when:"You know what is wrong, but not where in the chain to act.",
+    anatomy:"User → need → value chain → evolution stage.",
+    smells:[
+      {k:"no-movement", q:"Have you said anything about movement — what is shifting, and how fast?",
+       why:"A map without evolution is an architecture diagram."},
+      {k:"no-user", q:"Is the user a real person rather than “the business”?",
+       why:"The anchor is a user with a need. Without one the map floats."},
+    ]},
+  cascade:{
+    when:"The diagnosis is clear, and the choice is between several paths.",
+    anatomy:"Winning aspiration → where to play → how to win → capabilities → systems.",
+    smells:[
+      {k:"where-is-everywhere", q:"Is “where we play” effectively everywhere?",
+       why:"If you play everywhere, you have not chosen."},
+      {k:"how-is-better", q:"Is “how we win” just “better than the others”?",
+       why:"That is an aspiration. A how is a mechanism."},
+    ]},
+  premortem:{
+    when:"The decision is made. You want to know how it dies before it does.",
+    anatomy:"Assume failure → explain why → turn the explanations into assumptions.",
+    smells:[
+      {k:"external-only", q:"Are all the causes outside your control?",
+       why:"Then you have written an excuse, not a pre-mortem."},
+      {k:"no-signal", q:"Does every cause have an earliest warning you actually watch?",
+       why:"A cause with no signal cannot be noticed. Then it is decoration."},
+    ]},
+  "one-pager":{
+    when:"The thinking is done. You are just writing it down.",
+    anatomy:"No lens — you write the artifact directly.",
+    smells:[
+      {k:"adjectives", q:"Does any of the big moves contain an adjective like “better” or “more efficient”?",
+       why:"Goals with adjectives are what we stand against — they cannot be disproved."},
+    ]},
+};
+// Norsk overlay. Mangler en linse eller en lukt her, faller den tilbake til engelsk.
+const LENSES_NO = {
+  kernel:{ when:"Du vet at noe er galt, men ikke hva.",
+    anatomy:"Diagnose → guiding policy → koherente handlinger.",
+    smells:{
+      "goal-as-diagnosis":["Er diagnosen egentlig et mål i forkledning?","«Vi må bli mer datadrevne» er en ambisjon, ikke en vanskelighet."],
+      "incoherent":["Trekker to av de store trekkene i hver sin retning?","Koherens er hele poenget. Ellers er det en liste, ikke en strategi."],
+      "no-tradeoff":["Er «hva vi IKKE gjør» tomt eller uforpliktende?","En strategi uten avkall er et budsjett."],
+    }},
+  wardley:{ when:"Du vet hva som er galt, men ikke hvor i kjeden du skal handle.",
+    anatomy:"Bruker → behov → verdikjede → evolusjonsstadium.",
+    smells:{
+      "no-movement":["Har du sagt noe om bevegelse — hva som flytter seg, og hvor fort?","Et kart uten evolusjon er et arkitekturdiagram."],
+      "no-user":["Er brukeren en ekte person, ikke «virksomheten»?","Ankeret er en bruker med et behov. Uten det flyter kartet."],
+    }},
+  cascade:{ when:"Diagnosen er klar, og valget står mellom flere veier.",
+    anatomy:"Vinnende ambisjon → hvor → hvordan → evner → systemer.",
+    smells:{
+      "where-is-everywhere":["Er «hvor vi spiller» i praksis alle steder?","Hvis du spiller overalt, har du ikke valgt."],
+      "how-is-better":["Er «hvordan vi vinner» bare «bedre enn de andre»?","Det er en ambisjon. Hvordan er en mekanisme."],
+    }},
+  premortem:{ when:"Beslutningen er tatt. Du vil vite hvordan den dør før den gjør det.",
+    anatomy:"Anta fiasko → forklar hvorfor → gjør forklaringene til antakelser.",
+    smells:{
+      "external-only":["Ligger alle årsakene utenfor din kontroll?","Da har du skrevet en unnskyldning, ikke en pre-mortem."],
+      "no-signal":["Har hver årsak et tidligste varsel du faktisk overvåker?","En årsak uten signal kan ikke oppdages. Da er den pynt."],
+    }},
+  "one-pager":{ when:"Tenkningen er ferdig. Du skal bare skrive den ned.",
+    anatomy:"Ingen linse — du skriver artefaktet direkte.",
+    smells:{
+      "adjectives":["Inneholder noen av de store trekkene et adjektiv som «bedre» eller «mer effektiv»?","Mål med adjektiver er det vi står imot — de kan ikke motbevises."],
+    }},
+};
+function lensNO(fw){ return LANG==="no" ? LENSES_NO[fw] : null; }
+function lensWhen(fw){ const n=lensNO(fw); return (n&&n.when) || (LENSES[fw]||LENSES.kernel).when; }
+function lensAnatomy(fw){ const n=lensNO(fw); return (n&&n.anatomy) || (LENSES[fw]||LENSES.kernel).anatomy; }
+function lensSmells(fw){
+  const base=(LENSES[fw]||LENSES.kernel).smells, n=lensNO(fw);
+  return base.map(sm=>{
+    const tr=n&&n.smells&&n.smells[sm.k];
+    return {k:sm.k, q:(tr&&tr[0])||sm.q, why:(tr&&tr[1])||sm.why};
+  });
+}
+function lensOf(s){ return LENSES[s && s.framework] || LENSES.kernel; }
+function smellsFlagged(s){ return (s && s.smellFlags) || []; }
 const STRAT_STATUS={draft:["b-mute","Draft"],reviewed:["b-warn","In review"],committed:["b-good","Committed"],archived:["b-mute","Archived"]};
 
 /* ---- backend: Supabase write-through data layer ---- */
@@ -1261,7 +1378,7 @@ function vStrategies(){
       </div>
       <h3 class="serif">${esc(s.name)}</h3>
       <p class="sc-ch">${esc((L(s,"challenge")||t("op.nodiag")).slice(0,150))}${(L(s,"challenge")||"").length>150?"…":""}</p>
-      <div class="sc-meta">${esc(fwL(s.framework))} · v${esc(s.version||1)} · ${esc(s.owner||t("strat.unowned"))}</div>
+      <div class="sc-meta">${esc(fwL(s.framework))} · v${esc(s.version||1)} · ${esc(s.owner||t("strat.unowned"))}${smellsFlagged(s).length?` · <span class="smell-chip">${smellsFlagged(s).length} ${esc(t(smellsFlagged(s).length===1?"smell.flag":"smell.flags"))}</span>`:""}</div>
       <div class="sc-stats">
         <span title="${esc(t("nav.assumptions"))}"><b>${k.bets}</b> ${esc(t("kpi.bets"))}</span>
         <span title="${esc(t("nav.signals"))}"><b>${k.sigs}</b> ${esc(t("kpi.signals"))}</span>
@@ -1314,6 +1431,40 @@ function vStrategyDetail(id){
     ${opSection(t("op.4"),opList(L(s,"notDoing"),"ul"))}
     ${opSection(t("op.5"),opList(L(s,"howKnow"),"ul"))}`;
   w.appendChild(op);
+
+  // failure smells — selvtest mot linsens egne kvalitetskrav
+  const smells=lensSmells(s.framework);
+  w.appendChild(el("div","sect-h",
+    `<h2>${esc(t("smell.head"))}</h2><span class="hint">${esc(fwL(s.framework))} — ${esc(lensAnatomy(s.framework))}</span>`));
+  const sp=el("div","panel panel-pad smell-panel");
+  const flagged=new Set(smellsFlagged(s));
+  const checked=s.smellChecked;
+  const meta=el("div","smell-meta");
+  const upd=()=>{
+    const n=flagged.size;
+    meta.innerHTML = checked
+      ? `${esc(t("smell.checked"))} ${esc(checked)}${n?` · <b>${n}</b> ${esc(t(n===1?"smell.flag":"smell.flags"))}`:` · ${esc(t("smell.clean"))}`}`
+      : esc(t("smell.never"));
+  };
+  upd();
+  smells.forEach(sm=>{
+    const row=el("label","smell-row");
+    const cb=el("input"); cb.type="checkbox"; cb.checked=flagged.has(sm.k);
+    cb.onchange=()=>{
+      if(cb.checked) flagged.add(sm.k); else flagged.delete(sm.k);
+      s.smellFlags=[...flagged];
+      s.smellChecked=new Date().toISOString().slice(0,10);
+      row.classList.toggle("on",cb.checked);
+      saveData(); upd();
+    };
+    row.classList.toggle("on",cb.checked);
+    const txt=el("div");
+    txt.innerHTML=`<div class="q">${esc(sm.q)}</div><div class="why">${esc(sm.why)}</div>`;
+    row.appendChild(cb); row.appendChild(txt);
+    sp.appendChild(row);
+  });
+  sp.appendChild(meta);
+  w.appendChild(sp);
 
   // influence map
   w.appendChild(el("div","sect-h",`<h2>${esc(t("sect.influence"))}</h2><span class="hint">${esc(t("sect.influence.h"))}</span>`));

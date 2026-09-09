@@ -57,12 +57,15 @@ const harness = [
   func("trunc"), decl("ASM_RANK"), func("assumptionFollowUp"), func("followUpText"),
   decl("FIELDS"), decl("SING"), decl("SING_NO"), decl("FLD_NO"),
   func("fldTr"), func("fldL"), func("fldPh"), func("singL"),
+  decl("STRAT_FW"), decl("LENSES"), decl("LENSES_NO"),
+  func("lensNO"), func("lensWhen"), func("lensAnatomy"), func("lensSmells"), func("smellsFlagged"),
   // assumptionFollowUp slår opp i DB og L(); begge stubbes her.
   "let DB={signals:[],assumptions:[]};",
   "function L(o,f){return o?o[f]:undefined}",
   "return {SEED,SEED_NO,T,numOrBlank,readings,sparkline,sparkBlock," +
   "suggestSignalState,suggestionText,assumptionFollowUp,followUpText," +
   "FIELDS,SING,SING_NO,FLD_NO,fldL,fldPh,singL," +
+  "STRAT_FW,LENSES,LENSES_NO,lensWhen,lensAnatomy,lensSmells,smellsFlagged," +
   "setLang:v=>{LANG=v},setDB:v=>{DB=v}};",
 ].join("\n");
 
@@ -70,6 +73,7 @@ const {
   SEED, SEED_NO, T, numOrBlank, readings, sparkline, sparkBlock,
   suggestSignalState, suggestionText, assumptionFollowUp, followUpText,
   FIELDS, SING, SING_NO, FLD_NO, fldL, fldPh, singL,
+  STRAT_FW, LENSES, LENSES_NO, lensWhen, lensAnatomy, lensSmells, smellsFlagged,
   setLang, setDB,
 } = new Function(harness)();
 
@@ -271,6 +275,54 @@ ok(bareEn.length === 0, "nøkler som kun finnes på engelsk: " + bareEn.join(", 
 ok(bareNo.length === 0, "nøkler som kun finnes på norsk: " + bareNo.join(", "));
 const tomme = Object.keys(T.no).filter(k => T.no[k] === "" || T.no[k] === T.en[k] && /^(rev|sug|form|map|org)\./.test(k));
 ok(tomme.length === 0, "norske nøkler som er tomme eller uoversatt: " + tomme.join(", "));
+
+group("linser og failure smells");
+ok(Object.keys(LENSES).length === Object.keys(STRAT_FW).length,
+   "hvert rammeverk i STRAT_FW har en linse");
+ok(Object.keys(STRAT_FW).every(k => LENSES[k]), "ingen rammeverk mangler linse");
+ok(Object.keys(LENSES).every(k => STRAT_FW[k]), "ingen linse uten rammeverk");
+ok(Object.keys(LENSES).every(k => LENSES[k].smells.length > 0), "hver linse har minst én lukt");
+const alleK = Object.values(LENSES).flatMap(l => l.smells.map(s => s.k));
+ok(new Set(alleK).size === alleK.length, "luktnøkler er unike på tvers av linser");
+ok(Object.values(LENSES).every(l => l.when && l.anatomy), "hver linse har when og anatomy");
+
+group("linser — norsk paritet");
+const lmangler = [];
+for (const fw of Object.keys(LENSES)) {
+  const n = LENSES_NO[fw];
+  if (!n) { lmangler.push(`${fw} (ingen norsk linse)`); continue; }
+  if (!n.when) lmangler.push(`${fw}.when`);
+  if (!n.anatomy) lmangler.push(`${fw}.anatomy`);
+  for (const sm of LENSES[fw].smells) {
+    const tr = n.smells && n.smells[sm.k];
+    if (!tr) { lmangler.push(`${fw}.${sm.k} (ingen norsk lukt)`); continue; }
+    if (!tr[0] || !tr[1]) lmangler.push(`${fw}.${sm.k} (tomt spørsmål eller begrunnelse)`);
+  }
+}
+ok(lmangler.length === 0, "alle linser og lukter har norsk: mangler " + lmangler.join(", "));
+const ldoede = Object.keys(LENSES_NO).filter(k => !LENSES[k]);
+ok(ldoede.length === 0, "ingen døde norske linser: " + ldoede.join(", "));
+
+group("linse-oppslag");
+setLang("en");
+ok(lensSmells("kernel").length === 3, "kernel har tre lukter");
+ok(lensSmells("kernel")[0].q.startsWith("Is the diagnosis"), "engelsk lukt");
+ok(lensAnatomy("wardley").startsWith("User →"), "engelsk anatomi");
+setLang("no");
+ok(lensSmells("kernel")[0].q.startsWith("Er diagnosen"), "norsk lukt");
+ok(lensAnatomy("wardley").startsWith("Bruker →"), "norsk anatomi");
+ok(lensWhen("premortem").startsWith("Beslutningen er tatt"), "norsk when");
+setLang("en");
+ok(lensSmells("finnesikke").length === 3, "ukjent rammeverk faller tilbake til kernel");
+ok(lensAnatomy("finnesikke") === LENSES.kernel.anatomy, "fallback-anatomi er kernels");
+ok(smellsFlagged({}).length === 0 && smellsFlagged(null).length === 0,
+   "strategi uten smellFlags gir tom liste, ikke krasj");
+ok(smellsFlagged({ smellFlags: ["a", "b"] }).length === 2, "flagg leses ut");
+// Luktene må matche artefaktets faktiske felt — ellers spør selvtesten om noe
+// som ikke finnes i skjemaet.
+const kernelQ = lensSmells("kernel").map(s => s.k);
+ok(kernelQ.includes("no-tradeoff"), "kernel spør om notDoing, som finnes i FIELDS");
+ok(FIELDS.strategies.some(f => f.k === "notDoing"), "notDoing finnes faktisk i artefaktet");
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,
