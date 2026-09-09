@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Strategikart — lerret (prototype)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#F6F3EC; --bg-2:#FBF9F4; --panel:#FFFFFF;
+  --ink:#1C1A16; --ink-2:#56524A; --ink-3:#736E63;
+  --line:#E4DFD3; --line-2:#EFEBE1;
+  --accent:#234E42; --accent-soft:#E6EEE9; --accent-ink:#1A3B32;
+  --sense:#3A6EA5;  --sense-bg:#EAF1F8;
+  --mem:#B07B2E;    --mem-bg:#F7EFE1;
+  --align:#2E7D5B;  --align-bg:#E7F1EB;
+  --feed:#B14A6B;   --feed-bg:#F8E9EF;
+  --goal:#6D4AA6;   --goal-bg:#EFEAF7;
+  --outcome:#1C7C8C; --outcome-bg:#E3F1F3;
+  --good:#2E7D5B; --warn:#B07B2E; --bad:#B23A3A; --mute:#736E63;
+  --r-lg:20px; --r-md:14px; --r-sm:10px;
+  --shadow:0 1px 2px rgba(40,34,20,.04), 0 8px 24px -12px rgba(40,34,20,.14);
+  --shadow-lg:0 2px 4px rgba(40,34,20,.05), 0 24px 48px -20px rgba(40,34,20,.22);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Plus Jakarta Sans",system-ui,sans-serif;font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+.serif{font-family:"Instrument Serif",Georgia,serif;font-weight:400}
+.mono{font-family:"Spline Sans Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+button{font-family:inherit;cursor:pointer}
+
+/* ─── shell ─────────────────────────────────────────────── */
+.shell{display:grid;grid-template-rows:auto 1fr;height:100vh}
+.topbar{display:flex;align-items:center;gap:12px;padding:12px 18px;background:var(--bg-2);
+  border-bottom:1px solid var(--line);flex-wrap:nowrap}
+.title{display:flex;flex-direction:column;line-height:1.1;margin-right:6px;flex:none}
+.title .ey{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.title .nm{font-family:"Instrument Serif",serif;font-size:21px}
+.proto{font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--accent);
+  background:var(--accent-soft);border-radius:99px;padding:3px 9px;align-self:center;
+  white-space:nowrap;flex:none}
+.sep{width:1px;height:26px;background:var(--line)}
+.grow{flex:1}
+
+.layers{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;min-width:0;
+  overflow-x:auto;scrollbar-width:none;padding:2px 0}
+.layers::-webkit-scrollbar{display:none}
+.lgrp{display:flex;align-items:center;gap:5px;padding:3px;background:var(--panel);flex:none;
+  border:1px solid var(--line);border-radius:99px}
+.lgrp>.lbl{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:700;padding-left:9px}
+.chip{border:1px solid transparent;background:transparent;border-radius:99px;padding:4px 10px;
+  font-size:12px;font-weight:600;color:var(--ink-3);display:flex;align-items:center;gap:6px;
+  transition:background .13s,color .13s,border-color .13s}
+.chip .dot{width:8px;height:8px;border-radius:99px;background:currentColor;opacity:.45}
+.chip[aria-pressed="true"]{color:var(--ink);background:var(--bg)}
+.chip[aria-pressed="true"] .dot{opacity:1}
+.chip:hover{border-color:var(--line)}
+
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:var(--r-sm);flex:none;
+  padding:7px 12px;font-size:12.5px;font-weight:600;color:var(--ink-2);white-space:nowrap;
+  display:inline-flex;align-items:center;gap:7px;transition:border-color .13s,color .13s,background .13s}
+.btn:hover{border-color:var(--ink-3);color:var(--ink)}
+.btn svg{width:15px;height:15px;flex:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-ink)}
+
+/* ─── main split ────────────────────────────────────────── */
+.main{display:grid;grid-template-columns:1fr 300px;min-height:0}
+.stage{position:relative;overflow:hidden;background:var(--bg);cursor:grab}
+.stage.panning{cursor:grabbing}
+.stage.dropping::after{content:"";position:absolute;inset:10px;border:2px dashed var(--accent);
+  border-radius:var(--r-lg);pointer-events:none;background:rgba(35,78,66,.03)}
+.grid{position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(circle, #D9D3C4 1px, transparent 1px);opacity:.7}
+.world{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
+.edges{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
+
+/* ─── node cards ────────────────────────────────────────── */
+.node{position:absolute;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:10px 12px 11px;box-shadow:var(--shadow);cursor:grab;user-select:none;
+  transition:box-shadow .15s,border-color .15s,opacity .15s}
+.node:hover{box-shadow:var(--shadow-lg)}
+.node.dragging{cursor:grabbing;box-shadow:var(--shadow-lg);z-index:40}
+.node.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft),var(--shadow-lg)}
+.node.faded{opacity:.28}
+.node .kd{display:flex;align-items:center;gap:6px;font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;font-weight:700;margin-bottom:6px}
+.node .kd .glyph{width:16px;height:16px;border-radius:5px;display:grid;place-items:center;
+  font-size:9px;font-weight:700;letter-spacing:0}
+.node .ttl{font-size:12.5px;font-weight:600;line-height:1.35;color:var(--ink);
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.node .meta{margin-top:7px;font-size:10.5px;color:var(--ink-3);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.node .st{display:inline-flex;align-items:center;gap:4px;font-weight:600}
+.node .st i{width:6px;height:6px;border-radius:99px;background:currentColor}
+.node .rm{position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:99px;
+  border:1px solid var(--line);background:var(--panel);color:var(--ink-3);display:none;
+  place-items:center;font-size:13px;line-height:1;box-shadow:var(--shadow);padding:0}
+.node:hover .rm{display:grid}
+.node .rm:hover{color:var(--bad);border-color:var(--bad)}
+.node.k-strategy{width:212px;border-left:3px solid var(--accent)}
+.node.k-goal{width:190px;border-left:3px solid var(--goal)}
+.node.k-outcome{width:190px;border-left:3px solid var(--outcome)}
+.node.k-insight{width:178px;border-left:3px solid var(--sense)}
+.node.k-assumption{width:178px;border-left:3px solid var(--align)}
+.node.k-signal{width:178px;border-left:3px solid var(--feed)}
+.node.k-decision{width:178px;border-left:3px solid var(--mem)}
+.node.k-strategy .ttl{font-size:14px;font-weight:700;-webkit-line-clamp:2}
+
+.elabel{font-size:9.5px;font-weight:700;letter-spacing:.06em;fill:var(--ink-3);
+  paint-order:stroke;stroke:var(--bg);stroke-width:4px}
+
+/* ─── drawer ────────────────────────────────────────────── */
+.drawer{background:var(--bg-2);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.dhead{padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+.dhead h2{margin:0;font-family:"Instrument Serif",serif;font-weight:400;font-size:20px}
+.dhead p{margin:3px 0 0;font-size:11.5px;color:var(--ink-3);line-height:1.45}
+.dsearch{margin:10px 0 0;width:100%;border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:7px 10px;font-size:12.5px;background:var(--panel);color:var(--ink);font-family:inherit}
+.dsearch:focus{outline:none;border-color:var(--accent)}
+.dbody{overflow-y:auto;padding:8px 12px 24px;min-height:0}
+.dgrp{margin-top:12px}
+.dgrp>h3{margin:0 0 7px;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:700;display:flex;align-items:center;gap:7px}
+.dgrp>h3 .n{background:var(--line-2);border-radius:99px;padding:1px 6px;font-size:9.5px;letter-spacing:0;color:var(--ink-3)}
+.pill{display:flex;gap:8px;align-items:flex-start;width:100%;text-align:left;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--r-sm);padding:8px 9px;margin-bottom:6px;
+  cursor:grab;transition:border-color .13s,transform .1s,box-shadow .13s}
+.pill:hover{border-color:var(--ink-3);box-shadow:var(--shadow)}
+.pill:active{cursor:grabbing;transform:scale(.985)}
+.pill .glyph{width:17px;height:17px;border-radius:5px;display:grid;place-items:center;
+  font-size:9px;font-weight:700;flex:none;margin-top:1px}
+.pill .tx{min-width:0}
+.pill .tx b{display:block;font-size:11.5px;font-weight:600;line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pill .tx span{display:block;font-size:10px;color:var(--ink-3);margin-top:2px}
+.pill.suggest{border-color:#D8CFB8;background:linear-gradient(180deg,#FFFDF7,var(--panel))}
+.dempty{font-size:11.5px;color:var(--ink-3);padding:10px 2px;line-height:1.5}
+
+.ghost{position:fixed;pointer-events:none;z-index:200;opacity:.9;transform:translate(-50%,-50%)}
+
+/* ─── footer / statusline ───────────────────────────────── */
+.statusbar{position:absolute;left:14px;bottom:14px;display:flex;gap:8px;align-items:center;
+  background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:5px 6px 5px 14px;
+  box-shadow:var(--shadow);font-size:11.5px;color:var(--ink-3)}
+.zbtn{width:24px;height:24px;border-radius:99px;border:1px solid var(--line);background:var(--panel);
+  color:var(--ink-2);display:grid;place-items:center;font-size:14px;line-height:1;padding:0}
+.zbtn:hover{border-color:var(--ink-3);color:var(--ink)}
+.legend{position:absolute;right:14px;bottom:14px;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r-md);padding:9px 12px;box-shadow:var(--shadow);font-size:10.5px;color:var(--ink-3);
+  display:flex;gap:12px;align-items:center}
+.legend .ln{display:inline-block;width:18px;height:0;border-top:1.6px solid var(--ink-3);vertical-align:middle;margin-right:5px}
+.legend .ln.dash{border-top-style:dashed}
+.stage-empty{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;text-align:center}
+.stage-empty[hidden]{display:none}
+.stage-empty div{max-width:340px}
+.stage-empty .serif{font-size:26px;display:block;margin-bottom:6px;color:var(--ink-2)}
+.stage-empty p{font-size:12.5px;color:var(--ink-3);margin:0;line-height:1.55}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="title"><span class="ey">Strategy Architect</span><span class="nm">Strategikart</span></div>
+    <span class="proto">Lerret · prototype</span>
+    <div class="sep"></div>
+    <div class="layers" id="layers"></div>
+    <div class="grow"></div>
+    <button class="btn" id="btnTidy" title="Legg alt i lag: Retning øverst, strategier i midten, registre under">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h10M4 18h13"/></svg>Rydd opp</button>
+    <button class="btn" id="btnPull" title="Hent inn alt som henger direkte sammen med det som ligger på lerretet">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>Hent naboer</button>
+    <button class="btn" id="btnClear">Tøm lerret</button>
+  </header>
+
+  <div class="main">
+    <div class="stage" id="stage">
+      <div class="grid" id="grid"></div>
+      <div class="world" id="world">
+        <svg class="edges" id="edges"></svg>
+      </div>
+      <div class="stage-empty" id="stageEmpty" hidden>
+        <div><span class="serif">Tomt lerret</span>
+        <p>Dra inn mål, strategier, antakelser, signaler, innsikter og beslutninger fra skuffen til høyre. Koblingene tegner seg selv når to elementer som hører sammen ligger her.</p></div>
+      </div>
+      <div class="statusbar" id="statusbar"></div>
+      <div class="legend">
+        <span><span class="ln"></span>erklært</span>
+        <span><span class="ln dash"></span>avledet</span>
+        <span>farge på kant = tilstand</span>
+      </div>
+    </div>
+
+    <aside class="drawer">
+      <div class="dhead">
+        <h2>Skuffen</h2>
+        <p>Alt som finnes i Retning og Registre. Dra ut på lerretet — eller klikk for å plassere.</p>
+        <input class="dsearch" id="search" placeholder="Søk i elementer…" />
+      </div>
+      <div class="dbody" id="drawer"></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   DATA — hentet ordrett fra SEED i app.html
+   ══════════════════════════════════════════════════════════ */
+const SEED = {
+  strategies: [
+    {id:"st1", name:"Tet Vedtak — Case Platform", framework:"kernel", status:"committed", owner:"Jonas", review:"2026-07-15", version:3, serves:["g1","g2"],
+      challenge:"150+ municipalities run school transport on legacy systems (FSkyss/Voyager) that can neither automate nor isolate tenant data — and ~90% of appeals are overturned, signalling systemic rule-application errors rather than caseworker discretion.",
+      approach:"Build one multi-tenant case platform with a transparent, traceable rule engine — so the same decision logic runs everywhere, automates the routine, and makes every outcome auditable.",
+      moves:["Verify the rule engine against 30+ historical appeals (M1 checkpoint)","Clear the DPIA gate before any automated decision (Gate 1)","Per-tenant configuration, never per-tenant code","A separate processing flow for confidential addresses"],
+      notDoing:["Extending FSkyss/Voyager","Buying off-the-shelf in this phase","Automating non-routine or discretionary cases"],
+      howKnow:["Appeal-overturn rate falls as the pilot rolls out","≥60% of ordinary cases fully automated at quality","Zero statutory-deadline breaches"]},
+    {id:"st2", name:"TØFF Migration", framework:"premortem", status:"reviewed", owner:"Jonas", review:"2026-09-01", version:1, serves:["g1"],
+      relations:[{to:"st1", type:"enables"}],
+      challenge:"CMP is decommissioned on 31.12.2026; the TØFF migration must complete inside a fixed window with no break in statutory service delivery.",
+      approach:"Sequence the migration into increment T2 with a clean rollback path, validating statutory flows in a shadow run before cutover.",
+      moves:["Establish a pre-migration baseline","Stage the cutover with a tested rollback","Validate statutory deadlines in a shadow run"],
+      notDoing:["Deferring to T3","A big-bang cutover with no fallback"],
+      howKnow:["No measurable service interruption in the window","All statutory deadlines met during cutover"]},
+    {id:"st3", name:"On-Demand Transit Planning", framework:"one-pager", status:"draft", owner:"Jonas", review:"2026-08-10", version:1, serves:["g3"],
+      challenge:"School admins drop off during onboarding and lean on support calls, capping how fast on-demand planning can scale.",
+      approach:"Make onboarding fully self-serve with guided setup, so a new admin reaches first value without a support call.",
+      moves:["Guided first-run setup","In-product help at the known drop-off points"],
+      notDoing:["Hiring more onboarding support to mask the gap"],
+      howKnow:["≥80% of admins self-onboard by week 4","Support tickets per new admin stay below 2"]}
+  ],
+  insights: [
+    {id:"i1", claim:"~90% of school-transport appeals are overturned — qualitative findings point to rule-application errors in today's practice (inconsistent nearest-school interpretation, no traceability, uneven hazardous-route assessment), not caseworker discretion.", evidence:"Discovery M0 final report (2026-05-09), open question H5; qualitative interviews in the quick-wins track.", confidence:"medium", theme:"Casework quality", captured:"2026-05-09", source:"Discovery M0 §4.4", feeds:"a1"},
+    {id:"i2", claim:"Multi-tenancy is a privacy requirement, not just an architecture preference — keeping 150+ municipalities' data separated is what makes a shared platform legally defensible.", evidence:"DPIA pre-assessment; legal review of data-controller boundaries.", confidence:"high", theme:"Privacy & architecture", captured:"2026-05-02", source:"Legal note §2", feeds:"a3"},
+    {id:"i3", claim:"Build beats buy for this domain: Norwegian school-transport law is narrow and rule-heavy, and off-the-shelf systems support neither the automation level nor per-tenant configuration the ambition needs.", evidence:"Vendor scan + capability gap analysis.", confidence:"high", theme:"Make vs buy", captured:"2026-04-12", source:"Make/Buy memo", feeds:"a1"},
+    {id:"i4", claim:"The accountability gap is between the data-controller (municipality) and the system operator — until decision authority is named, automation cannot ship.", evidence:"Stakeholder interviews; data-responsibility workshop.", confidence:"medium", theme:"Governance", captured:"2026-05-20", source:"Workshop notes", feeds:"a5"},
+    {id:"i5", claim:"The sharpest privacy risk is sensitive data (confidential addresses), which needs a separate processing flow rather than the standard pipeline.", evidence:"DPIA threat-modelling session.", confidence:"high", theme:"Privacy", captured:"2026-06-04", source:"DPIA draft", feeds:""},
+  ],
+  decisions: [
+    {id:"d1", title:"Build a bespoke case-management system (Tet Vedtak) instead of extending FSkyss/Voyager", decided:"2026-04-15", owner:"Jonas", door:"one-way", area:"School transport", strategy:"Tet Vedtak — Case Platform",
+     reasoning:"Tied to company O1 ('one platform, many users, same experience') and the goal of up to 60% full automation. Legacy systems support neither multi-tenancy nor automation at the level the ambition requires.",
+     rejected:"Extend FSkyss/Voyager — rejected: low automation, no multi-tenancy. Buy off-the-shelf — not chosen this phase; domain is narrow and rule-heavy.",
+     rests:["a1"], trigger:"Gate 2 (concept approval in Owner Forum), or if the pilot shows the automation gain fails to materialise."},
+    {id:"d2", title:"Adopt per-tenant configuration as the multi-tenancy model", decided:"2026-05-06", owner:"Jonas", door:"two-way", area:"Architecture", strategy:"Tet Vedtak — Case Platform",
+     reasoning:"Per-tenant config keeps municipalities' data and rules isolated while sharing one codebase — the only model that satisfies both the privacy requirement and the shared-platform economics.",
+     rejected:"Single shared tenant with row-level filtering — rejected on privacy-defensibility grounds.",
+     rests:["a3"], trigger:"If onboarding cost per tenant exceeds budget, or a tenant needs rules the config model can't express."},
+    {id:"d3", title:"Conditional GO on milestone M1, gated on DPIA approval", decided:"2026-06-11", owner:"Jonas", door:"two-way", area:"School transport", strategy:"Tet Vedtak — Case Platform",
+     reasoning:"Momentum matters, but automated processing cannot start before the DPIA is approved. GO on build work; HOLD on anything touching automated decisions until Gate 1 clears.",
+     rejected:"Full GO including automation — rejected: legal exposure. Full HOLD — rejected: stalls the whole programme.",
+     rests:["a2"], trigger:"DPIA approval (clears the gate) or rejection (re-open scope)."},
+    {id:"d4", title:"Prioritise the TØFF migration in increment T2", decided:"2026-05-28", owner:"Jonas", door:"two-way", area:"Platform", strategy:"TØFF Migration",
+     reasoning:"CMP is decommissioned on 31.12.2026; the migration window is fixed and leaves little slack. Sequencing it into T2 protects statutory service delivery.",
+     rejected:"Defer to T3 — rejected: collides with the CMP decommission deadline.",
+     rests:["a4"], trigger:"Any measurable break in statutory service during the migration window."},
+  ],
+  assumptions: [
+    {id:"a1", strategy:"Tet Vedtak — Case Platform", statement:"Up to 60% of ordinary school-transport cases can be fully automated at sufficient decision quality.", confidence:"low", consequence:"high", kill_signal:"The appeals analysis (M0) shows overturns are driven mainly by rule interpretation, not applicant quality — meaning ordinary cases are less rule-clear than assumed.", state:"shaky", watchedBy:"s1", note:"The entire business case rests on this number (M3 ambition). The open M0 question — what drives the overturn rate? — is in practice the test of this bet."},
+    {id:"a2", strategy:"Tet Vedtak — Case Platform", statement:"The DPIA is approved in time for automated processing to start in M2.", confidence:"medium", consequence:"high", kill_signal:"DPIA still unapproved at the planned M2 start date.", state:"shaky", watchedBy:"s2", note:"Active blocker on the critical path. A new DPIA is underway with new counsel engaged."},
+    {id:"a3", strategy:"Tet Vedtak — Case Platform", statement:"Per-tenant configuration scales to 150+ municipalities without per-tenant engineering effort.", confidence:"medium", consequence:"medium", kill_signal:"Onboarding a new tenant repeatedly requires code changes, not just configuration.", state:"holding", watchedBy:"", note:"Underpins the shared-platform economics."},
+    {id:"a4", strategy:"TØFF Migration", statement:"The TØFF migration in T2 can be completed without a break in statutory service delivery.", confidence:"low", consequence:"high", kill_signal:"A measurable interruption in application/decision flow, or a missed statutory deadline during the migration window.", state:"shaky", watchedBy:"s3", note:"Identified as an organisational risk: temporary degradation during migration could break statutory service. Deadline 31.12.2026 leaves little slack; migration not yet started."},
+    {id:"a5", strategy:"Tet Vedtak — Case Platform", statement:"A transparent rule engine with traceable decision basis will reduce appeal volume.", confidence:"medium", consequence:"medium", kill_signal:"Rule verification against 30+ historical appeals fails to reproduce correct outcomes.", state:"holding", watchedBy:"s1", note:"Good news for a1 if true. Not yet measured — rule verification is the M1 checkpoint."},
+    {id:"a6", strategy:"On-Demand Transit Planning", statement:"School admins will self-serve onboarding without support calls.", confidence:"low", consequence:"high", kill_signal:"Support tickets per new admin stays above 2 after week 4.", state:"holding", watchedBy:"s4", note:"Carried over from the On-Demand pilot; the riskiest bet of that strategy."},
+  ],
+  signals: [
+    {id:"s1", strategy:"Tet Vedtak — Case Platform", signal:"Appeal-overturn rate on school-transport decisions, and the understood cause", watches:"a1", expected_shape:"Cause understood in M0; rate falls as the Tet Vedtak pilot rolls out.", owner:"Jonas", unit:"%", dir:"down", thresh:"", band:"", state:"disagreeing", last_reading:"~90% overturn — cause (decision error / rule interpretation / applicant quality) not yet understood (M0)",
+     log:[{d:"2026-05-13", t:"~90% overturn rate documented but not yet understood. Appeals analysis in progress. High rate is a red flag against the automation assumption.", v:90}]},
+    {id:"s2", strategy:"Tet Vedtak — Case Platform", signal:"DPIA approval status for automated casework", watches:"a2", expected_shape:"Approved by the data-protection officer before the planned M2 start.", owner:"Jonas", state:"drifting", last_reading:"In progress — new DPIA started, new counsel engaged, real-time-location info submitted (2026-06-11)",
+     log:[{d:"2026-06-11", t:"New school-transport DPIA started, new counsel engaged. Still not approved → blocks Gate 1."},{d:"2026-05-13", t:"DPIA not advanced/approved. Active blocker on the critical path."}]},
+    {id:"s3", strategy:"TØFF Migration", signal:"Service interruption during the TØFF migration window", watches:"a4", expected_shape:"Zero statutory-service breaks; all deadlines met.", owner:"Jonas", unit:" breaks", dir:"down", thresh:0, band:"", state:"agreeing", last_reading:"No migration activity yet — baseline clean (2026-06-01)",
+     log:[{d:"2026-06-01", t:"Pre-migration baseline established. No interruptions. Migration not yet started.", v:0}]},
+    {id:"s4", strategy:"On-Demand Transit Planning", signal:"New admins self-onboarding without a support call", watches:"a6", expected_shape:"≥80% self-onboard by week 4.", owner:"Jonas", unit:"%", dir:"up", thresh:80, band:"", state:"drifting", last_reading:"62% at week 4 — below the ≥80% expected shape (2026-06-12)",
+     log:[{d:"2026-06-12", t:"62% at week 4. Drifting below the ≥80% expected shape.", v:62},{d:"2026-05-29", t:"71% at week 2. On track.", v:71},{d:"2026-05-15", t:"78% at week 1. Just under the expected shape.", v:78}]},
+    {id:"s5", strategy:"Tet Vedtak — Case Platform", signal:"Rule-engine verification against historical appeals", watches:"a5", expected_shape:"Reproduces correct outcomes on ≥30 historical appeal cases.", owner:"Jonas", state:"agreeing", last_reading:"Verification set being assembled — 18 of 30 cases loaded (2026-06-18)",
+     log:[{d:"2026-06-18", t:"18 of 30 historical appeals loaded into the verification set. Early reproductions matching."}]},
+  ],
+  goals: [
+    {id:"g1", title:"O1 — one platform, many users, same experience", type:"company", horizon:"2026", owner:"Jonas",
+      statement:"One shared multi-tenant platform serves every municipality with the same experience — the company-level bet the whole programme ladders up to.", note:""},
+    {id:"g2", title:"Lawful, automated casework", type:"product", horizon:"2027", owner:"Jonas",
+      statement:"Ordinary school-transport cases are decided automatically at sufficient quality, on a traceable basis — trustworthy enough to defend on appeal.", note:""},
+    {id:"g3", title:"Self-serve scaling of on-demand planning", type:"product", horizon:"2026", owner:"Jonas",
+      statement:"New school admins reach first value without a support call, so on-demand planning scales without scaling the support team.", note:""},
+  ],
+  outcomes: [
+    {id:"o1", goalId:"g2", statement:"Appeal-overturn rate on school-transport decisions falls", baseline:"~90% overturned", target:"materially lower", by:"2027-Q2", measuredBy:"s1", state:"off-track", note:"Cause not yet understood (M0). The signal currently disagrees."},
+    {id:"o2", goalId:"g2", statement:"≥60% of ordinary cases fully automated at quality", baseline:"0%", target:"60%", by:"2027-Q2", measuredBy:"", state:"not-measured", note:"The M3 ambition the business case rests on. No live signal yet — a1 is the underlying bet."},
+    {id:"o3", goalId:"g1", statement:"No measurable service interruption during the TØFF migration window", baseline:"clean baseline", target:"0 interruptions", by:"2026-12-31", measuredBy:"s3", state:"on-track", note:"Migration not started; baseline clean."},
+    {id:"o4", goalId:"g3", statement:"≥80% of admins self-onboard by week 4", baseline:"62% at week 4", target:"≥80%", by:"2026-Q3", measuredBy:"s4", state:"at-risk", note:"Drifting below target — the signal is watching a6."},
+  ]
+};
+
+/* ══════════════════════════════════════════════════════════
+   MODELL
+   ══════════════════════════════════════════════════════════ */
+const KIND = {
+  goal:      {label:"Mål",         glyph:"M", c:"--goal",    bg:"--goal-bg",    group:"retning",  w:190},
+  outcome:   {label:"Utfall",      glyph:"U", c:"--outcome", bg:"--outcome-bg", group:"retning",  w:190},
+  strategy:  {label:"Strategi",    glyph:"S", c:"--accent",  bg:"--accent-soft",group:"strategi", w:212},
+  insight:   {label:"Innsikt",     glyph:"I", c:"--sense",   bg:"--sense-bg",   group:"registre", w:178},
+  assumption:{label:"Antakelse",   glyph:"A", c:"--align",   bg:"--align-bg",   group:"registre", w:178},
+  signal:    {label:"Signal",      glyph:"G", c:"--feed",    bg:"--feed-bg",    group:"registre", w:178},
+  decision:  {label:"Beslutning",  glyph:"B", c:"--mem",     bg:"--mem-bg",     group:"registre", w:178},
+};
+const COLL2KIND = {goals:"goal", outcomes:"outcome", strategies:"strategy",
+  insights:"insight", assumptions:"assumption", signals:"signal", decisions:"decision"};
+const STATE_TONE = {
+  "on-track":"--good","agreeing":"--good","holding":"--good",
+  "at-risk":"--warn","drifting":"--warn","shaky":"--warn",
+  "off-track":"--bad","disagreeing":"--bad","broken":"--bad",
+  "not-measured":"--mute","retired":"--mute"
+};
+const STATE_NO = {
+  "on-track":"i rute","at-risk":"i faresonen","off-track":"ute av kurs","not-measured":"ikke målt",
+  "agreeing":"enig","drifting":"driver","disagreeing":"uenig","retired":"pensjonert",
+  "holding":"holder","shaky":"vaklende","broken":"brutt"
+};
+
+const ENT = {};      // id → {id, kind, title, sub, state, raw}
+function title(kind,x){
+  return kind==="goal"?x.title : kind==="outcome"?x.statement : kind==="strategy"?x.name
+       : kind==="insight"?x.claim : kind==="assumption"?x.statement
+       : kind==="signal"?x.signal : x.title;
+}
+function subtitle(kind,x){
+  if(kind==="goal")      return (x.type==="company"?"virksomhet":"produkt")+" · "+(x.horizon||"");
+  if(kind==="outcome")   return x.target? "mål: "+x.target : "";
+  if(kind==="strategy")  return (x.status||"")+" · v"+(x.version||1);
+  if(kind==="insight")   return "tiltro: "+(x.confidence||"medium");
+  if(kind==="assumption")return "konsekvens: "+(x.consequence||"medium");
+  if(kind==="signal")    return x.last_reading? String(x.last_reading).slice(0,40) : (x.owner||"");
+  if(kind==="decision")  return x.door==="one-way"?"énveisdør":"toveisdør";
+  return "";
+}
+Object.keys(COLL2KIND).forEach(coll=>{
+  const kind=COLL2KIND[coll];
+  (SEED[coll]||[]).forEach(x=>{
+    ENT[x.id]={id:x.id, kind, coll, title:title(kind,x), sub:subtitle(kind,x), state:x.state||"", raw:x};
+  });
+});
+const stratByName = {};
+SEED.strategies.forEach(s=>stratByName[s.name]=s.id);
+
+/* ── relasjoner: én sannhet, brukt både til kanter og til «naboer» ── */
+function relations(){
+  const out=[]; // {a,b,label,kind:'declared'|'derived',state}
+  const add=(a,b,label,kind,state)=>{ if(ENT[a]&&ENT[b]) out.push({a,b,label,kind,state:state||""}); };
+  SEED.strategies.forEach(s=>{
+    (s.serves||[]).forEach(g=>add(s.id,g,"tjener","declared"));
+    (s.relations||[]).forEach(r=>add(s.id,r.to,({"depends-on":"avhenger av",enables:"muliggjør",tension:"i spenning med",related:"beslektet"})[r.type]||r.type,"declared"));
+  });
+  SEED.outcomes.forEach(o=>{
+    add(o.id,o.goalId,"hører til","declared",o.state);
+    if(o.measuredBy) add(o.measuredBy,o.id,"måler","declared",o.state);
+  });
+  SEED.assumptions.forEach(a=>{
+    const sid=stratByName[a.strategy]; if(sid) add(a.id,sid,"bærer","declared",a.state);
+  });
+  SEED.insights.forEach(i=>{ if(i.feeds) add(i.id,i.feeds,"mater","declared"); });
+  SEED.signals.forEach(g=>{
+    if(g.watches) add(g.id,g.watches,"overvåker","declared",g.state);
+    else { const sid=stratByName[g.strategy]; if(sid) add(g.id,sid,"overvåker","derived",g.state); }
+  });
+  SEED.decisions.forEach(d=>{
+    const rests=(d.rests||[]).filter(r=>ENT[r]);
+    if(rests.length) rests.forEach(r=>add(d.id,r,"hviler på","declared"));
+    else { const sid=stratByName[d.strategy]; if(sid) add(d.id,sid,"hviler på","derived"); }
+  });
+  return out;
+}
+const REL = relations();
+const NEIGHBOURS = {};
+REL.forEach(r=>{ (NEIGHBOURS[r.a]=NEIGHBOURS[r.a]||new Set()).add(r.b);
+                 (NEIGHBOURS[r.b]=NEIGHBOURS[r.b]||new Set()).add(r.a); });
+
+/* ══════════════════════════════════════════════════════════
+   TILSTAND — hva ligger på lerretet, og hvor
+   ══════════════════════════════════════════════════════════ */
+const LAYERS_ON = {goal:true,outcome:true,strategy:true,insight:true,assumption:true,signal:true,decision:true};
+const S = {
+  placed:{},                   // id → {x,y}   ← «på lerretet» = har posisjon
+  layers:{...LAYERS_ON},
+  zoom:1, pan:{x:0,y:0},
+  sel:null, q:""
+};
+const STORE="spine.canvas.proto.v1";
+function persist(){ try{ localStorage.setItem(STORE,JSON.stringify({placed:S.placed,layers:S.layers,pan:S.pan,zoom:S.zoom})); }catch(e){} }
+function restore(){
+  try{
+    const raw=localStorage.getItem(STORE); if(!raw) return false;
+    const o=JSON.parse(raw);
+    if(!o||!o.placed||!Object.keys(o.placed).length) return false;
+    Object.keys(o.placed).forEach(id=>{ if(ENT[id]) S.placed[id]=o.placed[id]; });
+    if(o.layers) Object.assign(S.layers,o.layers);
+    if(o.pan) S.pan=o.pan; if(o.zoom) S.zoom=o.zoom;
+    return true;
+  }catch(e){ return false; }
+}
+/* startlerret: retningen og strategiene — nok til at koblingene viser seg */
+function seedCanvas(){
+  S.placed={};
+  const start=[["g1",120,60],["g2",420,60],["g3",720,60],
+               ["st1",300,300],["st2",40,300],["st3",700,300]];
+  start.forEach(([id,x,y])=>{ if(ENT[id]) S.placed[id]={x,y}; });
+}
+const visible = id => S.placed[id] && S.layers[ENT[id].kind];
+
+/* ══════════════════════════════════════════════════════════
+   RENDER
+   ══════════════════════════════════════════════════════════ */
+const stage=document.getElementById("stage"), world=document.getElementById("world"),
+      edges=document.getElementById("edges"), drawer=document.getElementById("drawer"),
+      grid=document.getElementById("grid"), statusbar=document.getElementById("statusbar");
+const cvar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const trunc=(s,n)=>{ s=String(s||""); return s.length>n? s.slice(0,n-1)+"…" : s; };
+
+function applyTransform(){
+  world.style.transform=`translate(${S.pan.x}px,${S.pan.y}px) scale(${S.zoom})`;
+  const g=26*S.zoom;
+  grid.style.backgroundSize=`${g}px ${g}px`;
+  grid.style.backgroundPosition=`${S.pan.x}px ${S.pan.y}px`;
+}
+
+function renderLayers(){
+  const host=document.getElementById("layers");
+  const groups=[["Retning",["goal","outcome"]],["","strategy"],["Registre",["insight","assumption","signal","decision"]]];
+  host.innerHTML="";
+  groups.forEach(([lbl,kinds])=>{
+    kinds=[].concat(kinds);
+    const g=document.createElement("div"); g.className="lgrp";
+    if(lbl){ const l=document.createElement("span"); l.className="lbl"; l.textContent=lbl; g.appendChild(l); }
+    kinds.forEach(k=>{
+      const b=document.createElement("button"); b.className="chip"; b.type="button";
+      b.setAttribute("aria-pressed",String(!!S.layers[k]));
+      b.style.color=`var(${KIND[k].c})`;
+      b.innerHTML=`<span class="dot"></span>${KIND[k].label}`;
+      b.onclick=()=>{ S.layers[k]=!S.layers[k]; persist(); render(); };
+      g.appendChild(b);
+    });
+    host.appendChild(g);
+  });
+}
+
+function nodeCard(id){
+  const e=ENT[id], k=KIND[e.kind], p=S.placed[id];
+  const n=document.createElement("div");
+  n.className="node k-"+e.kind; n.dataset.id=id;
+  n.style.left=p.x+"px"; n.style.top=p.y+"px";
+  const tone=e.state?STATE_TONE[e.state]:null;
+  n.innerHTML=
+    `<div class="kd" style="color:var(${k.c})">
+       <span class="glyph" style="background:var(${k.bg});color:var(${k.c})">${k.glyph}</span>${k.label}</div>
+     <div class="ttl">${esc(trunc(e.title,e.kind==="strategy"?60:110))}</div>
+     <div class="meta">${e.sub?`<span>${esc(trunc(e.sub,34))}</span>`:""}
+       ${tone?`<span class="st" style="color:var(${tone})"><i></i>${esc(STATE_NO[e.state]||e.state)}</span>`:""}
+     </div>
+     <button class="rm" title="Fjern fra lerretet" aria-label="Fjern fra lerretet">×</button>`;
+  n.querySelector(".rm").onclick=ev=>{ ev.stopPropagation(); delete S.placed[id]; if(S.sel===id) S.sel=null; persist(); render(); };
+  n.onclick=ev=>{ ev.stopPropagation(); S.sel = S.sel===id? null : id; render(); };
+  if(S.sel===id) n.classList.add("sel");
+  if(S.sel && S.sel!==id && !(NEIGHBOURS[S.sel]||new Set()).has(id)) n.classList.add("faded");
+  makeDraggable(n,id);
+  return n;
+}
+
+/* posisjon er kortets øvre venstre hjørne; kanter går fra sentrum til sentrum */
+const SIZE={};
+function centre(id){
+  const p=S.placed[id], s=SIZE[id]||{w:KIND[ENT[id].kind].w,h:86};
+  return {x:p.x+s.w/2, y:p.y+s.h/2};
+}
+/* der linja fra C mot O krysser kortkanten rundt C (pluss litt luft) */
+function edgePoint(C,O,size){
+  const dx=O.x-C.x, dy=O.y-C.y;
+  if(!dx&&!dy) return C;
+  const hw=size.w/2+6, hh=size.h/2+6;
+  const s=Math.min(Math.abs(dx)?hw/Math.abs(dx):Infinity, Math.abs(dy)?hh/Math.abs(dy):Infinity);
+  return {x:C.x+dx*s, y:C.y+dy*s};
+}
+function renderEdges(){
+  const shown=REL.filter(r=>visible(r.a)&&visible(r.b));
+  let minX=0,minY=0,maxX=1200,maxY=800;
+  Object.keys(S.placed).forEach(id=>{ if(!visible(id))return; const p=S.placed[id];
+    minX=Math.min(minX,p.x-60); minY=Math.min(minY,p.y-60);
+    maxX=Math.max(maxX,p.x+320); maxY=Math.max(maxY,p.y+220); });
+  edges.setAttribute("width",maxX-minX); edges.setAttribute("height",maxY-minY);
+  edges.setAttribute("viewBox",`${minX} ${minY} ${maxX-minX} ${maxY-minY}`);
+  edges.style.left=minX+"px"; edges.style.top=minY+"px";
+  let d=`<defs><marker id="arw" viewBox="0 -5 10 10" refX="10" markerWidth="7" markerHeight="7" orient="auto">
+    <path d="M0,-5L10,0L0,5" fill="${cvar("--ink-3")}"/></marker></defs>`;
+  shown.forEach(r=>{
+    const A=centre(r.a), B=centre(r.b);
+    const dim = S.sel && r.a!==S.sel && r.b!==S.sel;
+    const col = r.state? cvar(STATE_TONE[r.state]||"--line") : cvar(r.kind==="declared"?"--ink-3":"--line");
+    // trim begge ender inn til kortkanten, så linjen (og etiketten) ligger i det åpne mellomrommet
+    const sa=SIZE[r.a]||{w:KIND[ENT[r.a].kind].w,h:92}, sb=SIZE[r.b]||{w:KIND[ENT[r.b].kind].w,h:92};
+    const P=edgePoint(A,B,sa), Q=edgePoint(B,A,sb);
+    const gap=Math.hypot(Q.x-P.x,Q.y-P.y);
+    d+=`<line x1="${P.x.toFixed(1)}" y1="${P.y.toFixed(1)}" x2="${Q.x.toFixed(1)}" y2="${Q.y.toFixed(1)}" stroke="${col}"
+        stroke-width="${r.kind==="declared"?1.7:1.4}" ${r.kind==="derived"?'stroke-dasharray="5 5"':""}
+        marker-end="url(#arw)" opacity="${dim?.13:.85}"/>`;
+    // etiketten får bare plass når kortene faktisk står fra hverandre
+    if(!dim && gap>64) d+=`<text class="elabel" x="${((P.x+Q.x)/2).toFixed(1)}" y="${((P.y+Q.y)/2-5).toFixed(1)}" text-anchor="middle">${esc(r.label)}</text>`;
+  });
+  edges.innerHTML=d;
+}
+
+function render(){
+  renderLayers();
+  world.querySelectorAll(".node").forEach(n=>n.remove());
+  const ids=Object.keys(S.placed).filter(visible);
+  ids.forEach(id=>world.appendChild(nodeCard(id)));
+  world.querySelectorAll(".node").forEach(n=>{ SIZE[n.dataset.id]={w:n.offsetWidth,h:n.offsetHeight}; });
+  renderEdges();
+  document.getElementById("stageEmpty").hidden = ids.length>0;
+  renderDrawer();
+  renderStatus();
+  applyTransform();
+}
+function renderStatus(){
+  const n=Object.keys(S.placed).filter(visible).length;
+  const e=REL.filter(r=>visible(r.a)&&visible(r.b)).length;
+  statusbar.innerHTML=`<span><b class="mono">${n}</b> elementer · <b class="mono">${e}</b> koblinger</span>`;
+  const mk=(t,fn)=>{ const b=document.createElement("button"); b.className="zbtn"; b.textContent=t; b.onclick=fn; return b; };
+  statusbar.appendChild(mk("−",()=>{ S.zoom=Math.max(.35,S.zoom-.15); persist(); applyTransform(); }));
+  statusbar.appendChild(mk("+",()=>{ S.zoom=Math.min(2,S.zoom+.15); persist(); applyTransform(); }));
+  const f=mk("⤢",fit); f.title="Tilpass til vinduet"; statusbar.appendChild(f);
+}
+
+/* ══════════════════════════════════════════════════════════
+   SKUFFEN — det som ikke ligger på lerretet ennå
+   ══════════════════════════════════════════════════════════ */
+function pillFor(id,isSuggest){
+  const e=ENT[id],k=KIND[e.kind];
+  const b=document.createElement("button");
+  b.className="pill"+(isSuggest?" suggest":""); b.type="button"; b.draggable=true; b.dataset.id=id;
+  const tie = isSuggest? countTies(id) : 0;
+  b.innerHTML=`<span class="glyph" style="background:var(${k.bg});color:var(${k.c})">${k.glyph}</span>
+    <span class="tx"><b>${esc(trunc(e.title,84))}</b><span>${esc(k.label)}${tie?` · kobler til ${tie} på lerretet`:(e.sub?" · "+esc(trunc(e.sub,22)):"")}</span></span>`;
+  b.onclick=()=>placeSmart(id);
+  b.addEventListener("dragstart",ev=>{ ev.dataTransfer.setData("text/plain",id); ev.dataTransfer.effectAllowed="copy"; });
+  return b;
+}
+const countTies = id => [...(NEIGHBOURS[id]||[])].filter(visible).length;
+
+function renderDrawer(){
+  const q=S.q.toLowerCase().trim();
+  const pool=Object.keys(ENT).filter(id=>!S.placed[id])
+    .filter(id=>!q || ENT[id].title.toLowerCase().includes(q) || KIND[ENT[id].kind].label.toLowerCase().includes(q));
+  const suggested=pool.filter(id=>countTies(id)>0)
+    .sort((a,b)=>countTies(b)-countTies(a));
+  const sset=new Set(suggested);
+  drawer.innerHTML="";
+
+  if(suggested.length){
+    const g=document.createElement("div"); g.className="dgrp";
+    g.innerHTML=`<h3>Foreslått <span class="n">${suggested.length}</span></h3>`;
+    suggested.slice(0,8).forEach(id=>g.appendChild(pillFor(id,true)));
+    drawer.appendChild(g);
+  }
+  [["Retning",["goal","outcome"]],["Strategier",["strategy"]],["Registre",["insight","assumption","signal","decision"]]]
+  .forEach(([lbl,kinds])=>{
+    const ids=pool.filter(id=>kinds.includes(ENT[id].kind) && !sset.has(id));
+    if(!ids.length) return;
+    const g=document.createElement("div"); g.className="dgrp";
+    g.innerHTML=`<h3>${lbl} <span class="n">${ids.length}</span></h3>`;
+    ids.forEach(id=>g.appendChild(pillFor(id,false)));
+    drawer.appendChild(g);
+  });
+  if(!drawer.children.length){
+    const d=document.createElement("div"); d.className="dempty";
+    d.textContent = q ? "Ingen treff." : "Alt ligger på lerretet.";
+    drawer.appendChild(d);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   PLASSERING
+   ══════════════════════════════════════════════════════════ */
+function screenToWorld(cx,cy){
+  const r=stage.getBoundingClientRect();
+  return {x:(cx-r.left-S.pan.x)/S.zoom, y:(cy-r.top-S.pan.y)/S.zoom};
+}
+function freeSpot(x,y){
+  const taken=Object.keys(S.placed).map(id=>S.placed[id]);
+  let tries=0;
+  while(taken.some(p=>Math.abs(p.x-x)<170 && Math.abs(p.y-y)<80) && tries++<60){ x+=34; y+=30; }
+  return {x,y};
+}
+function place(id,x,y){ const p=freeSpot(Math.round(x),Math.round(y)); S.placed[id]=p; persist(); render(); }
+/* klikk i skuffen: legg elementet ved siden av naboen det henger sammen med */
+function placeSmart(id){
+  const near=[...(NEIGHBOURS[id]||[])].filter(visible);
+  if(near.length){
+    const c=near.map(n=>S.placed[n]).reduce((a,p)=>({x:a.x+p.x/near.length,y:a.y+p.y/near.length}),{x:0,y:0});
+    const below = ["insight","signal","decision","assumption"].includes(ENT[id].kind);
+    place(id, c.x + (below?0:230), c.y + (below?150:0));
+  } else {
+    const r=stage.getBoundingClientRect();
+    const c=screenToWorld(r.left+r.width/2, r.top+r.height/2);
+    place(id, c.x-90, c.y-40);
+  }
+}
+
+/* ── dra kort på lerretet ─────────────────────────────────── */
+function makeDraggable(node,id){
+  node.addEventListener("pointerdown",e=>{
+    if(e.target.closest(".rm")) return;
+    e.stopPropagation();
+    node.setPointerCapture(e.pointerId); node.classList.add("dragging");
+    const st={x0:e.clientX, y0:e.clientY, px:S.placed[id].x, py:S.placed[id].y, moved:false};
+    const move=ev=>{
+      const dx=(ev.clientX-st.x0)/S.zoom, dy=(ev.clientY-st.y0)/S.zoom;
+      if(Math.abs(dx)>2||Math.abs(dy)>2) st.moved=true;
+      S.placed[id]={x:Math.round(st.px+dx), y:Math.round(st.py+dy)};
+      node.style.left=S.placed[id].x+"px"; node.style.top=S.placed[id].y+"px";
+      renderEdges();
+    };
+    const up=ev=>{
+      node.removeEventListener("pointermove",move); node.removeEventListener("pointerup",up);
+      node.classList.remove("dragging"); persist();
+      if(st.moved){ ev.stopPropagation(); node.dataset.suppressClick="1"; setTimeout(()=>delete node.dataset.suppressClick,0); }
+    };
+    node.addEventListener("pointermove",move); node.addEventListener("pointerup",up);
+  });
+  node.addEventListener("click",e=>{ if(node.dataset.suppressClick) e.stopImmediatePropagation(); },true);
+}
+
+/* ── slipp fra skuffen ────────────────────────────────────── */
+stage.addEventListener("dragover",e=>{ e.preventDefault(); e.dataTransfer.dropEffect="copy"; stage.classList.add("dropping"); });
+stage.addEventListener("dragleave",e=>{ if(e.target===stage) stage.classList.remove("dropping"); });
+stage.addEventListener("drop",e=>{
+  e.preventDefault(); stage.classList.remove("dropping");
+  const id=e.dataTransfer.getData("text/plain");
+  if(!id||!ENT[id]) return;
+  if(!S.layers[ENT[id].kind]) S.layers[ENT[id].kind]=true;   // slipper du inn et skjult lag, tenner det seg
+  const w=screenToWorld(e.clientX,e.clientY);
+  place(id, w.x-KIND[ENT[id].kind].w/2, w.y-42);
+});
+
+/* ── panorer + zoom ───────────────────────────────────────── */
+stage.addEventListener("pointerdown",e=>{
+  if(e.target.closest(".node")||e.target.closest(".statusbar")) return;
+  stage.classList.add("panning"); stage.setPointerCapture(e.pointerId);
+  const x0=e.clientX,y0=e.clientY,px=S.pan.x,py=S.pan.y; let moved=false;
+  const move=ev=>{ moved=true; S.pan={x:px+(ev.clientX-x0), y:py+(ev.clientY-y0)}; applyTransform(); };
+  const up=()=>{ stage.removeEventListener("pointermove",move); stage.removeEventListener("pointerup",up);
+    stage.classList.remove("panning"); persist(); if(!moved && S.sel){ S.sel=null; render(); } };
+  stage.addEventListener("pointermove",move); stage.addEventListener("pointerup",up);
+});
+stage.addEventListener("wheel",e=>{
+  e.preventDefault();
+  const r=stage.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+  const k=Math.exp(-e.deltaY*0.0016), z=Math.min(2,Math.max(.35,S.zoom*k));
+  S.pan={x:mx-(mx-S.pan.x)*(z/S.zoom), y:my-(my-S.pan.y)*(z/S.zoom)};
+  S.zoom=z; applyTransform(); persist();
+},{passive:false});
+
+function fit(){
+  const ids=Object.keys(S.placed).filter(visible); if(!ids.length) return;
+  let x1=1e9,y1=1e9,x2=-1e9,y2=-1e9;
+  ids.forEach(id=>{ const p=S.placed[id], s=SIZE[id]||{w:190,h:86};
+    x1=Math.min(x1,p.x); y1=Math.min(y1,p.y); x2=Math.max(x2,p.x+s.w); y2=Math.max(y2,p.y+s.h); });
+  const r=stage.getBoundingClientRect(), pad=70;
+  const z=Math.min(1.3,(r.width-pad*2)/(x2-x1||1),(r.height-pad*2)/(y2-y1||1));
+  S.zoom=Math.max(.35,z);
+  S.pan={x:(r.width-(x2-x1)*S.zoom)/2-x1*S.zoom, y:(r.height-(y2-y1)*S.zoom)/2-y1*S.zoom};
+  applyTransform(); persist();
+}
+
+/* ══════════════════════════════════════════════════════════
+   HANDLINGER I TOPPLINJEN
+   ══════════════════════════════════════════════════════════ */
+/* Rydd opp: lag på lag — retning øverst, strategier i midten, registre under.
+   Innenfor hvert lag sorteres elementer etter naboen sin, så linjene krysser mindre. */
+document.getElementById("btnTidy").onclick=()=>{
+  const rows=[["goal"],["outcome"],["strategy"],["assumption"],["insight","signal","decision"]];
+  const GAPX=40, GAPY=68, MAXW=1560;   // radene brekker når de blir bredere enn dette
+  let y=40;
+  rows.forEach(kinds=>{
+    let ids=Object.keys(S.placed).filter(id=>kinds.includes(ENT[id].kind) && S.layers[ENT[id].kind]);
+    if(!ids.length) return;
+    // sorter etter gjennomsnittlig x hos naboer som allerede er lagt ut — færre kryssende linjer
+    ids.sort((a,b)=>anchorX(a)-anchorX(b));
+    // brekk i linjer, og sentrer hver linje
+    const lines=[[]]; let wsum=0;
+    ids.forEach(id=>{
+      const w=KIND[ENT[id].kind].w;
+      if(wsum+w>MAXW && lines[lines.length-1].length){ lines.push([]); wsum=0; }
+      lines[lines.length-1].push(id); wsum+=w+GAPX;
+    });
+    lines.forEach(line=>{
+      const total=line.reduce((s,id)=>s+KIND[ENT[id].kind].w+GAPX,0)-GAPX;
+      let x=Math.round((MAXW-total)/2)+40, h=0;
+      line.forEach(id=>{ S.placed[id]={x,y}; x+=KIND[ENT[id].kind].w+GAPX;
+        h=Math.max(h,SIZE[id]?SIZE[id].h:92); });
+      y+=h+GAPY;
+    });
+  });
+  persist(); render(); fit();
+  function anchorX(id){
+    const ns=[...(NEIGHBOURS[id]||[])].filter(n=>S.placed[n]);
+    if(!ns.length) return 9999;
+    return ns.reduce((s,n)=>s+S.placed[n].x,0)/ns.length;
+  }
+};
+/* Hent naboer: alt som henger direkte sammen med det som ligger her */
+document.getElementById("btnPull").onclick=()=>{
+  const on=Object.keys(S.placed).filter(visible);
+  const add=new Set();
+  on.forEach(id=>[...(NEIGHBOURS[id]||[])].forEach(n=>{ if(!S.placed[n]) add.add(n); }));
+  if(!add.size) return;
+  add.forEach(id=>{ if(!S.layers[ENT[id].kind]) S.layers[ENT[id].kind]=true; });
+  add.forEach(id=>placeSmart(id));
+  render();
+};
+document.getElementById("btnClear").onclick=()=>{ S.placed={}; S.sel=null; persist(); render(); };
+document.getElementById("search").addEventListener("input",e=>{ S.q=e.target.value; renderDrawer(); });
+window.addEventListener("resize",()=>renderEdges());
+
+/* ══════════════════════════════════════════════════════════ */
+if(!restore()) seedCanvas();
+render();
+setTimeout(fit,60);
+</script>
+</body>
+</html>

@@ -1,2 +1,4 @@
 .DS_Store
 Claude outputs/
+.spine-build/
+app.html.bak
