@@ -750,6 +750,8 @@ const T = {
     "sug.why.breach2":"{v} against {th} — second breach in a row.",
     "sug.why.breach1":"{v} against {th}, and moving the wrong way.",
     "sug.why.steady":"{v} against {th} — back inside the expected shape.",
+    "sug.hint.asm":"You confirm — re-rate the bet, or leave it as it stands.",
+    "sug.why.signal":"the signal “{s}” is now {state}.",
     "sys.families":"The four families","sys.families.h":"Ten systems · four live registers","sys.loop":"The register loop","sys.loop.h":"How the four registers actually talk to each other","sys.register":"register","sys.live":"live register","sys.without":"Without it:","sys.family":"Family:","sys.feeds":"Feeds",
     "loop.1":"Insights feed the diagnosis in Understand.","loop.2":"The diagnosis produces Assumptions — the bets the strategy rests on.","loop.3":"Each Signal watches a named assumption; each Decision records the bets it rests on.","loop.4":"When a signal disagrees or an assumption breaks, you're sent back to the diagnosis.","loop.5":"The Learning Loop writes the lesson from a broken bet back into Insights — and downgrades the falsified one. That's what makes it a flywheel, not a one-off.",
   },
@@ -823,6 +825,8 @@ const T = {
     "sug.why.breach2":"{v} mot {th} — andre brudd på rad.",
     "sug.why.breach1":"{v} mot {th}, og på vei feil vei.",
     "sug.why.steady":"{v} mot {th} — tilbake innenfor forventet form.",
+    "sug.hint.asm":"Du bekrefter — revurder bettet, eller la det stå.",
+    "sug.why.signal":"signalet «{s}» er nå {state}.",
     "sys.families":"De fire familiene","sys.families.h":"Ti systemer · fire levende registre","sys.loop":"Register-løkken","sys.loop.h":"Hvordan de fire registrene faktisk snakker sammen","sys.register":"register","sys.live":"levende register","sys.without":"Uten det:","sys.family":"Familie:","sys.feeds":"Mater",
     "loop.1":"Innsikter mater diagnosen i Forstå.","loop.2":"Diagnosen produserer Antakelser — bettene strategien hviler på.","loop.3":"Hvert Signal overvåker en navngitt antakelse; hver Beslutning registrerer bettene den hviler på.","loop.4":"Når et signal er uenig eller en antakelse brytes, sendes du tilbake til diagnosen.","loop.5":"Læringsløkken skriver lærdommen fra et brutt bet tilbake inn i Innsikter — og nedgraderer den falsifiserte. Det er det som gjør det til et svinghjul, ikke en engangshendelse.",
   },
@@ -1058,7 +1062,7 @@ function render(){
 }
 function reviewDueCount(){
   return DB.signals.filter(s=>s.state==="disagreeing"||s.state==="drifting"||suggestSignalState(s)).length
-       + DB.assumptions.filter(a=>(a.state==="shaky"||a.state==="broken")).length;
+       + DB.assumptions.filter(a=>a.state==="shaky"||a.state==="broken"||assumptionFollowUp(a)).length;
 }
 function updateCounts(){
   document.querySelectorAll("[data-count]").forEach(n=>{ n.textContent = DB[n.dataset.count].length; });
@@ -1074,11 +1078,11 @@ function vDashboard(){
   const disag = DB.signals.filter(s=>s.state==="disagreeing" && matchStrat(s.strategy));
   const attention = [
     ...DB.signals.filter(s=>(s.state==="disagreeing"||s.state==="drifting"||suggestSignalState(s)) && matchStrat(s.strategy)).map(s=>({k:"signal",o:s})),
-    ...DB.assumptions.filter(a=>(a.state==="broken"||a.state==="shaky") && matchStrat(a.strategy)).map(a=>({k:"assumption",o:a})),
+    ...DB.assumptions.filter(a=>(a.state==="broken"||a.state==="shaky"||assumptionFollowUp(a)) && matchStrat(a.strategy)).map(a=>({k:"assumption",o:a})),
   ];
   const order = {disagreeing:0,broken:1,drifting:2,shaky:3};
   // Et ubehandlet forslag går først: det er det eneste her du ikke har sett ennå.
-  const rank = it => (it.k==="signal" && suggestSignalState(it.o)) ? -1 : (order[it.o.state]??9);
+  const rank = it => (it.k==="signal" ? suggestSignalState(it.o) : assumptionFollowUp(it.o)) ? -1 : (order[it.o.state]??9);
   attention.sort((x,y)=>rank(x)-rank(y));
   const strategies = stratF==="*"?DB.strategies:[stratF];
 
@@ -1118,7 +1122,12 @@ function vDashboard(){
       const sub  = k==="signal"?ov.last_reading:ov.kill_signal;
       tr.innerHTML = `<td><div class="stmt">${esc(main)}</div><div class="strat">${esc(o.strategy)}</div></td>
         <td><span class="chip">${esc(t("th."+k))}</span></td>
-        <td>${stateBadge(o.state)}${(()=>{const g=k==="signal"?suggestSignalState(o):null;return g?` <span class="sug-chip">→ ${esc(t("state."+g.state))}?</span>`:"";})()}</td>
+        <td>${stateBadge(o.state)}${(()=>{
+          const g=k==="signal"?suggestSignalState(o):null;
+          if(g) return ` <span class="sug-chip">→ ${esc(t("state."+g.state))}?</span>`;
+          const f=k==="assumption"?assumptionFollowUp(o):null;
+          return f?` <span class="sug-chip">→ ${esc(t("state."+f.suggested))}?</span>`:"";
+        })()}</td>
         <td><div class="meta" style="max-width:36ch">${esc(sub||"—")}</div></td>`;
       clickable(tr, ()=> k==="signal"?openSignal(o.id):openAssumption(o.id), "Open "+(k==="signal"?o.signal:o.statement));
       body.appendChild(tr);
@@ -1546,8 +1555,9 @@ function vReview(){
   // Et friskt signal som nettopp begynte å briste må også opp — ellers når
   // forslaget aldri fram i akkurat det tilfellet som betyr mest.
   const sigs=DB.signals.filter(s=>matchStrat(s.strategy)&&(s.state==="disagreeing"||s.state==="drifting"||suggestSignalState(s)));
-  const sugCount=sigs.filter(s=>suggestSignalState(s)).length;
-  const asmp=DB.assumptions.filter(a=>matchStrat(a.strategy)&&(a.state==="shaky"||a.state==="broken"));
+  const sugCount=sigs.filter(s=>suggestSignalState(s)).length
+                + asmp.filter(a=>assumptionFollowUp(a)).length;
+  const asmp=DB.assumptions.filter(a=>matchStrat(a.strategy)&&(a.state==="shaky"||a.state==="broken"||assumptionFollowUp(a)));
 
   const banner=el("div","rev-banner");
   banner.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
@@ -1566,7 +1576,8 @@ function vReview(){
   w.appendChild(el("div","rev-step",`<span class="num">2</span><h2>${esc(t("rev.2"))}</h2><span class="hint">${esc(t("rev.2.h"))}</span>`));
   const ap=el("div","grid"); ap.style.gap="12px";
   if(!asmp.length){ ap.appendChild(el("div","panel",`<div class="empty"><span class="serif">All bets steady.</span>No shaky or broken assumptions in this view.</div>`)); }
-  asmp.forEach(a=>ap.appendChild(reviewAssumptionCard(a)));
+  asmp.slice().sort((x,y)=>(assumptionFollowUp(y)?1:0)-(assumptionFollowUp(x)?1:0))
+      .forEach(a=>ap.appendChild(reviewAssumptionCard(a)));
   w.appendChild(ap);
 
   // Step 3 — end in a decision
@@ -1633,10 +1644,19 @@ function reviewAssumptionCard(a){
   const segC=el("div","seg");
   ["low","medium","high"].forEach(o=>{ const b=el("button",o===a.confidence?"on":""); b.type="button"; b.textContent=lvl(o); b.onclick=()=>{segC.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); segC.dataset.val=o;}; segC.appendChild(b); });
   segC.dataset.val=a.confidence; wrapConf.appendChild(segC);
+  const fu=assumptionFollowUp(a);
+  const pickS=fu?fu.suggested:a.state;
   const wrapState=el("div",null,`<div class="lbl" style="margin-bottom:4px">${esc(t("th.state"))}</div>`);
   const segS=el("div","seg");
-  ["holding","shaky","broken","retired"].forEach(o=>{ const b=el("button",o===a.state?"on":""); b.type="button"; b.textContent=t("state."+o); b.onclick=()=>{segS.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); segS.dataset.val=o;}; segS.appendChild(b); });
-  segS.dataset.val=a.state; wrapState.appendChild(segS);
+  ["holding","shaky","broken","retired"].forEach(o=>{ const b=el("button",o===pickS?"on":""); b.type="button"; b.textContent=t("state."+o); b.onclick=()=>{segS.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); segS.dataset.val=o;}; segS.appendChild(b); });
+  segS.dataset.val=pickS; wrapState.appendChild(segS);
+  if(fu){
+    const note=el("div","sug-note");
+    note.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16v-4M12 8h.01"/><circle cx="12" cy="12" r="9"/></svg>
+      <div><b>${esc(t("sug.prefix"))} ${esc(t("state."+fu.suggested))}</b> — ${esc(followUpText(fu))}
+      <div class="hint">${esc(t("sug.hint.asm"))}</div></div>`;
+    c.appendChild(note);
+  }
   const save=el("button","btn pri",t("rev.rerate")); save.style.alignSelf="flex-end";
   const flash=el("span","saved-flash",t("rev.saved")); flash.style.alignSelf="flex-end";
   save.onclick=()=>{ a.confidence=segC.dataset.val; a.state=segS.dataset.val; saveData(); flash.classList.add("on"); setTimeout(()=>render(),650); };
@@ -1729,6 +1749,31 @@ function suggestSignalState(s){
   else if(!b0 && !b1 && !worse){ state="agreeing"; why="sug.why.steady"; }
   if(!state || state===s.state) return null;           // tvetydig, eller allerede der
   return {state, why, latest:a, thresh:th, unit:s.unit||""};
+}
+// Et signal som er uenig gjør per definisjon antakelsen det overvåker mistenkt.
+// Beregnes fra antakelsens side: flere signaler kan overvåke samme bet, og da
+// er det verste som gjelder. Bruker signalets BEKREFTEDE tilstand — aldri et
+// ubekreftet forslag — så kjeden er en kjede av ting et menneske har sagt ja til.
+const ASM_RANK={holding:0, shaky:1, broken:2};
+function assumptionFollowUp(a){
+  if(!a || a.state==="retired") return null;
+  const watchers=DB.signals.filter(s=>s.watches===a.id && s.state!=="retired");
+  let want=null, from=null;
+  watchers.forEach(s=>{
+    const w = s.state==="disagreeing" ? "broken"
+            : s.state==="drifting"    ? "shaky" : null;
+    if(w && (want===null || ASM_RANK[w]>ASM_RANK[want])){ want=w; from=s; }
+  });
+  if(!want) return null;
+  // Smitten kan bare gjøre en antakelse mer usikker, aldri mindre. At et signal
+  // blir enig igjen reparerer ikke et brutt bet — den vurderingen er menneskets.
+  if((ASM_RANK[a.state]??0) >= ASM_RANK[want]) return null;
+  return {suggested:want, signal:from};
+}
+function followUpText(f){
+  return t("sug.why.signal")
+    .replace("{s}", trunc(L(f.signal,"signal"),44))
+    .replace("{state}", t("state."+f.signal.state).toLowerCase());
 }
 function suggestionText(g){
   const u=g.unit||"";

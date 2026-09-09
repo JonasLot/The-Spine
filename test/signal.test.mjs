@@ -54,14 +54,22 @@ const harness = [
   oneLine(/const esc\s*=/), oneLine(/function t\(k\)/),
   func("numOrBlank"), func("readings"), func("sparkline"), func("sparkBlock"),
   func("stateColor"), func("suggestSignalState"), func("suggestionText"),
+  func("trunc"), decl("ASM_RANK"), func("assumptionFollowUp"), func("followUpText"),
+  // assumptionFollowUp slår opp i DB og L(); begge stubbes her.
+  "let DB={signals:[],assumptions:[]};",
+  "function L(o,f){return o?o[f]:undefined}",
   "return {SEED,SEED_NO,T,numOrBlank,readings,sparkline,sparkBlock," +
-  "suggestSignalState,suggestionText,setLang:v=>{LANG=v}};",
+  "suggestSignalState,suggestionText,assumptionFollowUp,followUpText," +
+  "setLang:v=>{LANG=v},setDB:v=>{DB=v}};",
 ].join("\n");
 
 const {
   SEED, SEED_NO, T, numOrBlank, readings, sparkline, sparkBlock,
-  suggestSignalState, suggestionText, setLang,
+  suggestSignalState, suggestionText, assumptionFollowUp, followUpText,
+  setLang, setDB,
 } = new Function(harness)();
+
+setDB({ signals: SEED.signals, assumptions: SEED.assumptions });
 
 // ── mini-testrunner ──────────────────────────────────────────────────────
 let pass = 0; const failures = [];
@@ -154,10 +162,62 @@ ok(sparkBlock(S("s4")).includes("mål 80%"), "sparkline-blokken bytter språk");
 setLang("en");
 ok(!/\{v\}|\{th\}/.test(suggestionText(g4)), "ingen uerstattede plassholdere");
 
+group("smitte til antakelsen");
+const A = id => SEED.assumptions.find(x => x.id === id);
+// Hjelper som bygger et isolert par: ett signal som overvåker én antakelse.
+const pair = (sigState, asmState, extraSignals = []) => {
+  const a = { id: "aX", state: asmState, statement: "test-bet" };
+  const s = { id: "sX", watches: "aX", state: sigState, signal: "test-signal" };
+  setDB({ signals: [s, ...extraSignals], assumptions: [a] });
+  const r = assumptionFollowUp(a);
+  setDB({ signals: SEED.signals, assumptions: SEED.assumptions });
+  return r;
+};
+
+ok(pair("disagreeing", "holding").suggested === "broken", "uenig signal → holding blir broken");
+ok(pair("drifting", "holding").suggested === "shaky", "drivende signal → holding blir shaky");
+ok(pair("disagreeing", "shaky").suggested === "broken", "uenig signal → shaky blir broken");
+ok(pair("drifting", "shaky") === null, "drivende signal → shaky er allerede der");
+ok(pair("disagreeing", "broken") === null, "uenig signal → broken er allerede der");
+ok(pair("agreeing", "holding") === null, "enig signal smitter ikke");
+ok(pair("agreeing", "broken") === null, "enig signal reparerer ALDRI et brutt bet automatisk");
+ok(pair("drifting", "broken") === null, "smitten nedgraderer aldri");
+ok(pair("disagreeing", "retired") === null, "pensjonert antakelse er fredet");
+ok(pair("retired", "holding") === null, "pensjonert signal smitter ikke");
+ok(assumptionFollowUp(null) === null && assumptionFollowUp({}) === null, "tomt input krasjer ikke");
+ok(pair("agreeing", "holding", [{ id: "sY", watches: "aX", state: "disagreeing", signal: "verre" }])
+   .suggested === "broken", "flere overvåkere: det verste signalet vinner");
+ok(pair("drifting", "holding", [{ id: "sY", watches: "aZ", state: "disagreeing", signal: "annet bet" }])
+   .suggested === "shaky", "signal som overvåker et annet bet smitter ikke hit");
+
+group("smitte i seed-eksempelet");
+const f1 = assumptionFollowUp(A("a1"));
+ok(f1 && f1.suggested === "broken", "a1 (shaky) ← s1 (uenig) → broken");
+ok(f1.signal.id === "s1", "a1 peker tilbake på signalet som utløste det");
+const f6 = assumptionFollowUp(A("a6"));
+ok(f6 && f6.suggested === "shaky", "a6 (holding) ← s4 (driver) → shaky");
+ok(assumptionFollowUp(A("a2")) === null, "a2 er allerede shaky — ingen mas");
+ok(assumptionFollowUp(A("a4")) === null, "a4 ← s3 (enig) → ingen smitte");
+ok(assumptionFollowUp(A("a3")) === null, "a3 er uovervåket → ingen smitte");
+ok(assumptionFollowUp(A("a5")) === null,
+   "a5 har watchedBy:s1, men s1 overvåker a1 — grafen leses fra signalets watches");
+
+group("smittens begrunnelse");
+ok(followUpText(f1) === 'the signal “Appeal-overturn rate on school-transport de…” is now disagreeing.',
+   "engelsk begrunnelse: " + followUpText(f1));
+ok(followUpText(f1).length < 100, "signalnavnet kuttes så båndet ikke sprenger kortet");
+setLang("no");
+ok(followUpText(f6).startsWith("signalet «") && followUpText(f6).endsWith("driver."),
+   "norsk begrunnelse: " + followUpText(f6));
+setLang("en");
+ok(!/\{s\}|\{state\}/.test(followUpText(f1)), "ingen uerstattede plassholdere");
+
 group("i18n-dekning");
 for (const k of ["th.trend", "rev.value", "spark.target", "spark.aria", "sug.prefix", "sug.hint",
                  "sug.why.breach2", "sug.why.breach1", "sug.why.steady",
-                 "state.agreeing", "state.drifting", "state.disagreeing", "state.retired"]) {
+                 "sug.hint.asm", "sug.why.signal",
+                 "state.agreeing", "state.drifting", "state.disagreeing", "state.retired",
+                 "state.holding", "state.shaky", "state.broken"]) {
   ok(T.en[k] !== undefined && T.no[k] !== undefined, `${k} finnes i både en og no`);
 }
 

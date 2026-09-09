@@ -1,7 +1,21 @@
 # Plan — Signalhistorikk & tilstandsforslag
 
 > Relatert: [[Plan — Goals & Outcomes]] · [[Plan — Interaktivt strategikart]] · [[Backend Setup — Supabase]] · [[Språkvelger — i18n status]] · `app.html`
-> Status: **Ikke startet** (2026-09-08). Utløst av konkurranseanalyse mot StrategyOS.
+> Status: **Ferdig bygget og verifisert** (2026-09-09) på branch `signal-historikk`. Alle fire faser lever i `app.html`; 96 tester i `test/signal.test.mjs`.
+
+## Levert (2026-09-09)
+- **Fase 1** — felttypen `num` (`numOrBlank`, norsk desimalkomma, aldri NaN) i `buildForm` og `normalizeEntity`. Signalene fikk `thresh`, `dir`, `unit`, `band`; loggoppføringer fikk valgfri `v`. `noDefault` på seg-widgeten så `dir` kan stå tomt — uten den ville redigering tvangssatt `dir:"up"`, feil for omgjøringsrate og avbrudd.
+- **Fase 2** — `sparkline()`/`sparkBlock()`: inline SVG, ingen bibliotek, stiplet terskellinje. Ny Trend-kolonne i Signals, sparkline i draweren og i review-kortet, tallfelt i review.
+- **Fase 3** — `suggestSignalState()`: `disagreeing` krever to brudd på rad, `drifting` brudd pluss feil retning, `agreeing` to gode på rad. Forslaget forhåndsvelger knappen og viser begrunnelsen med tall, men skriver ingenting før brukeren loggfører.
+- **Fase 4** — `assumptionFollowUp()`: beregnes fra antakelsens side, så flere signaler kan overvåke samme bet og det verste vinner. Smitten kan bare gjøre en antakelse mer usikker, aldri mindre.
+
+**Utvidelse underveis (ikke i den opprinnelige planen):** `vReview` filtrerte bare på signaler som allerede var drifting/disagreeing, og antakelser som allerede var shaky/broken. Da ville et forslag aldri nådd fram i det tilfellet som betyr mest — et friskt signal som nettopp begynte å briste. Filteret, `reviewDueCount` og «needs attention» tar nå også med alt som bærer et ubehandlet forslag, og sorterer det øverst.
+
+**Seed:** s4 fikk en tredje avlesning (78 ved uke 1) så kurven har form og faller synlig gjennom 80-terskelen. s2 (DPIA) er bevisst urørt som kontrollcase for kvalitative signaler.
+
+**Kjent inkonsistens i seed:** `a5.watchedBy` peker på `s1`, men `s1.watches` peker på `a1`. Smitten leser grafen fra signalets `watches`, som er retningen resten av appen bruker — så a5 får ingen smitte. Bakreferansen `watchedBy` bør ryddes.
+
+**Gjenstår:** feltetikettene i `FIELDS` og review-bannerets tekst er hardkodet engelsk (fra før), så redigeringsmodalen er ikke oversatt.
 
 ## Hvorfor
 
