@@ -1,7 +1,21 @@
 # Plan — Rammeverk-router & lenser
 
 > Relatert: [[Plan — Signalhistorikk & tilstandsforslag]] · [[Plan — Goals & Outcomes]] · [[Plan — Import & opplasting]] · `app.html` · `index.html`
-> Status: **Ikke startet** (2026-09-08). Utløst av konkurranseanalyse mot StrategyOS.
+> Status: **Ferdig bygget og verifisert** (2026-09-09). Alle fire faser lever i `app.html`; landingssiden er oppdatert til å stemme.
+
+## Levert (2026-09-09)
+- **Fase 1** — `LENSES` med `when`, `anatomy` og `smells` per rammeverk. Selvtesten står under det kanoniske artefaktet: avkryssbare spørsmål, ikke en score og ikke en blokkering. `smellFlags` + `smellChecked` på strategien, antall uadresserte lukter på strategikortet.
+- **Fase 2** — arbeidsfelt per linse, lagret i `s.lens.fields`. «Før inn i artefaktet» fyller kun tomme seksjoner; knappen deaktiveres når det ikke er noe å fylle, og teksten sier hvorfor.
+- **Fase 3** — routeren: tre spørsmål ved ny strategi, med synlig «hopp over» på hvert steg. Resultatet viser hvilken linse, hvorfor, og hva den består av — og lar deg velge en annen med ett klikk.
+- **Fase 4** — pre-mortem til registrene: hver årsak blir en invertert antakelse (low/high), hvert varsel et signal koblet til å overvåke den. Paringen vises eksplisitt før noe opprettes.
+
+**Arkitekturvalget holdt:** artefaktet er uendret gjennom alle fire faser. `exportStrategy`, `parseOneStrategyMd`, grafen og detaljvisningen er ikke rørt, og import/eksport fungerer som før.
+
+**Fikset underveis:** `normalizeEntity` forkastet `lens`, `smellFlags`, `smellChecked` og signalloggen ved import fordi de ikke står i `FIELDS`. `KEEP_KEYS` bevarer dem nå eksplisitt.
+
+**Landingssiden:** «not all seven» er rettet til fem linser i appen (vaultens sju frameworks står som før, det er en annen påstand). Differensiator 03 og 06 og Track-steget beskriver nå det appen faktisk gjør.
+
+**Fortsatt overclaim på siden:** «One canonical artifact everyone points to» — det finnes ingen deling ennå. Se [[Plan — Delbar kanonisk strategi]].
 
 ## Hvorfor
 
