@@ -379,6 +379,12 @@ a{color:inherit}
 .rc-lg .ac{width:12px;height:8px;color:var(--ink-3);flex:none}
 .rc-centre{color:var(--ink-3);font-style:italic}
 @media(max-width:720px){.rc-wrap{gap:18px}.rc-legend{flex-direction:row;flex-wrap:wrap;gap:20px}}
+.radar-paste{width:100%;border:1px solid var(--line);background:var(--bg-2);border-radius:var(--r-sm);
+  padding:12px 14px;font-family:"Spline Sans Mono",ui-monospace,monospace;font-size:13px;
+  line-height:1.6;color:var(--ink);resize:vertical;outline:none}
+.radar-paste:focus{border-color:var(--accent);background:var(--panel);box-shadow:0 0 0 3px var(--accent-soft)}
+.radar-imp-hint{font-size:12px;color:var(--ink-3);margin-top:10px;line-height:1.55}
+.radar-imp-count{font-size:13px;font-weight:600;color:var(--accent-ink);margin-top:14px}
 .radar-banner{display:flex;gap:13px;align-items:flex-start;padding:15px 18px;border-radius:var(--r-md);
   background:var(--sense-bg);border:1px solid transparent;margin-bottom:16px;color:var(--sense)}
 .radar-banner.hot{background:var(--bad-bg);color:var(--bad)}
@@ -1197,6 +1203,13 @@ const T = {
     "radar.stale.one":"force has gone unchecked past its horizon.","radar.stale.many":"forces have gone unchecked past their horizon.",
     "radar.allfresh":"Every force has been looked at recently.",
     "radar.note":"A radar written once and never revisited is not cover — it is the shift you will discover after it has cost you. How often each force is due follows how soon it bites.",
+    "radar.imp.file":"Import file","radar.imp.paste":"Paste forces",
+    "radar.imp.ey":"Environmental Radar","radar.imp.title":"Paste what you found",
+    "radar.imp.lead":"Paste a scan, a bullet list, minutes from a PESTLE session — one force per line or per heading. You review each one before it is added.",
+    "radar.imp.ph":"- The EU AI Act is being interpreted by national supervisors\n- Our platform vendor has signalled end of maintenance\n\n## Caseworker recruitment is tightening\ndomain: capability\nhorizon: already\nexposure: medium\nmovement: accelerating",
+    "radar.imp.hint":"Bare lines become forces with nothing filled in — which makes them <b>overdue from the start</b>, because you have not looked at them yet. Add <span class=\'mono\'>domain</span>, <span class=\'mono\'>horizon</span>, <span class=\'mono\'>exposure</span>, <span class=\'mono\'>movement</span>, <span class=\'mono\'>source</span> or <span class=\'mono\'>note</span> under a heading to fill them. Norwegian keys work too.",
+    "radar.imp.found":"{n} force(s) found. You review each before it is saved.",
+    "radar.imp.none":"Nothing found yet.","radar.imp.go":"Review these","radar.imp.src":"pasted text",
     "radar.chart.aria":"Radar with {n} forces. {s} are overdue for a look. {c} bite within a year. The table below lists them all.",
     "radar.lg.colour":"Colour — last looked at","radar.lg.fresh":"Recent","radar.lg.due":"Due soon","radar.lg.over":"Overdue",
     "radar.lg.size":"Size — our exposure","radar.lg.other":"Also",
@@ -1398,6 +1411,13 @@ const T = {
     "radar.stale.one":"kraft har stått usett forbi sin horisont.","radar.stale.many":"krefter har stått usett forbi sin horisont.",
     "radar.allfresh":"Alle kreftene er sett på nylig.",
     "radar.note":"En radar skrevet én gang og aldri sett på igjen er ikke dekning — det er skiftet du oppdager etter at det har kostet deg. Hvor ofte hver kraft forfaller følger hvor fort den biter.",
+    "radar.imp.file":"Importer fil","radar.imp.paste":"Lim inn krefter",
+    "radar.imp.ey":"Omgivelsesradar","radar.imp.title":"Lim inn det du fant",
+    "radar.imp.lead":"Lim inn en scan, en punktliste, referatet fra en PESTLE-økt — én kraft per linje eller per overskrift. Du går gjennom hver enkelt før den legges inn.",
+    "radar.imp.ph":"- EU-forordningen om KI tolkes av nasjonale tilsyn\n- Plattformleverandøren har signalisert slutt på vedlikehold\n\n## Rekruttering av saksbehandlere strammer seg til\nområde: kompetanse\nhorisont: allerede\neksponering: middels\nbevegelse: akselererer",
+    "radar.imp.hint":"Bare linjer blir krefter uten utfylte felt — og dermed <b>forfalt fra første stund</b>, fordi du ennå ikke har sett på dem. Legg til <span class=\'mono\'>område</span>, <span class=\'mono\'>horisont</span>, <span class=\'mono\'>eksponering</span>, <span class=\'mono\'>bevegelse</span>, <span class=\'mono\'>kilde</span> eller <span class=\'mono\'>notat</span> under en overskrift for å fylle dem.",
+    "radar.imp.found":"{n} kraft/krefter funnet. Du går gjennom hver før den lagres.",
+    "radar.imp.none":"Ingenting funnet ennå.","radar.imp.go":"Gå gjennom disse","radar.imp.src":"innlimt tekst",
     "radar.chart.aria":"Radar med {n} krefter. {s} er forfalt til gjennomgang. {c} biter innen et år. Tabellen under lister dem alle.",
     "radar.lg.colour":"Farge — sist sett på","radar.lg.fresh":"Nylig","radar.lg.due":"Snart forfalt","radar.lg.over":"Forfalt",
     "radar.lg.size":"Størrelse — vår eksponering","radar.lg.other":"Dessuten",
@@ -4138,6 +4158,136 @@ function normalizeEntity(coll, raw){
 }
 
 /* ---- Parsere ---- */
+// Radarens kilde er en PESTLE-økt, en punktliste, et konsultasjonsbrev — ikke
+// en JSON-fil noen håndskriver. Parseren tar derfor imot to former, og er
+// bevisst tolerant: heller en kraft med bare navn enn ingen kraft.
+//
+//   ## EU-forordningen om KI tolkes av nasjonale tilsyn
+//   område: regulatorisk
+//   horisont: <1 år
+//   eksponering: høy
+//   bevegelse: akselererer
+//   kilde: Datatilsynets veiledningsrunde
+//   notat: ...
+//
+// eller bare:
+//
+//   - EU-forordningen om KI tolkes av nasjonale tilsyn
+//   - FSkyss-leverandøren har signalisert slutt på vedlikehold
+const RADAR_KEYS = {
+  domain:["domain","område","omrade","area","kategori"],
+  horizon:["horizon","horisont","biter","bites","når","nar","when","tid"],
+  exposure:["exposure","eksponering","impact","konsekvens"],
+  movement:["movement","bevegelse","trend","fart"],
+  source:["source","kilde","ref","referanse"],
+  note:["note","notat","kommentar","comment"],
+  checked:["checked","sett","sist sett","last looked","dato","date"],
+};
+const RADAR_VALS = {
+  domain:{regulatory:["regulatory","regulatorisk","regulering","lov","juridisk","legal"],
+          technology:["technology","teknologi","tech","teknisk"],
+          market:["market","marked","marknad","kunde"],
+          political:["political","politisk","politikk"],
+          supplier:["supplier","leverandør","leverandor","vendor","partner"],
+          capability:["capability","kompetanse","kapasitet","bemanning","people"]},
+  horizon:{already:["already","allerede","nå","na","now","biter allerede","0"],
+           "<1y":["<1y","<1 år","<1 ar","innen et år","innen ett år","under et år","1y","12 mnd","<12m","kort"],
+           "1-3y":["1-3y","1–3y","1-3 år","1–3 år","1-3","medium","mellomlang"],
+           ">3y":[">3y",">3 år","etter 3 år","over 3 år","lang","3+"]},
+  exposure:{high:["high","høy","hoy","stor","kritisk"],
+            medium:["medium","middels","moderat"],
+            low:["low","lav","liten"]},
+  movement:{accelerating:["accelerating","akselererer","akselererende","øker","oker","raskere"],
+            steady:["steady","jevn","stabil","uendret"],
+            stalling:["stalling","stopper","stopper opp","avtar","bremser"],
+            unclear:["unclear","uklar","ukjent","vet ikke"]},
+};
+function radarMapValue(field, raw){
+  const v=String(raw||"").trim().toLowerCase();
+  if(!v) return "";
+  const table=RADAR_VALS[field]; if(!table) return String(raw).trim();
+  for(const key in table){
+    if(key.toLowerCase()===v) return key;
+    if(table[key].some(alias=>v===alias || v.startsWith(alias))) return key;
+  }
+  return "";   // ukjent verdi: la feltet stå tomt framfor å gjette
+}
+function radarKeyFor(label){
+  const l=String(label||"").trim().toLowerCase().replace(/[:：]$/,"");
+  for(const k in RADAR_KEYS) if(RADAR_KEYS[k].some(a=>a===l)) return k;
+  return null;
+}
+function openRadarPaste(){
+  $("#mEy").textContent=t("radar.imp.ey");
+  $("#mTitle").textContent=t("radar.imp.title");
+  const body=$("#mBody");
+  body.innerHTML="";
+  body.appendChild(el("div","pm-lead",esc(t("radar.imp.lead"))));
+  const ta=el("textarea","radar-paste");
+  ta.rows=12; ta.placeholder=t("radar.imp.ph");
+  body.appendChild(ta);
+  const hint=el("div","radar-imp-hint");
+  hint.innerHTML=esc(t("radar.imp.hint"));
+  body.appendChild(hint);
+  const count=el("div","radar-imp-count");
+  const upd=()=>{
+    const n=parseRadarText(ta.value).length;
+    count.textContent = n ? t("radar.imp.found").replace("{n}",n) : t("radar.imp.none");
+    go.disabled=!n; go.style.opacity=n?"1":".45"; go.style.pointerEvents=n?"":"none";
+  };
+  ta.oninput=upd;
+  const foot=el("div","pm-foot");
+  const cancel=el("button","btn",esc(t("btn.cancel")||"Cancel"));
+  cancel.type="button";
+  cancel.onclick=()=>{ $("#modal").classList.remove("on"); editing=null; };
+  const go=el("button","btn pri",esc(t("radar.imp.go")));
+  go.type="button";
+  go.onclick=()=>{
+    const raws=parseRadarText(ta.value);
+    if(!raws.length) return;
+    const queue=raws.map(r=>{ const {clean,warnings}=normalizeEntity("radar",r); return {clean,warnings}; });
+    startImportReview("radar", queue, t("radar.imp.src"));
+  };
+  foot.appendChild(cancel); foot.appendChild(go);
+  body.appendChild(count); body.appendChild(foot);
+  upd();
+  $("#modal").classList.add("on");
+}
+function parseRadarText(text){
+  const lines=String(text||"").replace(/\r/g,"").split("\n");
+  const out=[]; let cur=null;
+  const push=()=>{ if(cur && String(cur.force||"").trim()) out.push(cur); cur=null; };
+  const startForce=title=>{ push(); cur={force:title.trim()}; };
+  lines.forEach(raw=>{
+    const line=raw.trim();
+    if(!line){ return; }
+    let m;
+    // Ren markup uten innhold — «##», «---», «- » — er ikke en kraft.
+    if(/^[#>\-*=•\s]+$/.test(line)) return;
+    // overskrift eller punkt starter en ny kraft
+    if((m=/^#{1,6}\s+(.*)$/.exec(line))){ startForce(m[1]); return; }
+    if((m=/^[-*•]\s+(.*)$/.exec(line))){
+      const body=m[1];
+      // et punkt kan selv være "nøkkel: verdi" under en overskrift
+      const kv=/^([A-Za-zÆØÅæøå <>\-]{2,20})\s*:\s*(.+)$/.exec(body);
+      const k=kv?radarKeyFor(kv[1]):null;
+      if(k && cur){ cur[k]= k==="source"||k==="note"||k==="checked" ? kv[2].trim() : radarMapValue(k,kv[2]); return; }
+      startForce(body); return;
+    }
+    if((m=/^([A-Za-zÆØÅæøå <>\-]{2,20})\s*:\s*(.+)$/.exec(line))){
+      const k=radarKeyFor(m[1]);
+      if(k && cur){ cur[k]= k==="source"||k==="note"||k==="checked" ? m[2].trim() : radarMapValue(k,m[2]); return; }
+      if(k && !cur){ return; }         // metadata uten kraft: ignorer
+    }
+    // vanlig linje: ny kraft hvis vi ikke er i en, ellers legg til notatet
+    if(!cur) startForce(line);
+    else cur.note = cur.note ? cur.note+" "+line : line;
+  });
+  push();
+  // En importert kraft er aldri "sett på" med mindre fila sier det. Da er den
+  // rød fra første stund — import skal ikke la deg late som du har dekning.
+  return out.map(r=>({...r, checked:r.checked||""}));
+}
 function parseImportJSON(text, coll){
   let obj;
   try{ obj = JSON.parse(text); }
@@ -4193,7 +4343,8 @@ function importEntities(coll){
         let rawList;
         if(isJson) rawList = parseImportJSON(text, coll);
         else if(coll==="strategies") rawList = splitStrategyBlocks(text).map(parseOneStrategyMd).filter(Boolean);
-        else throw new Error(".md-import er foreløpig bare støttet for strategier. Bruk .json for "+SING[coll]+".");
+        else if(coll==="radar") rawList = parseRadarText(text);
+        else throw new Error(".md-import er foreløpig bare støttet for strategier og krefter. Bruk .json for "+SING[coll]+".");
         if(!rawList.length){ alert("Fant ingen "+SING[coll].toLowerCase()+" i fila."); return; }
         const queue = rawList.map(r=>{ const {clean,warnings}=normalizeEntity(coll,r); return {clean,warnings}; });
         startImportReview(coll, queue, file.name);
@@ -4357,7 +4508,15 @@ function radarChart(items){
 }
 function vRadar(){
   const w=el("div","view");
-  w.appendChild(headWithExport(t("vh.radar.t"),t("vh.radar.d"),"radar"));
+  const head=headWithExport(t("vh.radar.t"),t("vh.radar.d"),"radar");
+  const impFile=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 21h14"/></svg>${esc(t("radar.imp.file"))}`);
+  impFile.style.flex="none"; impFile.style.marginTop="8px";
+  impFile.onclick=()=>importEntities("radar");
+  const impPaste=el("button","btn pri",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 4h6v3H9zM7 5H5v16h14V5h-2"/><path d="M9 12h6M9 16h4"/></svg>${esc(t("radar.imp.paste"))}`);
+  impPaste.style.flex="none"; impPaste.style.marginTop="8px";
+  impPaste.onclick=openRadarPaste;
+  head.appendChild(impFile); head.appendChild(impPaste);
+  w.appendChild(head);
   const all=(DB.radar||[]).filter(x=>matchQ((x.force||"")+(x.note||"")));
   const stale=all.filter(r=>radarStatus(r).stale).length;
   if(all.length){

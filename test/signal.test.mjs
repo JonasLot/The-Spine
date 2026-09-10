@@ -60,6 +60,8 @@ const harness = [
   decl("RADAR_DUE"), decl("RADAR_H"), decl("RADAR_E"),
   func("radarStatus"), func("radarWeight"), func("radarThreatening"),
   decl("RADAR_RINGS"), decl("RADAR_DOMS"), func("radarChart"), func("lvl"),
+  decl("RADAR_KEYS"), decl("RADAR_VALS"),
+  func("radarMapValue"), func("radarKeyFor"), func("parseRadarText"),
   decl("STRAT_FW"), decl("LENSES"), decl("LENSES_NO"),
   func("lensNO"), func("lensWhen"), func("lensAnatomy"), func("lensSmells"), func("smellsFlagged"),
   func("lensFields"), func("lensDerive"), func("lensVal"), func("artifactEmpty"),
@@ -85,7 +87,7 @@ const harness = [
   "buildSharePayload,shareUrl,shareStale,setShares:v=>{SHARES=v}," +
   "reviewNoteSignal,reviewNoteBet,reviewChanged,closeReview," +
   "radarStatus,radarWeight,radarThreatening,RADAR_DUE," +
-  "radarChart,RADAR_RINGS,RADAR_DOMS," +
+  "radarChart,RADAR_RINGS,RADAR_DOMS,parseRadarText,radarMapValue," +
   "resetReview:()=>{REVIEW_SESSION=null}," +
   "setLang:v=>{LANG=v},setDB:v=>{DB=v}};",
 ].join("\n");
@@ -99,7 +101,7 @@ const {
   buildSharePayload, shareUrl, shareStale, setShares,
   reviewNoteSignal, reviewNoteBet, reviewChanged, closeReview, resetReview,
   radarStatus, radarWeight, radarThreatening, RADAR_DUE,
-  radarChart, RADAR_RINGS, RADAR_DOMS,
+  radarChart, RADAR_RINGS, RADAR_DOMS, parseRadarText, radarMapValue,
   setLang, setDB,
 } = new Function(harness)();
 
@@ -627,6 +629,82 @@ ok(chart.includes(T.en["radar.lg.centre"]), "legenden forklarer hva sentrum bety
 setLang("no");
 ok(radarChart(SEED.radar).includes("Regulatorisk"), "grafen bytter språk");
 setLang("en");
+
+group("import av krefter — punktliste");
+const P1 = parseRadarText(`
+- EU-forordningen om KI tolkes av nasjonale tilsyn
+- Leverandøren har signalisert slutt på vedlikehold
+* Rekruttering strammer seg til
+• Kommunereform er på trappene
+`);
+ok(P1.length === 4, "fire punkter blir fire krefter uansett kulepunkt-tegn");
+ok(P1[0].force.startsWith("EU-forordningen"), "teksten beholdes som den står");
+ok(P1.every(r => r.checked === ""), "importerte krefter er aldri 'sett på' — de er røde fra start");
+ok(parseRadarText("") .length === 0, "tom tekst gir ingen krefter");
+ok(parseRadarText("   \n\n  ").length === 0, "bare blanke linjer gir ingen krefter");
+ok(parseRadarText("En enkelt linje uten kulepunkt").length === 1, "en naken linje blir også en kraft");
+
+group("import av krefter — strukturerte blokker");
+const P2 = parseRadarText(`
+## EU-forordningen om KI tolkes av nasjonale tilsyn
+område: regulatorisk
+horisont: <1 år
+eksponering: høy
+bevegelse: akselererer
+kilde: Datatilsynets veiledningsrunde
+notat: Kan kreve samsvarsvurdering.
+
+## Leverandøren har signalisert slutt på vedlikehold
+domain: supplier
+horizon: 1-3y
+exposure: high
+movement: unclear
+`);
+ok(P2.length === 2, "to overskrifter blir to krefter");
+ok(P2[0].domain === "regulatory", "norsk «regulatorisk» mappes til regulatory");
+ok(P2[0].horizon === "<1y", "«<1 år» mappes til <1y");
+ok(P2[0].exposure === "high", "«høy» mappes til high");
+ok(P2[0].movement === "accelerating", "«akselererer» mappes til accelerating");
+ok(P2[0].source === "Datatilsynets veiledningsrunde", "kilde beholdes ordrett");
+ok(P2[0].note === "Kan kreve samsvarsvurdering.", "notat beholdes ordrett");
+ok(P2[1].domain === "supplier" && P2[1].horizon === "1-3y", "engelske nøkler og verdier virker også");
+ok(P2[1].movement === "unclear", "unclear mappes");
+
+group("import av krefter — tolerant, men gjetter ikke");
+ok(radarMapValue("domain", "tullball") === "", "ukjent verdi gir tomt felt, ikke en gjetning");
+ok(radarMapValue("domain", "") === "", "tom verdi gir tomt felt");
+ok(radarMapValue("exposure", "HØY") === "high", "store bokstaver spiller ingen rolle");
+ok(radarMapValue("horizon", "allerede") === "already", "«allerede» mappes");
+ok(radarMapValue("horizon", "Innen et år") === "<1y", "hel frase mappes");
+ok(radarMapValue("domain", "Leverandør") === "supplier", "æøå i verdien håndteres");
+const P3 = parseRadarText("## En kraft\nområde: vetikke\neksponering: høy");
+ok(P3[0].domain === "" && P3[0].exposure === "high",
+   "ugyldig felt tømmes uten å ødelegge de gyldige på samme kraft");
+
+group("import av krefter — rare inndata");
+ok(parseRadarText("område: regulatorisk\neksponering: høy").length === 0,
+   "metadata uten en kraft over seg gir ingen kraft");
+const P4 = parseRadarText("## Kraft\nEn løs linje under overskriften\nog enda en");
+ok(P4.length === 1, "løse linjer starter ikke nye krefter under en overskrift");
+ok(P4[0].note === "En løs linje under overskriften og enda en", "de samles i notatet");
+const P5 = parseRadarText("- Kraft A\n  - område: teknologi\n- Kraft B");
+ok(P5.length === 2, "et punkt som er nøkkel:verdi teller ikke som ny kraft");
+ok(P5[0].domain === "technology", "innrykket nøkkel:verdi treffer riktig kraft");
+ok(parseRadarText("###### Dyp overskrift")[0].force === "Dyp overskrift", "h1–h6 fungerer alle");
+ok(parseRadarText("## \n- ekte kraft").length === 1, "tom overskrift forkastes");
+ok(parseRadarText("---\n***\n- ekte kraft").length === 1, "skillelinjer forkastes");
+ok(parseRadarText("- \n- ekte kraft").length === 1, "tomt kulepunkt forkastes");
+ok(parseRadarText(null).length === 0 && parseRadarText(undefined).length === 0, "null/undefined krasjer ikke");
+ok(parseRadarText("- A\r\n- B").length === 2, "CRLF-linjeskift håndteres");
+
+group("import av krefter — treffer datamodellen");
+const felt = new Set(FIELDS.radar.map(f => f.k));
+ok(P2.every(r => Object.keys(r).every(k => felt.has(k))),
+   "parseren produserer bare felt som finnes i FIELDS.radar");
+const segOpts = Object.fromEntries(FIELDS.radar.filter(f => f.t === "seg").map(f => [f.k, f.opts]));
+ok(P2.every(r => ["domain","horizon","exposure","movement"]
+   .every(k => !r[k] || segOpts[k].includes(r[k]))),
+   "hver mappet verdi er en gyldig opsjon i skjemaet");
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,
