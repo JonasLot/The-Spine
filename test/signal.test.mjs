@@ -60,6 +60,8 @@ const harness = [
   decl("RADAR_DUE"), decl("RADAR_H"), decl("RADAR_E"),
   func("radarStatus"), func("radarWeight"), func("radarThreatening"),
   decl("RADAR_RINGS"), decl("RADAR_DOMS"), func("radarChart"), func("lvl"),
+  decl("OUT_CATS"), func("outcomesOfGoal"), func("goalsProductOnly"),
+  func("outcomesUncategorised"), func("outcomeCatCounts"),
   func("valuesOf"), func("outcomesWithoutValue"), func("valueGap"),
   func("valueWeak"), func("valueChain"), decl("VAL_SCOPE_RANK"),
   func("rightHolder"), func("rightVetoHolder"), func("rightsDrift"),
@@ -94,6 +96,7 @@ const harness = [
   "reviewNoteSignal,reviewNoteBet,reviewChanged,closeReview," +
   "radarStatus,radarWeight,radarThreatening,RADAR_DUE," +
   "radarChart,RADAR_RINGS,RADAR_DOMS,parseRadarText,radarMapValue," +
+  "OUT_CATS,outcomesOfGoal,goalsProductOnly,outcomesUncategorised,outcomeCatCounts," +
   "valuesOf,outcomesWithoutValue,valueGap,valueWeak,valueChain," +
   "rightHolder,rightVetoHolder,rightsDrift,decisionsOfRight,rightUnexercised," +
   "nameMatches,decisionMandate,rightsOrphans,rightsOutside,rightsDrifted,rightWeak," +
@@ -112,6 +115,7 @@ const {
   reviewNoteSignal, reviewNoteBet, reviewChanged, closeReview, resetReview,
   radarStatus, radarWeight, radarThreatening, RADAR_DUE,
   radarChart, RADAR_RINGS, RADAR_DOMS, parseRadarText, radarMapValue,
+  OUT_CATS, outcomesOfGoal, goalsProductOnly, outcomesUncategorised, outcomeCatCounts,
   valuesOf, outcomesWithoutValue, valueGap, valueWeak, valueChain,
   rightHolder, rightVetoHolder, rightsDrift, decisionsOfRight, rightUnexercised,
   nameMatches, decisionMandate, rightsOrphans, rightsOutside, rightsDrifted, rightWeak,
@@ -859,6 +863,62 @@ ok(SING_NO.rights !== undefined, "klassen har et norsk entallsnavn");
 ok(SEED.rights.some(r => r.state === "contested") && SEED.rights.some(r => r.state === "aligned"),
    "seed viser både en omstridt og en fungerende rett");
 setDB({ signals: SEED.signals, assumptions: SEED.assumptions });
+
+group("utfallskategori — hva slags endring måles");
+setDB({ goals: SEED.goals, outcomes: SEED.outcomes, signals: SEED.signals, assumptions: SEED.assumptions });
+const O = id => SEED.outcomes.find(x => x.id === id);
+
+ok(OUT_CATS.join() === "user,product,business", "tre kategorier, i rekkefølgen bruker → produkt → virksomhet");
+ok(SEED.outcomes.every(o => OUT_CATS.includes(o.category)), "alle seed-utfall er kategorisert");
+ok(O("o1").category === "user" && O("o2").category === "product" &&
+   O("o3").category === "business" && O("o4").category === "product",
+   "seed dekker alle tre kategoriene");
+ok(outcomesUncategorised().length === 0, "seed har ingen ukategoriserte utfall");
+ok(outcomesOfGoal("g2").length === 2, "g2 bærer to utfall");
+ok(outcomesOfGoal("finnes-ikke").length === 0, "et mål uten utfall gir tom liste, ikke feil");
+
+group("utfallskategori — alarmen for bare produktutfall");
+ok(goalsProductOnly().length === 1 && goalsProductOnly()[0].id === "g3",
+   "g3 måles utelukkende på adopsjon — det er hele poenget med sjekken");
+ok(!goalsProductOnly().some(g => g.id === "g2"), "et mål med både bruker- og produktutfall flagges ikke");
+ok(!goalsProductOnly().some(g => g.id === "g1"), "et mål med bare et virksomhetsutfall flagges ikke");
+{
+  // Konservativ med vilje: ett ukategorisert utfall skal få sjekken til å tie.
+  const g = [{id:"gx"}];
+  setDB({ goals: g, outcomes: [{id:"ox1", goalId:"gx", category:"product"}] });
+  ok(goalsProductOnly().length === 1, "ett produktutfall alene utløser alarmen");
+  setDB({ goals: g, outcomes: [{id:"ox1", goalId:"gx", category:"product"}, {id:"ox2", goalId:"gx"}] });
+  ok(goalsProductOnly().length === 0, "ett ukategorisert utfall gjør at sjekken tier");
+  ok(outcomesUncategorised().length === 1, "det ukategoriserte utfallet fanges av den andre alarmen");
+  setDB({ goals: g, outcomes: [] });
+  ok(goalsProductOnly().length === 0, "et mål uten utfall er ikke et produktmål");
+  setDB({ goals: g, outcomes: [{id:"ox1", goalId:"gx", category:"product"}, {id:"ox3", goalId:"gx", category:"user"}] });
+  ok(goalsProductOnly().length === 0, "ett brukerutfall er nok til å frikjenne målet");
+}
+setDB({ goals: SEED.goals, outcomes: SEED.outcomes, signals: SEED.signals, assumptions: SEED.assumptions });
+
+group("utfallskategori — telling og skjema");
+{
+  const c = outcomeCatCounts();
+  ok(c.user === 1 && c.product === 2 && c.business === 1 && c.none === 0,
+     "fordelingen telles riktig over seed");
+  setDB({ goals: SEED.goals, outcomes: [{id:"z1"}, {id:"z2", category:"tull"}] });
+  ok(outcomeCatCounts().none === 2, "en ukjent kategori telles som ukategorisert, ikke som sin egen bøtte");
+}
+setDB({ goals: SEED.goals, outcomes: SEED.outcomes, signals: SEED.signals, assumptions: SEED.assumptions });
+{
+  const fld = FIELDS.outcomes.find(f => f.k === "category");
+  ok(fld && fld.t === "seg", "kategorien er et segmentvalg i skjemaet");
+  ok(fld && fld.opts.join() === OUT_CATS.join(), "skjemaets valg følger OUT_CATS");
+  ok(fld && fld.noDefault === 1, "nytt utfall starter ukategorisert framfor å gjette «bruker»");
+}
+OUT_CATS.concat("none").forEach(c =>
+  ok(T.en["out.cat." + c] !== undefined && T.no["out.cat." + c] !== undefined,
+     "out.cat." + c + " finnes i begge språk"));
+ok(T.no["out.cat.user"] === "Brukerutfall" && T.no["out.cat.product"] === "Produktutfall" &&
+   T.no["out.cat.business"] === "Virksomhetsutfall", "de norske navnene er de du ba om");
+FIELDS.outcomes.forEach(f =>
+  ok(FLD_NO.outcomes[f.k] !== undefined, "FLD_NO.outcomes dekker " + f.k));
 
 group("seed-ider er globalt unike");
 {

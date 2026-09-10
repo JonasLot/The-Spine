@@ -386,6 +386,17 @@ a{color:inherit}
 .val-weak{font-size:11.5px;color:var(--warn);font-weight:600;margin-top:5px}
 .val-warn{margin-top:16px;padding:11px 13px;border-radius:var(--r-sm);background:var(--warn-bg);
   color:var(--warn);font-size:12.5px;line-height:1.5}
+.out-banner{display:flex;gap:13px;align-items:flex-start;padding:15px 18px;border-radius:var(--r-md);
+  background:var(--outcome-bg);border:1px solid transparent;margin-bottom:16px;color:var(--outcome)}
+.out-banner svg{width:19px;height:19px;flex:none;margin-top:1px}
+.out-banner .who{font-size:12.5px;color:var(--ink-2);margin:2px 0 4px;font-weight:600}
+.out-banner .sub{font-size:12.5px;color:var(--ink-2);margin-top:6px;max-width:78ch;line-height:1.5}
+.oc-row{margin:7px 0 5px}
+/* Kategori på utfall: hvilken slags endring, ikke hvem som får den. */
+.chip.oc-user{background:var(--outcome-bg);color:var(--outcome)}
+.chip.oc-product{background:var(--align-bg);color:var(--align)}
+.chip.oc-business{background:var(--goal-bg);color:var(--goal)}
+.chip.oc-none{background:var(--mute-bg);color:var(--mute);font-style:italic}
 .chip.sc-societal{background:var(--goal-bg);color:var(--goal)}
 .chip.sc-organisational{background:var(--align-bg);color:var(--align)}
 .chip.sc-direct{background:var(--outcome-bg);color:var(--outcome)}
@@ -1166,10 +1177,10 @@ const SEED = {
       statement:"New school admins reach first value without a support call, so on-demand planning scales without scaling the support team.", note:""},
   ],
   outcomes: [
-    {id:"o1", goalId:"g2", statement:"Appeal-overturn rate on school-transport decisions falls", baseline:"~90% overturned", target:"materially lower", by:"2027-Q2", measuredBy:"s1", state:"off-track", note:"Cause not yet understood (M0). The signal currently disagrees."},
-    {id:"o2", goalId:"g2", statement:"≥60% of ordinary cases fully automated at quality", baseline:"0%", target:"60%", by:"2027-Q2", measuredBy:"", state:"not-measured", note:"The M3 ambition the business case rests on. No live signal yet — a1 is the underlying bet."},
-    {id:"o3", goalId:"g1", statement:"No measurable service interruption during the TØFF migration window", baseline:"clean baseline", target:"0 interruptions", by:"2026-12-31", measuredBy:"s3", state:"on-track", note:"Migration not started; baseline clean."},
-    {id:"o4", goalId:"g3", statement:"≥80% of admins self-onboard by week 4", baseline:"62% at week 4", target:"≥80%", by:"2026-Q3", measuredBy:"s4", state:"at-risk", note:"Drifting below target — the signal is watching a6."},
+    {id:"o1", goalId:"g2", category:"user", statement:"Appeal-overturn rate on school-transport decisions falls", baseline:"~90% overturned", target:"materially lower", by:"2027-Q2", measuredBy:"s1", state:"off-track", note:"Cause not yet understood (M0). The signal currently disagrees."},
+    {id:"o2", goalId:"g2", category:"product", statement:"≥60% of ordinary cases fully automated at quality", baseline:"0%", target:"60%", by:"2027-Q2", measuredBy:"", state:"not-measured", note:"The M3 ambition the business case rests on. No live signal yet — a1 is the underlying bet."},
+    {id:"o3", goalId:"g1", category:"business", statement:"No measurable service interruption during the TØFF migration window", baseline:"clean baseline", target:"0 interruptions", by:"2026-12-31", measuredBy:"s3", state:"on-track", note:"Migration not started; baseline clean."},
+    {id:"o4", goalId:"g3", category:"product", statement:"≥80% of admins self-onboard by week 4", baseline:"62% at week 4", target:"≥80%", by:"2026-Q3", measuredBy:"s4", state:"at-risk", note:"Drifting below target — the signal is watching a6."},
   ]
 };
 
@@ -1292,6 +1303,13 @@ const T = {
     "empty.goals.t":"No goals yet.", "empty.goals.d":"Name a destination the strategies serve — a company objective, a product goal, a team outcome.",
     "empty.outcomes.t":"No outcomes yet.", "empty.outcomes.d":"Define the measurable change that proves a goal is being reached — with a baseline, a target, and the signal that watches it.",
     "add.goals":"New goal", "add.outcomes":"New outcome",
+    "out.cat.lbl":"Kind of outcome",
+    "out.cat.user":"User outcome","out.cat.product":"Product outcome","out.cat.business":"Business outcome",
+    "out.cat.none":"uncategorised",
+    "out.prod.one":"goal is measured by product outcomes alone.",
+    "out.prod.many":"goals are measured by product outcomes alone.",
+    "out.uncat.one":"outcome has no kind set.","out.uncat.many":"outcomes have no kind set.",
+    "out.banner.note":"Product outcomes are legitimate, and often the only thing you can measure early. They are just not enough on their own: a goal measured only by adoption tells you the product is being used, never that anything changed for anyone. The check stays silent if a single outcome under the goal is uncategorised.",
     "th.goal":"Goal", "th.outcomes":"Outcomes", "th.serving":"Strategies", "th.target":"Target", "th.measuredby":"Measured by", "th.coverage":"Coverage",
     "dr.eye.goal":"Goal · Direction", "dr.eye.outcome":"Outcome · Direction",
     "dt.horizon":"Horizon", "dt.baseline":"Baseline", "dt.target":"Target", "dt.by":"By", "dt.goal":"Goal",
@@ -1553,6 +1571,13 @@ const T = {
     "empty.goals.t":"Ingen mål ennå.", "empty.goals.d":"Navngi en destinasjon strategiene tjener — et selskapsmål, et produktmål, et teamutfall.",
     "empty.outcomes.t":"Ingen utfall ennå.", "empty.outcomes.d":"Definer den målbare endringen som beviser at et mål nås — med en baseline, et mål-tall, og signalet som overvåker det.",
     "add.goals":"Nytt mål", "add.outcomes":"Nytt utfall",
+    "out.cat.lbl":"Type utfall",
+    "out.cat.user":"Brukerutfall","out.cat.product":"Produktutfall","out.cat.business":"Virksomhetsutfall",
+    "out.cat.none":"ukategorisert",
+    "out.prod.one":"mål måles utelukkende på produktutfall.",
+    "out.prod.many":"mål måles utelukkende på produktutfall.",
+    "out.uncat.one":"utfall mangler type.","out.uncat.many":"utfall mangler type.",
+    "out.banner.note":"Produktutfall er lovlige, og ofte det eneste du kan måle tidlig. De er bare ikke nok alene: et mål som bare måles på bruk forteller at produktet tas i bruk, aldri at noe ble annerledes for noen. Sjekken tier hvis ett eneste utfall under målet er ukategorisert.",
     "th.goal":"Mål", "th.outcomes":"Utfall", "th.serving":"Strategier", "th.target":"Mål-tall", "th.measuredby":"Målt av", "th.coverage":"Dekning",
     "dr.eye.goal":"Mål · Retning", "dr.eye.outcome":"Utfall · Retning",
     "dt.horizon":"Horisont", "dt.baseline":"Baseline", "dt.target":"Mål-tall", "dt.by":"Innen", "dt.goal":"Mål",
@@ -1894,10 +1919,10 @@ const SEED_NO = {
       statement:"Ordinære skoleskyss-saker avgjøres automatisk med tilstrekkelig kvalitet og sporbart grunnlag — til å tåle en klage."},
   g3:{title:"Selvbetjent skalering av on-demand-planlegging",
       statement:"Nye skoleadministratorer når første verdi uten en supporttelefon, så on-demand skalerer uten å skalere supportteamet."},
-  o1:{statement:"Omgjøringsraten for skoleskyss-klager faller"},
-  o2:{statement:"≥60 % av ordinære saker fullautomatisert med kvalitet"},
-  o3:{statement:"Ingen målbart tjenesteavbrudd i migreringsvinduet"},
-  o4:{statement:"≥80 % av administratorer selvbetjener innen uke 4"},
+  o1:{statement:"Omgjøringsraten for skoleskyss-klager faller", baseline:"~90 % omgjort", target:"vesentlig lavere"},
+  o2:{statement:"≥60 % av ordinære saker fullautomatisert med kvalitet", baseline:"0 %", target:"60 %"},
+  o3:{statement:"Ingen målbart tjenesteavbrudd i migreringsvinduet", baseline:"ren baseline", target:"0 avbrudd"},
+  o4:{statement:"≥80 % av administratorer selvbetjener innen uke 4", baseline:"62 % ved uke 4", target:"≥80 %"},
 };
 function seedById(id){ if(typeof SEED==="undefined") return null; for(const c of COLLS){ const x=(SEED[c]||[]).find(o=>o.id===id); if(x) return x; } return null; }
 /* field-level overlay: Norwegian seed text, but only while the field is untouched */
@@ -2663,10 +2688,24 @@ function vGoals(){
   tb.appendChild(b); const panel=el("div","panel"); panel.appendChild(tb); w.appendChild(panel);
   return w;
 }
+function catChip(c){
+  const k=OUT_CATS.includes(c)?c:"none";
+  return `<span class="chip oc-${k}">${esc(t("out.cat."+k))}</span>`;
+}
 function vOutcomes(){
   const w=el("div","view");
   w.appendChild(el("div","view-head",`<h1>${esc(t("vh.outcomes.t"))}</h1><p>${esc(t("vh.outcomes.d"))}</p>`));
   if(!DB.outcomes.length){ const p=el("div","panel"); return emptyInto(w,p,t("empty.outcomes.t"),t("empty.outcomes.d")); }
+  const prodOnly=goalsProductOnly(), uncat=outcomesUncategorised();
+  if(prodOnly.length||uncat.length){
+    const bn=el("div","out-banner");
+    bn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3"/></svg>
+      <div>${prodOnly.length?`<div><b>${prodOnly.length}</b> ${esc(t(prodOnly.length===1?"out.prod.one":"out.prod.many"))}</div>
+        <div class="who">${prodOnly.map(g=>esc(trunc(L(g,"title"),44))).join(" · ")}</div>`:""}
+      ${uncat.length?`<div><b>${uncat.length}</b> ${esc(t(uncat.length===1?"out.uncat.one":"out.uncat.many"))}</div>`:""}
+      <div class="sub">${esc(t("out.banner.note"))}</div></div>`;
+    w.appendChild(bn);
+  }
   const ord={"off-track":0,"at-risk":1,"not-measured":2,"on-track":3};
   const rows=DB.outcomes.slice().sort((a,b)=>(ord[a.state]??9)-(ord[b.state]??9));
   const tb=el("table","tbl");
@@ -2675,9 +2714,11 @@ function vOutcomes(){
   rows.forEach(o=>{
     const g=o.goalId?byId("goals",o.goalId):null, sig=o.measuredBy?byId("signals",o.measuredBy):null;
     const tr=el("tr","row");
-    tr.innerHTML=`<td><div class="stmt">${esc(L(o,"statement"))}</div><div class="meta">${esc(o.baseline||"")}${o.by?` · ${esc(t("dt.by"))} ${esc(o.by)}`:""}</div></td>
+    tr.innerHTML=`<td><div class="stmt">${esc(L(o,"statement"))}</div>
+        <div class="oc-row">${catChip(o.category)}</div>
+        <div class="meta">${esc(L(o,"baseline")||"")}${o.by?` · ${esc(t("dt.by"))} ${esc(o.by)}`:""}</div></td>
       <td>${g?`<span class="meta">${esc(L(g,"title").slice(0,40))}</span>`:'<span class="meta">—</span>'}</td>
-      <td><span class="matrix">${esc(o.target||"—")}</span></td>
+      <td><span class="matrix">${esc(L(o,"target")||"—")}</span></td>
       <td>${stateBadge(o.state)}</td>
       <td>${sig?`<span class="meta">${stateBadge(sig.state)}</span>`:`<span class="badge b-mute"><span class="dot"></span>${esc(t("dr.nomeasure"))}</span>`}</td>`;
     clickable(tr,()=>openOutcome(o.id),"Open outcome");
@@ -5384,7 +5425,7 @@ function openOutcome(id){
   drawerShell(t("dr.eye.outcome"), `<div style="margin-top:6px">${stateBadge(o.state)}</div>`);
   const g=o.goalId?byId("goals",o.goalId):null, sig=o.measuredBy?byId("signals",o.measuredBy):null;
   $("#drawerB").innerHTML = `<h3>${esc(L(o,"statement"))}</h3>
-    <dl class="kv"><dt>${esc(t("dt.baseline"))}</dt><dd>${esc(o.baseline||"—")}</dd><dt>${esc(t("dt.target"))}</dt><dd>${esc(o.target||"—")}</dd><dt>${esc(t("dt.by"))}</dt><dd class="mono">${esc(o.by||"—")}</dd><dt>${esc(t("th.state"))}</dt><dd>${esc(t("state."+o.state)||o.state)}</dd></dl>
+    <dl class="kv"><dt>${esc(t("out.cat.lbl"))}</dt><dd>${catChip(o.category)}</dd><dt>${esc(t("dt.baseline"))}</dt><dd>${esc(L(o,"baseline")||"—")}</dd><dt>${esc(t("dt.target"))}</dt><dd>${esc(L(o,"target")||"—")}</dd><dt>${esc(t("dt.by"))}</dt><dd class="mono">${esc(o.by||"—")}</dd><dt>${esc(t("th.state"))}</dt><dd>${esc(t("state."+o.state)||o.state)}</dd></dl>
     ${o.note?`<div class="note">${esc(o.note)}</div>`:""}
     ${g?`<div style="${KVH}">${esc(t("dt.goal"))}</div><div class="link-row"><a class="linkc" onclick="openGoal('${g.id}')"><span class="tk">${esc(t("tk.goal"))}</span>${esc(L(g,"title").slice(0,38))}</a></div>`:""}
     <div style="${KVH};margin-top:14px">${esc(t("dr.measuredsig"))}</div>
@@ -5505,6 +5546,7 @@ const FIELDS = {
   outcomes:[
     {k:"statement",l:"Outcome",t:"textarea",req:1,ph:"The measurable change that proves the goal is being reached"},
     {k:"goalId",l:"Goal",t:"ref",ref:"goals"},
+    {k:"category",l:"Kind of outcome",t:"seg",opts:["user","product","business"],noDefault:1},
     {k:"baseline",l:"Baseline",t:"text",ph:"Where it stands today"},
     {k:"target",l:"Target",t:"text",ph:"e.g. ≥60%"},
     {k:"by",l:"By when",t:"text",ph:"e.g. 2027-Q2"},
@@ -5599,7 +5641,8 @@ const FLD_NO = {
   },
   outcomes:{
     statement:["Resultat","Den målbare endringen som viser at målet nås"],
-    goalId:["Mål",""], baseline:["Utgangspunkt","Hvor det står i dag"],
+    goalId:["Mål",""], category:["Type utfall",""],
+    baseline:["Utgangspunkt","Hvor det står i dag"],
     target:["Målverdi","f.eks. ≥60 %"], by:["Innen","f.eks. 2027-Q2"],
     measuredBy:["Målt av signal",""], state:["Tilstand",""], note:["Notat",""],
   },
@@ -5679,6 +5722,27 @@ function valueChain(v){
   const sig=o&&o.measuredBy ? byId("signals",o.measuredBy) : null;
   return {goal:g, outcome:o, signal:sig, value:v};
 }
+const OUT_CATS = ["user","product","business"];
+// Kategorien er ikke en etikett — den er en målestokk på om utfallene dine
+// beskriver endring i verden eller bare i produktet ditt.
+//
+// Produktutfall er lovlige og ofte de eneste du kan måle tidlig. De er bare
+// ikke nok alene: et mål der ALT er produktutfall måler din egen aktivitet.
+// Sjekken er konservativ — ett ukategorisert utfall gjør at den tier.
+function outcomesOfGoal(gid){ return (DB.outcomes||[]).filter(o=>o.goalId===gid); }
+function goalsProductOnly(){
+  return (DB.goals||[]).filter(g=>{
+    const os=outcomesOfGoal(g.id);
+    return os.length>0 && os.every(o=>o.category==="product");
+  });
+}
+function outcomesUncategorised(){ return (DB.outcomes||[]).filter(o=>!o.category); }
+function outcomeCatCounts(){
+  const c={user:0,product:0,business:0,none:0};
+  (DB.outcomes||[]).forEach(o=>{ c[OUT_CATS.includes(o.category)?o.category:"none"]++; });
+  return c;
+}
+
 const VAL_SCOPE_RANK={direct:0, organisational:1, societal:2};
 
 // ── Beslutningsrettigheter ───────────────────────────────────────────────
