@@ -60,6 +60,10 @@ const harness = [
   decl("RADAR_DUE"), decl("RADAR_H"), decl("RADAR_E"),
   func("radarStatus"), func("radarWeight"), func("radarThreatening"),
   decl("RADAR_RINGS"), decl("RADAR_DOMS"), func("radarChart"), func("lvl"),
+  decl("COMMIT"), decl("COMMIT_W"), oneLine(/const COMMIT_STALE_REVIEWS\s*=/),
+  func("liveBets"), func("betsUnfunded"), func("betsFundedBroken"), func("betMovedIn"),
+  func("recentReviews"), func("betFundedStuck"), func("betsFundedStuck"),
+  func("nothingStarved"), func("commitCounts"),
   decl("OUT_CATS"), func("outcomesOfGoal"), func("goalsProductOnly"),
   func("outcomesUncategorised"), func("outcomeCatCounts"),
   func("valuesOf"), func("outcomesWithoutValue"), func("valueGap"),
@@ -96,6 +100,8 @@ const harness = [
   "reviewNoteSignal,reviewNoteBet,reviewChanged,closeReview," +
   "radarStatus,radarWeight,radarThreatening,RADAR_DUE," +
   "radarChart,RADAR_RINGS,RADAR_DOMS,parseRadarText,radarMapValue," +
+  "COMMIT,COMMIT_STALE_REVIEWS,liveBets,betsUnfunded,betsFundedBroken,betMovedIn," +
+  "recentReviews,betFundedStuck,betsFundedStuck,nothingStarved,commitCounts," +
   "OUT_CATS,outcomesOfGoal,goalsProductOnly,outcomesUncategorised,outcomeCatCounts," +
   "valuesOf,outcomesWithoutValue,valueGap,valueWeak,valueChain," +
   "rightHolder,rightVetoHolder,rightsDrift,decisionsOfRight,rightUnexercised," +
@@ -115,6 +121,8 @@ const {
   reviewNoteSignal, reviewNoteBet, reviewChanged, closeReview, resetReview,
   radarStatus, radarWeight, radarThreatening, RADAR_DUE,
   radarChart, RADAR_RINGS, RADAR_DOMS, parseRadarText, radarMapValue,
+  COMMIT, COMMIT_STALE_REVIEWS, liveBets, betsUnfunded, betsFundedBroken, betMovedIn,
+  recentReviews, betFundedStuck, betsFundedStuck, nothingStarved, commitCounts,
   OUT_CATS, outcomesOfGoal, goalsProductOnly, outcomesUncategorised, outcomeCatCounts,
   valuesOf, outcomesWithoutValue, valueGap, valueWeak, valueChain,
   rightHolder, rightVetoHolder, rightsDrift, decisionsOfRight, rightUnexercised,
@@ -863,6 +871,86 @@ ok(SING_NO.rights !== undefined, "klassen har et norsk entallsnavn");
 ok(SEED.rights.some(r => r.state === "contested") && SEED.rights.some(r => r.state === "aligned"),
    "seed viser både en omstridt og en fungerende rett");
 setDB({ signals: SEED.signals, assumptions: SEED.assumptions });
+
+group("ressursallokering — båndet, ikke timene");
+setDB({ assumptions: SEED.assumptions, reviews: SEED.reviews, signals: SEED.signals,
+        goals: SEED.goals, outcomes: SEED.outcomes, decisions: SEED.decisions });
+
+ok(COMMIT.join() === "none,some,heavy", "tre grove bånd, ingen timer");
+ok(SEED.assumptions.every(a => COMMIT.includes(a.commitment)), "alle seed-bets har et bånd");
+ok(!FIELDS.assumptions.some(f => f.k === "commitment" && f.t === "num"),
+   "båndet er ikke et tall — Spine holder ikke kapasitet");
+ok(commitCounts().none === 1 && commitCounts().heavy === 3 && commitCounts().some === 2,
+   "fordelingen over seed: ett sultet, tre tunge, to lette");
+
+group("ressursallokering — ufinansiert risiko");
+ok(betsUnfunded().length === 1 && betsUnfunded()[0].id === "a6",
+   "a6 er lav × høy med ingenting bak seg");
+ok(!betsUnfunded().some(x => x.id === "a1"), "a1 er lav × høy, men har litt bak seg");
+ok(!betsUnfunded().some(x => x.id === "a4"), "a4 er lav × høy og tungt finansiert");
+{
+  setDB({ assumptions: [{id:"u1", confidence:"low", consequence:"high"}], reviews: [] });
+  ok(betsUnfunded().length === 1, "et bet uten bånd i det hele tatt teller som ufinansiert");
+  setDB({ assumptions: [{id:"u1", confidence:"low", consequence:"high", state:"retired", commitment:"none"}], reviews: [] });
+  ok(betsUnfunded().length === 0, "et pensjonert bet er ikke ufinansiert risiko");
+}
+
+group("ressursallokering — betaler for en tapt posisjon");
+setDB({ assumptions: SEED.assumptions, reviews: SEED.reviews });
+ok(betsFundedBroken().length === 0, "ingen brutte bets i seed, så alarmen tier");
+{
+  setDB({ assumptions: [{id:"b1", state:"broken", commitment:"heavy"},
+                        {id:"b2", state:"broken", commitment:"none"}], reviews: [] });
+  ok(betsFundedBroken().length === 1 && betsFundedBroken()[0].id === "b1",
+     "bare det brutte bettet med tung innsats flagges");
+}
+
+group("ressursallokering — gjennomgangsarkivet som motpart");
+setDB({ assumptions: SEED.assumptions, reviews: SEED.reviews });
+ok(SEED.reviews.length === 3, "seed har tre gjennomganger å lese mot");
+ok(recentReviews(3)[0].id === "rv3", "nyeste gjennomgang først");
+ok(betMovedIn(SEED.reviews[0], "a4") === true, "a4 flyttet tilstand i rv1");
+ok(betMovedIn(SEED.reviews[1], "a4") === false, "a4 er ikke med i rv2");
+ok(betMovedIn({bets:[{id:"x", from:"holding", to:"holding", confFrom:"low", confTo:"low"}]}, "x") === false,
+   "et bet som ble sett på uten å endre seg har ikke flyttet seg");
+ok(betMovedIn({bets:[{id:"x", from:"holding", to:"holding", confFrom:"medium", confTo:"low"}]}, "x") === true,
+   "endret konfidens teller som bevegelse selv om tilstanden står");
+ok(betsFundedStuck().length === 1 && betsFundedStuck()[0].id === "a3",
+   "a3 er tungt finansiert, holder, og har ikke vært rørt på tre runder");
+ok(!betsFundedStuck().some(x => x.id === "a2"), "a2 flyttet seg i rv2 og er ikke fastlåst");
+{
+  setDB({ assumptions: [{id:"h1", commitment:"heavy", state:"holding"}], reviews: SEED.reviews.slice(0,2) });
+  ok(betsFundedStuck().length === 0, "under tre gjennomganger tier sjekken framfor å gjette");
+  setDB({ assumptions: [{id:"h1", commitment:"some", state:"holding"}], reviews: SEED.reviews });
+  ok(betsFundedStuck().length === 0, "bare tung innsats kan være fastlåst");
+}
+
+group("ressursallokering — allokering er bare ekte hvis noe sultes");
+setDB({ assumptions: SEED.assumptions, reviews: SEED.reviews });
+ok(nothingStarved() === false, "seed sulter faktisk noe (a6), så alarmen tier");
+{
+  const heavy = n => Array.from({length:n}, (_,i) => ({id:"x"+i, commitment:"heavy", state:"holding"}));
+  setDB({ assumptions: heavy(4), reviews: [] });
+  ok(nothingStarved() === true, "fire tunge bets og ingenting sultet er en liste, ikke en allokering");
+  setDB({ assumptions: heavy(2), reviews: [] });
+  ok(nothingStarved() === false, "under tre vurderte bets sier fordelingen ingenting");
+  setDB({ assumptions: heavy(3).concat([{id:"y", commitment:"none", state:"holding"}]), reviews: [] });
+  ok(nothingStarved() === false, "ett sultet bet er nok");
+  setDB({ assumptions: heavy(3).concat([{id:"y", state:"holding"}]), reviews: [] });
+  ok(nothingStarved() === true, "et bet uten bånd er ikke sultet — det er uvurdert");
+}
+setDB({ assumptions: SEED.assumptions, reviews: SEED.reviews });
+
+group("ressursallokering — språk og skjema");
+COMMIT.concat("unset").forEach(c =>
+  ok(T.en["cm." + c] !== undefined && T.no["cm." + c] !== undefined,
+     "cm." + c + " finnes i begge språk"));
+ok(T.no["cm.none"] === "Ingenting" && T.no["cm.some"] === "Litt" && T.no["cm.heavy"] === "Mye",
+   "de norske båndnavnene er de grove");
+ok(T.en["sect.allbets"] !== undefined && T.no["sect.allbets"] !== undefined,
+   "«Alle bets»-overskriften er ikke lenger hardkodet engelsk");
+FIELDS.assumptions.forEach(f =>
+  ok(FLD_NO.assumptions[f.k] !== undefined, "FLD_NO.assumptions dekker " + f.k));
 
 group("utfallskategori — hva slags endring måles");
 setDB({ goals: SEED.goals, outcomes: SEED.outcomes, signals: SEED.signals, assumptions: SEED.assumptions });

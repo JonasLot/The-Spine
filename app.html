@@ -386,6 +386,17 @@ a{color:inherit}
 .val-weak{font-size:11.5px;color:var(--warn);font-weight:600;margin-top:5px}
 .val-warn{margin-top:16px;padding:11px 13px;border-radius:var(--r-sm);background:var(--warn-bg);
   color:var(--warn);font-size:12.5px;line-height:1.5}
+.cm-banner{display:flex;gap:13px;align-items:flex-start;padding:15px 18px;border-radius:var(--r-md);
+  background:var(--mem-bg);border:1px solid transparent;margin-bottom:16px;color:var(--mem)}
+.cm-banner svg{width:19px;height:19px;flex:none;margin-top:1px}
+.cm-banner .sub{font-size:12.5px;color:var(--ink-2);margin-top:6px;max-width:78ch;line-height:1.5}
+.cm-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+/* Innsats er nøytralt farget: alarmene bærer dommen, ikke båndet. */
+.chip.cm-none{background:var(--mute-bg);color:var(--mute)}
+.chip.cm-some{background:var(--sense-bg);color:var(--sense)}
+.chip.cm-heavy{background:var(--mem-bg);color:var(--mem)}
+.chip.cm-unset{background:var(--mute-bg);color:var(--mute);font-style:italic}
+.sug-chip.warn{background:var(--warn-bg);color:var(--warn)}
 .out-banner{display:flex;gap:13px;align-items:flex-start;padding:15px 18px;border-radius:var(--r-md);
   background:var(--outcome-bg);border:1px solid transparent;margin-bottom:16px;color:var(--outcome)}
 .out-banner svg{width:19px;height:19px;flex:none;margin-top:1px}
@@ -1005,7 +1016,21 @@ line.cv-rubber{stroke:var(--accent);stroke-width:2.2;stroke-dasharray:6 5;stroke
 
 /* ---- seed data (English; adapted from a real worked example) ---- */
 const SEED = {
-  reviews: [],
+  reviews: [
+    {id:"rv1", date:"2026-07-31", strategy:"TØFF Migration",
+     signals:[{id:"s3", signal:"Statutory deadlines met during the migration window", from:"agreeing", to:"agreeing", reading:"0 breaches"}],
+     bets:[{id:"a4", statement:"The TØFF migration in T2 can be completed without a break in statutory service delivery.", from:"holding", to:"shaky", confFrom:"medium", confTo:"low"}],
+     decision:"d4", betsBroken:0},
+    {id:"rv2", date:"2026-08-14", strategy:"Tet Vedtak — Case Platform",
+     signals:[{id:"s2", signal:"DPIA approval status", from:"drifting", to:"drifting", reading:"still with counsel"}],
+     bets:[{id:"a2", statement:"The DPIA is approved in time for automated processing to start in M2.", from:"holding", to:"shaky", confFrom:"medium", confTo:"medium"}],
+     decision:"d3", betsBroken:0},
+    {id:"rv3", date:"2026-08-28", strategy:"Tet Vedtak — Case Platform",
+     signals:[{id:"s1", signal:"Appeal-overturn rate on school-transport decisions", from:"drifting", to:"disagreeing", reading:"88%"},
+              {id:"s4", signal:"New admins self-serving onboarding by week 4", from:"agreeing", to:"drifting", reading:"62%"}],
+     bets:[{id:"a1", statement:"Up to 60% of ordinary school-transport cases can be fully automated at sufficient decision quality.", from:"holding", to:"shaky", confFrom:"medium", confTo:"low"}],
+     decision:"", betsBroken:0},
+  ],
   rights: [
     {id:"dr1", decision:"Milestone gate — GO, HOLD or conditional GO on a milestone",
      applies:"Every gate in the programme plan (M0–M4, T1–T3)", door:"two-way",
@@ -1149,12 +1174,12 @@ const SEED = {
      rests:["a4"], rightId:"dr5", trigger:"Any measurable break in statutory service during the migration window."},
   ],
   assumptions: [
-    {id:"a1", strategy:"Tet Vedtak — Case Platform", statement:"Up to 60% of ordinary school-transport cases can be fully automated at sufficient decision quality.", confidence:"low", consequence:"high", kill_signal:"The appeals analysis (M0) shows overturns are driven mainly by rule interpretation, not applicant quality — meaning ordinary cases are less rule-clear than assumed.", state:"shaky", watchedBy:"s1", note:"The entire business case rests on this number (M3 ambition). The open M0 question — what drives the overturn rate? — is in practice the test of this bet."},
-    {id:"a2", strategy:"Tet Vedtak — Case Platform", statement:"The DPIA is approved in time for automated processing to start in M2.", confidence:"medium", consequence:"high", kill_signal:"DPIA still unapproved at the planned M2 start date.", state:"shaky", watchedBy:"s2", note:"Active blocker on the critical path. A new DPIA is underway with new counsel engaged."},
-    {id:"a3", strategy:"Tet Vedtak — Case Platform", statement:"Per-tenant configuration scales to 150+ municipalities without per-tenant engineering effort.", confidence:"medium", consequence:"medium", kill_signal:"Onboarding a new tenant repeatedly requires code changes, not just configuration.", state:"holding", watchedBy:"", note:"Underpins the shared-platform economics."},
-    {id:"a4", strategy:"TØFF Migration", statement:"The TØFF migration in T2 can be completed without a break in statutory service delivery.", confidence:"low", consequence:"high", kill_signal:"A measurable interruption in application/decision flow, or a missed statutory deadline during the migration window.", state:"shaky", watchedBy:"s3", note:"Identified as an organisational risk: temporary degradation during migration could break statutory service. Deadline 31.12.2026 leaves little slack; migration not yet started."},
-    {id:"a5", strategy:"Tet Vedtak — Case Platform", statement:"A transparent rule engine with traceable decision basis will reduce appeal volume.", confidence:"medium", consequence:"medium", kill_signal:"Rule verification against 30+ historical appeals fails to reproduce correct outcomes.", state:"holding", watchedBy:"s1", note:"Good news for a1 if true. Not yet measured — rule verification is the M1 checkpoint."},
-    {id:"a6", strategy:"On-Demand Transit Planning", statement:"School admins will self-serve onboarding without support calls.", confidence:"low", consequence:"high", kill_signal:"Support tickets per new admin stays above 2 after week 4.", state:"holding", watchedBy:"s4", note:"Carried over from the On-Demand pilot; the riskiest bet of that strategy."},
+    {id:"a1", commitment:"some", strategy:"Tet Vedtak — Case Platform", statement:"Up to 60% of ordinary school-transport cases can be fully automated at sufficient decision quality.", confidence:"low", consequence:"high", kill_signal:"The appeals analysis (M0) shows overturns are driven mainly by rule interpretation, not applicant quality — meaning ordinary cases are less rule-clear than assumed.", state:"shaky", watchedBy:"s1", note:"The entire business case rests on this number (M3 ambition). The open M0 question — what drives the overturn rate? — is in practice the test of this bet."},
+    {id:"a2", commitment:"heavy", strategy:"Tet Vedtak — Case Platform", statement:"The DPIA is approved in time for automated processing to start in M2.", confidence:"medium", consequence:"high", kill_signal:"DPIA still unapproved at the planned M2 start date.", state:"shaky", watchedBy:"s2", note:"Active blocker on the critical path. A new DPIA is underway with new counsel engaged."},
+    {id:"a3", commitment:"heavy", strategy:"Tet Vedtak — Case Platform", statement:"Per-tenant configuration scales to 150+ municipalities without per-tenant engineering effort.", confidence:"medium", consequence:"medium", kill_signal:"Onboarding a new tenant repeatedly requires code changes, not just configuration.", state:"holding", watchedBy:"", note:"Underpins the shared-platform economics."},
+    {id:"a4", commitment:"heavy", strategy:"TØFF Migration", statement:"The TØFF migration in T2 can be completed without a break in statutory service delivery.", confidence:"low", consequence:"high", kill_signal:"A measurable interruption in application/decision flow, or a missed statutory deadline during the migration window.", state:"shaky", watchedBy:"s3", note:"Identified as an organisational risk: temporary degradation during migration could break statutory service. Deadline 31.12.2026 leaves little slack; migration not yet started."},
+    {id:"a5", commitment:"some", strategy:"Tet Vedtak — Case Platform", statement:"A transparent rule engine with traceable decision basis will reduce appeal volume.", confidence:"medium", consequence:"medium", kill_signal:"Rule verification against 30+ historical appeals fails to reproduce correct outcomes.", state:"holding", watchedBy:"s1", note:"Good news for a1 if true. Not yet measured — rule verification is the M1 checkpoint."},
+    {id:"a6", commitment:"none", strategy:"On-Demand Transit Planning", statement:"School admins will self-serve onboarding without support calls.", confidence:"low", consequence:"high", kill_signal:"Support tickets per new admin stays above 2 after week 4.", state:"holding", watchedBy:"s4", note:"Carried over from the On-Demand pilot; the riskiest bet of that strategy."},
   ],
   signals: [
     {id:"s1", strategy:"Tet Vedtak — Case Platform", signal:"Appeal-overturn rate on school-transport decisions, and the understood cause", watches:"a1", expected_shape:"Cause understood in M0; rate falls as the Tet Vedtak pilot rolls out.", owner:"Jonas", unit:"%", dir:"down", thresh:"", band:"", state:"disagreeing", last_reading:"~90% overturn — cause (decision error / rule interpretation / applicant quality) not yet understood (M0)",
@@ -1194,7 +1219,7 @@ const SYSTEMS = [
   {name:"Operating Rhythm", fam:"Alignment", feeds:"Communicate", reg:"Review", dies:"Strategy is set, then quietly drifts, unexamined."},
   {name:"Decision Rights", fam:"Alignment", feeds:"Communicate", reg:"Rights", dies:"Strategy stalls in execution on 'who decides this?'"},
   {name:"Signals Ledger", fam:"Feedback", feeds:"Track", reg:"Signals", dies:"The signals you designed are never actually watched."},
-  {name:"Resource Allocation", fam:"Feedback", feeds:"Track", reg:"", dies:"A strategy no budget moves toward — a wishlist."},
+  {name:"Resource Allocation", fam:"Feedback", feeds:"Track", reg:"Assumptions", dies:"A strategy no budget moves toward — a wishlist."},
   {name:"Learning Loop", fam:"Feedback", feeds:"Track → Understand", reg:"Review", dies:"Every strategy starts from zero; the org never compounds."},
 ];
 const FAM = {
@@ -1303,6 +1328,21 @@ const T = {
     "empty.goals.t":"No goals yet.", "empty.goals.d":"Name a destination the strategies serve — a company objective, a product goal, a team outcome.",
     "empty.outcomes.t":"No outcomes yet.", "empty.outcomes.d":"Define the measurable change that proves a goal is being reached — with a baseline, a target, and the signal that watches it.",
     "add.goals":"New goal", "add.outcomes":"New outcome",
+    "mx.cons":"Consequence","mx.conf":"Confidence","mx.riskiest":"riskiest",
+    "mx.danger":"danger zone — fund a signal here first","mx.watch":"watch","mx.safer":"safer",
+    "cm.lbl":"What we are putting behind it",
+    "cm.none":"Nothing","cm.some":"Some","cm.heavy":"Heavy","cm.unset":"not set",
+    "sect.allbets":"All bets","sect.allbets.h":"Riskiest first",
+    "cm.unfunded.one":"bet is low confidence × high consequence with nothing behind it.",
+    "cm.unfunded.many":"bets are low confidence × high consequence with nothing behind it.",
+    "cm.broken.one":"broken bet is still heavily funded.",
+    "cm.broken.many":"broken bets are still heavily funded.",
+    "cm.stuck.one":"heavily funded bet has not moved across the last three reviews.",
+    "cm.stuck.many":"heavily funded bets have not moved across the last three reviews.",
+    "cm.nostarve":"Nothing is starved — every rated bet has something behind it.",
+    "cm.banner.note":"Spine holds no hours, budget or capacity — that lives in your delivery tooling. What it holds is the claim about which bet the work is buying down, which no delivery tool knows. The claim is only worth something because it can be contradicted: by the distribution, and by the review archive.",
+    "cm.chip.unfunded":"unfunded risk","cm.chip.stuck":"no movement","cm.chip.broken":"still funded",
+    "cm.stuck.why":"Marked heavily funded, and unmoved across the last three reviews. Either the effort is not real, or it is not working — or you have stopped asking.",
     "out.cat.lbl":"Kind of outcome",
     "out.cat.user":"User outcome","out.cat.product":"Product outcome","out.cat.business":"Business outcome",
     "out.cat.none":"uncategorised",
@@ -1571,6 +1611,21 @@ const T = {
     "empty.goals.t":"Ingen mål ennå.", "empty.goals.d":"Navngi en destinasjon strategiene tjener — et selskapsmål, et produktmål, et teamutfall.",
     "empty.outcomes.t":"Ingen utfall ennå.", "empty.outcomes.d":"Definer den målbare endringen som beviser at et mål nås — med en baseline, et mål-tall, og signalet som overvåker det.",
     "add.goals":"Nytt mål", "add.outcomes":"Nytt utfall",
+    "mx.cons":"Konsekvens","mx.conf":"Konfidens","mx.riskiest":"mest risikabel",
+    "mx.danger":"faresonen — sett et signal her først","mx.watch":"følg med","mx.safer":"tryggere",
+    "cm.lbl":"Hva vi setter bak det",
+    "cm.none":"Ingenting","cm.some":"Litt","cm.heavy":"Mye","cm.unset":"ikke satt",
+    "sect.allbets":"Alle bets","sect.allbets.h":"Mest risikable først",
+    "cm.unfunded.one":"bet har lav konfidens × høy konsekvens og ingenting bak seg.",
+    "cm.unfunded.many":"bets har lav konfidens × høy konsekvens og ingenting bak seg.",
+    "cm.broken.one":"brutt bet får fortsatt tung innsats.",
+    "cm.broken.many":"brutte bets får fortsatt tung innsats.",
+    "cm.stuck.one":"tungt finansiert bet har ikke flyttet seg på de tre siste gjennomgangene.",
+    "cm.stuck.many":"tungt finansierte bets har ikke flyttet seg på de tre siste gjennomgangene.",
+    "cm.nostarve":"Ingenting er sultet — hvert vurderte bet har noe bak seg.",
+    "cm.banner.note":"Spine holder verken timer, budsjett eller kapasitet — det bor i leveranseverktøyene dine. Det Spine holder er påstanden om hvilket bet arbeidet kjøper ned, og den kjenner ingen leveranseverktøy. Påstanden er bare verdt noe fordi den kan motsies: av fordelingen, og av gjennomgangsarkivet.",
+    "cm.chip.unfunded":"ufinansiert risiko","cm.chip.stuck":"uten bevegelse","cm.chip.broken":"fortsatt finansiert",
+    "cm.stuck.why":"Merket med tung innsats, og uten bevegelse på de tre siste gjennomgangene. Enten er innsatsen ikke ekte, eller så virker den ikke — eller du har sluttet å spørre.",
     "out.cat.lbl":"Type utfall",
     "out.cat.user":"Brukerutfall","out.cat.product":"Produktutfall","out.cat.business":"Virksomhetsutfall",
     "out.cat.none":"ukategorisert",
@@ -2778,14 +2833,30 @@ function vDecisions(){
 }
 
 /* ---------- Assumptions ---------- */
+function commitChip(c){
+  const k=COMMIT.includes(c)?c:"unset";
+  return `<span class="chip cm-${k}">${esc(t("cm."+k))}</span>`;
+}
 function vAssumptions(){
   const w = el("div","view");
   w.appendChild(headWithExport(t("vh.assumptions.t"),t("vh.assumptions.d"),"assumptions"));
   const all = DB.assumptions.filter(x=>matchStrat(x.strategy)).filter(x=>matchQ(x.statement+x.kill_signal));
+  // Ressursallokering, lest som en linse på bettene — ikke et eget lag.
+  const unf=betsUnfunded(), fbr=betsFundedBroken(), stuck=betsFundedStuck(), flat=nothingStarved();
+  if(unf.length||fbr.length||stuck.length||flat){
+    const bn=el("div","cm-banner");
+    bn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 20h4V10H3zM10 20h4V4h-4zM17 20h4v-7h-4z"/></svg>
+      <div>${unf.length?`<div><b>${unf.length}</b> ${esc(t(unf.length===1?"cm.unfunded.one":"cm.unfunded.many"))}</div>`:""}
+      ${fbr.length?`<div><b>${fbr.length}</b> ${esc(t(fbr.length===1?"cm.broken.one":"cm.broken.many"))}</div>`:""}
+      ${stuck.length?`<div><b>${stuck.length}</b> ${esc(t(stuck.length===1?"cm.stuck.one":"cm.stuck.many"))}</div>`:""}
+      ${flat?`<div>${esc(t("cm.nostarve"))}</div>`:""}
+      <div class="sub">${esc(t("cm.banner.note"))}</div></div>`;
+    w.appendChild(bn);
+  }
   // confidence × consequence matrix
   w.appendChild(el("div","sect-h",`<h2>${esc(t("sect.matrix"))}</h2><span class="hint">${esc(t("sect.matrix.h"))}</span>`));
   w.appendChild(matrixPanel(all));
-  w.appendChild(el("div","sect-h",`<h2>All bets</h2><span class="hint">Riskiest first</span>`));
+  w.appendChild(el("div","sect-h",`<h2>${esc(t("sect.allbets"))}</h2><span class="hint">${esc(t("sect.allbets.h"))}</span>`));
   const rank = a => (a.confidence==="low"&&a.consequence==="high")?0 : (a.consequence==="high")?1 : (a.confidence==="low")?2:3;
   const rows = all.slice().sort((a,b)=>rank(a)-rank(b));
   const panel = el("div","panel");
@@ -2797,8 +2868,9 @@ function vAssumptions(){
     const tr = el("tr","row");
     const sig = a.watchedBy?byId("signals",a.watchedBy):null;
     const risky = a.confidence==="low"&&a.consequence==="high";
-    tr.innerHTML = `<td><div class="stmt">${risky?'<span class="badge b-bad" style="margin-right:6px"><span class="dot"></span>riskiest</span>':""}${esc(a.statement)}</div><div class="strat">${esc(a.strategy)}</div></td>
-      <td><span class="matrix">${esc(lvl(a.confidence))} × ${esc(lvl(a.consequence))}</span></td>
+    tr.innerHTML = `<td><div class="stmt">${risky?`<span class="badge b-bad" style="margin-right:6px"><span class="dot"></span>${esc(t("mx.riskiest"))}</span>`:""}${esc(a.statement)}</div><div class="strat">${esc(a.strategy)}</div></td>
+      <td><span class="matrix">${esc(lvl(a.confidence))} × ${esc(lvl(a.consequence))}</span>
+        <div class="cm-row">${commitChip(a.commitment)}${unf.some(x=>x.id===a.id)?`<span class="sug-chip warn">${esc(t("cm.chip.unfunded"))}</span>`:""}${stuck.some(x=>x.id===a.id)?`<span class="sug-chip warn">${esc(t("cm.chip.stuck"))}</span>`:""}${fbr.some(x=>x.id===a.id)?`<span class="sug-chip warn">${esc(t("cm.chip.broken"))}</span>`:""}</div></td>
       <td>${stateBadge(a.state)}</td>
       <td><div class="meta" style="max-width:30ch">${esc(a.kill_signal||"—")}</div></td>
       <td>${sig?`<span class="meta">${stateBadge(sig.state)}</span>`:`<span class="badge b-mute"><span class="dot"></span>${esc(t("state.unwatched"))}</span>`}</td>`;
@@ -2861,7 +2933,7 @@ function matrixPanel(rows){
   const cons=["high","medium","low"]; // top to bottom
   const cell=(c,k)=>rows.filter(a=>a.confidence===c && a.consequence===k && a.state!=="retired");
   const wrap=el("div","matrix-wrap");
-  const yl=el("div","m-ylabel","Consequence →");
+  const yl=el("div","m-ylabel",t("mx.cons")+" →");
   const grid=el("div","m-grid");
   cons.forEach(k=>{
     levels.forEach(c=>{
@@ -2880,11 +2952,11 @@ function matrixPanel(rows){
       grid.appendChild(cl);
     });
   });
-  const xl=el("div","m-xlabel",`<div>low</div><div>medium</div><div>high</div>`);
+  const xl=el("div","m-xlabel",levels.map(l=>`<div>${esc(lvl(l))}</div>`).join(""));
   wrap.appendChild(yl); wrap.appendChild(grid); wrap.appendChild(xl);
   panel.appendChild(wrap);
-  panel.appendChild(el("div",null,`<div style="text-align:right;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:6px;padding-right:2px">Confidence →</div>`));
-  panel.appendChild(el("div","m-legend",`<span><i style="background:var(--bad-bg);border:1px solid var(--bad-line)"></i>danger zone — fund a signal here first</span><span><i style="background:var(--warn-bg);border:1px solid var(--warn-line)"></i>watch</span><span><i style="background:var(--bg-2);border:1px solid var(--line)"></i>safer</span>`));
+  panel.appendChild(el("div",null,`<div style="text-align:right;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:6px;padding-right:2px">${esc(t("mx.conf"))} →</div>`));
+  panel.appendChild(el("div","m-legend",`<span><i style="background:var(--bad-bg);border:1px solid var(--bad-line)"></i>${esc(t("mx.danger"))}</span><span><i style="background:var(--warn-bg);border:1px solid var(--warn-line)"></i>${esc(t("mx.watch"))}</span><span><i style="background:var(--bg-2);border:1px solid var(--line)"></i>${esc(t("mx.safer"))}</span>`));
   return panel;
 }
 
@@ -4390,7 +4462,7 @@ function mdDecision(d){
 }
 function mdAssumption(a){
   const sig=a.watchedBy?byId("signals",a.watchedBy):null;
-  return `---\ntype: assumption\nstrategy: ${yamlStr(a.strategy)}\nstatement: ${yamlStr(a.statement)}\nconfidence: ${a.confidence||"medium"}\nconsequence: ${a.consequence||"medium"}\nkill_signal: ${yamlStr(a.kill_signal)}\nstate: ${a.state||"holding"}\ntags: [assumption]\n---\n\n${a.note||""}\n${sig?`\nWatches → [[Signal — ${sig.signal.slice(0,40)}]]\n`:""}`;
+  return `---\ntype: assumption\nstrategy: ${yamlStr(a.strategy)}\nstatement: ${yamlStr(a.statement)}\nconfidence: ${a.confidence||"medium"}\nconsequence: ${a.consequence||"medium"}\ncommitment: ${a.commitment||""}\nkill_signal: ${yamlStr(a.kill_signal)}\nstate: ${a.state||"holding"}\ntags: [assumption]\n---\n\n${a.note||""}\n${sig?`\nWatches → [[Signal — ${sig.signal.slice(0,40)}]]\n`:""}`;
 }
 function mdSignal(s){
   const a=s.watches?byId("assumptions",s.watches):null;
@@ -5381,7 +5453,8 @@ function openAssumption(id){
   const sig = a.watchedBy?byId("signals",a.watchedBy):null;
   const deps = DB.decisions.filter(d=>(d.rests||[]).includes(id));
   $("#drawerB").innerHTML = `<h3>${esc(a.statement)}</h3>
-    <dl class="kv"><dt>${esc(t("dt.strategy"))}</dt><dd>${esc(a.strategy)}</dd><dt>${esc(t("th.confidence"))}</dt><dd>${esc(lvl(a.confidence))}</dd><dt>${esc(t("dt.consequence"))}</dt><dd>${esc(lvl(a.consequence))}</dd><dt>${esc(t("th.state"))}</dt><dd>${esc(t("state."+a.state)||a.state)}</dd></dl>
+    <dl class="kv"><dt>${esc(t("dt.strategy"))}</dt><dd>${esc(a.strategy)}</dd><dt>${esc(t("th.confidence"))}</dt><dd>${esc(lvl(a.confidence))}</dd><dt>${esc(t("dt.consequence"))}</dt><dd>${esc(lvl(a.consequence))}</dd><dt>${esc(t("th.state"))}</dt><dd>${esc(t("state."+a.state)||a.state)}</dd><dt>${esc(t("cm.lbl"))}</dt><dd>${commitChip(a.commitment)}</dd></dl>
+    ${betFundedStuck(byId("assumptions",id))?`<div class="val-warn">${esc(t("cm.stuck.why"))}</div>`:""}
     <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">${esc(t("dr.kill"))}</div><div class="note">${esc(a.kill_signal||"—")}</div>
     ${a.note?`<div class="note" style="border-color:var(--accent-soft)">${esc(a.note)}</div>`:""}
     <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600">${esc(t("dr.watchedby"))}</div>
@@ -5480,6 +5553,7 @@ const FIELDS = {
     {k:"consequence",l:"Consequence",t:"seg",opts:["low","medium","high"]},
     {k:"kill_signal",l:"Kill-signal",t:"textarea",ph:"The observation that would prove this false"},
     {k:"state",l:"State",t:"seg",opts:["holding","shaky","broken","retired"]},
+    {k:"commitment",l:"What we are putting behind it",t:"seg",opts:["none","some","heavy"],noDefault:1},
     {k:"note",l:"Note",t:"textarea"},
     {k:"watchedBy",l:"Watched by signal",t:"ref",ref:"signals"},
   ],
@@ -5622,7 +5696,9 @@ const FLD_NO = {
     statement:["Antakelse","Hva som må være sant for at strategien skal virke"],
     strategy:["Strategi",""], confidence:["Konfidens",""], consequence:["Konsekvens",""],
     kill_signal:["Kill-signal","Observasjonen som ville motbevise dette"],
-    state:["Tilstand",""], note:["Notat",""], watchedBy:["Overvåket av signal",""],
+    state:["Tilstand",""],
+    commitment:["Hva vi setter bak det","Grovt bånd, ikke timer. Allokering er bare ekte hvis noe sultes."],
+    note:["Notat",""], watchedBy:["Overvåket av signal",""],
   },
   signals:{
     signal:["Signal","Hva du vil observere over tid"], strategy:["Strategi",""],
@@ -5722,6 +5798,62 @@ function valueChain(v){
   const sig=o&&o.measuredBy ? byId("signals",o.measuredBy) : null;
   return {goal:g, outcome:o, signal:sig, value:v};
 }
+// ── Ressursallokering ────────────────────────────────────────────────────
+// Jira vet hva folk gjør. Jira vet ikke hvilken antakelse arbeidet kjøper
+// ned — det er en vurdering, ikke en registrering, og derfor kan den bare
+// bo der bettene bor. Spine holder ikke timer, kroner eller kapasitet:
+// bare et grovt bånd per bet.
+//
+// Et selvrapportert bånd uten motpart ville vært pynt. Det har to:
+//   1. fordelingen — allokering er bare ekte hvis noe sultes
+//   2. gjennomgangsarkivet — tung innsats som ikke flytter noe
+const COMMIT = ["none","some","heavy"];
+const COMMIT_W = {none:0, some:1, heavy:2};
+const COMMIT_STALE_REVIEWS = 3;
+
+function liveBets(){ return (DB.assumptions||[]).filter(a=>a.state!=="retired"); }
+
+// Du navnga det som mest sannsynlig dreper deg, og satte null bak å finne det ut.
+function betsUnfunded(){
+  return liveBets().filter(a=>a.confidence==="low" && a.consequence==="high"
+    && (!a.commitment || a.commitment==="none"));
+}
+// Du betaler for å forsvare en tapt posisjon.
+function betsFundedBroken(){
+  return (DB.assumptions||[]).filter(a=>a.state==="broken" && a.commitment==="heavy");
+}
+// Flyttet bettet seg i denne gjennomgangen — ikke bare ble det sett på?
+function betMovedIn(rec,id){
+  return ((rec&&rec.bets)||[]).some(b=>b.id===id && (b.from!==b.to || b.confFrom!==b.confTo));
+}
+function recentReviews(n){
+  return (DB.reviews||[]).slice()
+    .sort((x,y)=>String(y.date||"").localeCompare(String(x.date||"")))
+    .slice(0,n);
+}
+// Tung innsats som ikke har flyttet bettet på tre gjennomganger: enten er
+// innsatsen ikke ekte, eller så virker den ikke — eller du har sluttet å spørre.
+// Tier til det finnes tre gjennomganger å lese.
+function betFundedStuck(a){
+  if(!a || a.commitment!=="heavy" || a.state==="retired") return false;
+  const revs=recentReviews(COMMIT_STALE_REVIEWS);
+  if(revs.length<COMMIT_STALE_REVIEWS) return false;
+  return !revs.some(r=>betMovedIn(r,a.id));
+}
+function betsFundedStuck(){ return liveBets().filter(betFundedStuck); }
+// Hvis ingenting er sultet, har du ikke allokert — du har laget en liste.
+// Krever minst tre vurderte bets før den sier noe.
+function nothingStarved(){
+  const rated=liveBets().filter(a=>COMMIT.includes(a.commitment));
+  if(rated.length<3) return false;
+  return !rated.some(a=>a.commitment==="none");
+}
+function commitCounts(){
+  const c={none:0,some:0,heavy:0,unset:0};
+  liveBets().forEach(a=>{ c[COMMIT.includes(a.commitment)?a.commitment:"unset"]++; });
+  return c;
+}
+
 const OUT_CATS = ["user","product","business"];
 // Kategorien er ikke en etikett — den er en målestokk på om utfallene dine
 // beskriver endring i verden eller bare i produktet ditt.
