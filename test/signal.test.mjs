@@ -60,6 +60,7 @@ const harness = [
   decl("RADAR_DUE"), decl("RADAR_H"), decl("RADAR_E"),
   func("radarStatus"), func("radarWeight"), func("radarThreatening"),
   decl("RADAR_RINGS"), decl("RADAR_DOMS"), func("radarChart"), func("lvl"),
+  decl("CV_KINDS"), decl("CV_COLL"), decl("CV_GLYPH"), decl("CV_W"), decl("COLLS"),
   decl("COMMIT"), decl("COMMIT_W"), oneLine(/const COMMIT_STALE_REVIEWS\s*=/),
   func("liveBets"), func("betsUnfunded"), func("betsFundedBroken"), func("betMovedIn"),
   func("recentReviews"), func("betFundedStuck"), func("betsFundedStuck"),
@@ -100,6 +101,7 @@ const harness = [
   "reviewNoteSignal,reviewNoteBet,reviewChanged,closeReview," +
   "radarStatus,radarWeight,radarThreatening,RADAR_DUE," +
   "radarChart,RADAR_RINGS,RADAR_DOMS,parseRadarText,radarMapValue," +
+  "CV_KINDS,CV_COLL,CV_GLYPH,CV_W,COLLS," +
   "COMMIT,COMMIT_STALE_REVIEWS,liveBets,betsUnfunded,betsFundedBroken,betMovedIn," +
   "recentReviews,betFundedStuck,betsFundedStuck,nothingStarved,commitCounts," +
   "OUT_CATS,outcomesOfGoal,goalsProductOnly,outcomesUncategorised,outcomeCatCounts," +
@@ -121,6 +123,7 @@ const {
   reviewNoteSignal, reviewNoteBet, reviewChanged, closeReview, resetReview,
   radarStatus, radarWeight, radarThreatening, RADAR_DUE,
   radarChart, RADAR_RINGS, RADAR_DOMS, parseRadarText, radarMapValue,
+  CV_KINDS, CV_COLL, CV_GLYPH, CV_W, COLLS,
   COMMIT, COMMIT_STALE_REVIEWS, liveBets, betsUnfunded, betsFundedBroken, betMovedIn,
   recentReviews, betFundedStuck, betsFundedStuck, nothingStarved, commitCounts,
   OUT_CATS, outcomesOfGoal, goalsProductOnly, outcomesUncategorised, outcomeCatCounts,
@@ -871,6 +874,24 @@ ok(SING_NO.rights !== undefined, "klassen har et norsk entallsnavn");
 ok(SEED.rights.some(r => r.state === "contested") && SEED.rights.some(r => r.state === "aligned"),
    "seed viser både en omstridt og en fungerende rett");
 setDB({ signals: SEED.signals, assumptions: SEED.assumptions });
+
+group("strategikartet — nodetypene henger sammen");
+{
+  ok(CV_KINDS.includes("value") && CV_KINDS.includes("right") && CV_KINDS.includes("force"),
+     "verdi, beslutningsklasse og kraft kan ligge på lerretet");
+  CV_KINDS.forEach(k => {
+    ok(CV_COLL[k] !== undefined, "CV_COLL dekker " + k);
+    ok(COLLS.includes(CV_COLL[k]), "CV_COLL." + k + " peker på en kollesjon som synkes");
+    ok(CV_GLYPH[k] !== undefined, "CV_GLYPH dekker " + k);
+    ok(typeof CV_W[k] === "number", "CV_W dekker " + k);
+    ok(T.en["cv.k." + k] !== undefined && T.no["cv.k." + k] !== undefined,
+       "cv.k." + k + " finnes i begge språk");
+  });
+  const glyphs = CV_KINDS.map(k => CV_GLYPH[k]);
+  ok(new Set(glyphs).size === glyphs.length, "hver nodetype har sin egen bokstav: " + glyphs.join(""));
+  const colls = CV_KINDS.map(k => CV_COLL[k]);
+  ok(new Set(colls).size === colls.length, "to nodetyper deler ikke kollesjon");
+}
 
 group("ressursallokering — båndet, ikke timene");
 setDB({ assumptions: SEED.assumptions, reviews: SEED.reviews, signals: SEED.signals,

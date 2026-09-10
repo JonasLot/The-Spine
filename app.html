@@ -32,6 +32,11 @@
 
   /* direction layer (goals + outcomes) */
   --goal:#6D4AA6;   --goal-bg:#EFEAF7;
+  /* Tre nye nodetyper på lerretet. Hue-avstand fra de sju eksisterende er
+     med vilje: oliven, plomme og skifer ligger i hullene på fargesirkelen. */
+  --val:#6F7A2E;    --val-bg:#F0F2E2;
+  --right:#8A4A8C;  --right-bg:#F3E8F4;
+  --force:#55687A;  --force-bg:#EBEFF3;
   --outcome:#1C7C8C; --outcome-bg:#E3F1F3;
 
   /* states */
@@ -667,6 +672,9 @@ a{color:inherit}
 .cv-assumption{--kc:var(--align);--kbg:var(--align-bg);width:178px;border-left:3px solid var(--align)}
 .cv-signal{--kc:var(--feed);--kbg:var(--feed-bg);width:178px;border-left:3px solid var(--feed)}
 .cv-decision{--kc:var(--mem);--kbg:var(--mem-bg);width:178px;border-left:3px solid var(--mem)}
+.cv-value{--kc:var(--val);--kbg:var(--val-bg);width:190px;border-left:3px solid var(--val)}
+.cv-right{--kc:var(--right);--kbg:var(--right-bg);width:190px;border-left:3px solid var(--right)}
+.cv-force{--kc:var(--force);--kbg:var(--force-bg);width:190px;border-left:3px solid var(--force)}
 .cv-strategy .cv-ttl{font-size:14px;font-weight:700;-webkit-line-clamp:2}
 
 /* ---- skuffen ---- */
@@ -701,6 +709,9 @@ a{color:inherit}
 .cv-p-assumption{--kc:var(--align);--kbg:var(--align-bg)}
 .cv-p-signal{--kc:var(--feed);--kbg:var(--feed-bg)}
 .cv-p-decision{--kc:var(--mem);--kbg:var(--mem-bg)}
+.cv-p-value{--kc:var(--val);--kbg:var(--val-bg)}
+.cv-p-right{--kc:var(--right);--kbg:var(--right-bg)}
+.cv-p-force{--kc:var(--force);--kbg:var(--force-bg)}
 .cv-dempty{font-size:11.5px;color:var(--ink-3);padding:12px 2px;line-height:1.5}
 
 /* ---- statuslinje, forklaring, tom tilstand ---- */
@@ -1305,6 +1316,7 @@ const T = {
     "cv.lede":"One canvas holding direction, strategies and registers side by side. Drag what belongs here in from the drawer; existing links draw themselves, and you declare new ones by dragging from the dot under a card to another card.",
     "cv.k.goal":"Goal", "cv.k.outcome":"Outcome", "cv.k.strategy":"Strategy",
     "cv.k.insight":"Insight", "cv.k.assumption":"Assumption", "cv.k.signal":"Signal", "cv.k.decision":"Decision",
+    "cv.k.value":"Value", "cv.k.right":"Decision class", "cv.k.force":"Force",
     "cv.drawer.t":"The drawer", "cv.drawer.d":"Everything in Direction and the Registers. Drag onto the canvas — or click to place it.",
     "cv.search.ph":"Search elements…",
     "cv.suggested":"Suggested", "cv.ties":"connects to {n} on the canvas",
@@ -1322,6 +1334,7 @@ const T = {
     "rel.serves":"serves", "rel.belongs":"belongs to", "rel.measures":"measures",
     "rel.carries":"carries", "rel.feeds":"feeds", "rel.watches":"watches", "rel.rests":"rests on",
     "rel.shares":"shares {n}",
+    "rel.follows":"follows from", "rel.threatens":"threatens", "rel.governs":"is governed by",
     "rel.depends-on":"depends on", "rel.enables":"enables", "rel.tension":"in tension with", "rel.related":"related to",
     "vh.goals.t":"Goals", "vh.goals.d":"The destinations the strategies ladder up to. Each goal names why the work exists; a goal no strategy serves is a gap, and a strategy that serves no goal has lost its north star.",
     "vh.outcomes.t":"Outcomes", "vh.outcomes.d":"The measurable change that tells you a goal is being reached. Each outcome carries a baseline, a target and — where one exists — the signal that measures it. This is what 'Am I moving toward the goal?' reads.",
@@ -1362,7 +1375,7 @@ const T = {
     "vh.strategies":`<div><h1>Strategies</h1><p>The canonical artifacts — the single authoritative statement of each strategy that everything else points to. Each one carries a one-page kernel and owns its bets, signals and decisions. This is what the registers orbit.</p></div>`,
     "vh.review":`<h1>Operating Rhythm</h1><p>The heartbeat. Read the signals, re-rate the bets, and end in a decision — otherwise the review is theatre. Everything you change here is logged.</p>`,
     "vh.flywheel":`<h1>The Flywheel</h1><p>The spine is flow — done once per strategy. The standing systems are reservoirs and loops: they accumulate and feed back, so the organisation gets smarter on every pass instead of starting cold.</p>`,
-    "vh.systems":`<h1>Standing Systems</h1><p>The ten systems that make strategy repeatable. Four run as live registers in this app; the other six are the drivetrain around them — reading, re-rating, gating and promoting. Each card names what dies without it.</p>`,
+    "vh.systems":`<h1>Standing Systems</h1><p>The ten systems that make strategy repeatable. All ten are now instrumented — every card below opens the register that carries it, and each one names what dies without it. Value is the eleventh: not one of the ten, but the register that says why an outcome was worth reaching.</p>`,
     "vh.profile":`<h1>Profile</h1><p>Your account details and the organisations you belong to.</p>`,
     "vh.insights.t":"Insights", "vh.insights.d":"The stock of what's true. Each claim carries its evidence and a confidence — so strategy rests on what's known, not on whoever shouted loudest. A falsified bet downgrades the insight it rested on.",
     "vh.decisions.t":"Decisions", "vh.decisions.d":"Append-only memory. Every decision records the options rejected and the assumptions it rests on — so nobody re-litigates, and a broken bet tells you which decision to revisit.",
@@ -1547,8 +1560,8 @@ const T = {
     "share.current":"Current","share.outdated":"Outdated","share.expired":"expired",
     "share.setup.t":"One setup step.",
     "empty.shares.t":"Nothing published yet.","empty.shares.d":"Open a strategy and publish it — the link is how other people point at the same artifact.",
-    "sys.families":"The four families","sys.families.h":"Ten systems · four live registers","sys.loop":"The register loop","sys.loop.h":"How the four registers actually talk to each other","sys.register":"register","sys.live":"live register","sys.without":"Without it:","sys.family":"Family:","sys.feeds":"Feeds",
-    "loop.1":"Insights feed the diagnosis in Understand.","loop.2":"The diagnosis produces Assumptions — the bets the strategy rests on.","loop.3":"Each Signal watches a named assumption; each Decision records the bets it rests on.","loop.4":"When a signal disagrees or an assumption breaks, you're sent back to the diagnosis.","loop.5":"The Learning Loop writes the lesson from a broken bet back into Insights — and downgrades the falsified one. That's what makes it a flywheel, not a one-off.",
+    "sys.families":"The four families","sys.families.h":"Ten systems · all ten instrumented","sys.loop":"The register loop","sys.loop.h":"How the registers actually talk to each other","sys.register":"register","sys.live":"live register","sys.without":"Without it:","sys.family":"Family:","sys.feeds":"Feeds",
+    "loop.1":"Insights feed the diagnosis in Understand.","loop.2":"The diagnosis produces Assumptions — the bets the strategy rests on.","loop.3":"Each Signal watches a named assumption; each Decision records the bets it rests on.","loop.4":"When a signal disagrees or an assumption breaks, you're sent back to the diagnosis.","loop.5":"The Learning Loop writes the lesson from a broken bet back into Insights — and downgrades the falsified one. That's what makes it a flywheel, not a one-off.","loop.6":"Around the loop: the Radar points at the bets from outside, Decision Rights says who was allowed to settle it, and Value asks whether the gain ever landed.",
   },
   no:{
     "brand.ey":"Strategiarkitekt",
@@ -1588,6 +1601,7 @@ const T = {
     "cv.lede":"Ett lerret som holder retning, strategier og registre side om side. Dra inn det som hører hjemme her fra skuffen; koblingene som finnes tegner seg selv, og nye erklærer du ved å dra fra prikken under et kort til et annet.",
     "cv.k.goal":"Mål", "cv.k.outcome":"Utfall", "cv.k.strategy":"Strategi",
     "cv.k.insight":"Innsikt", "cv.k.assumption":"Antakelse", "cv.k.signal":"Signal", "cv.k.decision":"Beslutning",
+    "cv.k.value":"Verdi", "cv.k.right":"Beslutningsklasse", "cv.k.force":"Kraft",
     "cv.drawer.t":"Skuffen", "cv.drawer.d":"Alt som finnes i Retning og Registrene. Dra ut på lerretet — eller klikk for å plassere.",
     "cv.search.ph":"Søk i elementer…",
     "cv.suggested":"Foreslått", "cv.ties":"kobler til {n} på lerretet",
@@ -1605,6 +1619,7 @@ const T = {
     "rel.serves":"tjener", "rel.belongs":"hører til", "rel.measures":"måler",
     "rel.carries":"bærer", "rel.feeds":"mater", "rel.watches":"overvåker", "rel.rests":"hviler på",
     "rel.shares":"deler {n}",
+    "rel.follows":"følger av", "rel.threatens":"truer", "rel.governs":"styres av",
     "rel.depends-on":"avhenger av", "rel.enables":"muliggjør", "rel.tension":"i spenning med", "rel.related":"beslektet med",
     "vh.goals.t":"Mål", "vh.goals.d":"Destinasjonene strategiene ruller opp mot. Hvert mål navngir hvorfor arbeidet finnes; et mål ingen strategi tjener er et gap, og en strategi som ikke tjener noe mål har mistet ledestjernen.",
     "vh.outcomes.t":"Utfall", "vh.outcomes.d":"Den målbare endringen som forteller at et mål nås. Hvert utfall bærer en baseline, et mål-tall og — der det finnes — signalet som måler det. Det er dette «Beveger jeg meg mot målet?» leser.",
@@ -1645,7 +1660,7 @@ const T = {
     "vh.strategies":`<div><h1>Strategier</h1><p>De kanoniske artefaktene — den ene autoritative formuleringen av hver strategi som alt annet peker mot. Hver bærer en énsides kjerne og eier sine bets, signaler og beslutninger. Det er dette registrene kretser rundt.</p></div>`,
     "vh.review":`<h1>Driftsrytme</h1><p>Hjerteslaget. Les signalene, revurder bettene, og avslutt med en beslutning — ellers er gjennomgangen teater. Alt du endrer her blir logget.</p>`,
     "vh.flywheel":`<h1>Svinghjulet</h1><p>Ryggraden er flyt — gjøres én gang per strategi. De stående systemene er reservoarer og løkker: de akkumulerer og gir tilbakekobling, så organisasjonen blir smartere for hver runde i stedet for å starte kaldt.</p>`,
-    "vh.systems":`<h1>Stående systemer</h1><p>De ti systemene som gjør strategi repeterbar. Fire kjører som levende registre i denne appen; de seks andre er drivverket rundt dem — lesing, revurdering, porting og promotering. Hvert kort navngir hva som dør uten det.</p>`,
+    "vh.systems":`<h1>Stående systemer</h1><p>De ti systemene som gjør strategi repeterbar. Alle ti er nå instrumentert — hvert kort under åpner registeret som bærer det, og navngir hva som dør uten det. Verdi er det ellevte: ikke ett av de ti, men registeret som sier hvorfor utfallet var verdt å nå.</p>`,
     "vh.profile":`<h1>Profil</h1><p>Kontodetaljene dine og organisasjonene du tilhører.</p>`,
     "vh.insights.t":"Innsikter", "vh.insights.d":"Beholdningen av det som er sant. Hver påstand bærer sitt bevis og en konfidens — så strategien hviler på det som er kjent, ikke på den som ropte høyest. Et falsifisert bet nedgraderer innsikten det hvilte på.",
     "vh.decisions.t":"Beslutninger", "vh.decisions.d":"Append-only-hukommelse. Hver beslutning registrerer alternativene som ble forkastet og antakelsene den hviler på — så ingen re-litigerer, og et brutt bet forteller deg hvilken beslutning du bør se på igjen.",
@@ -1830,8 +1845,8 @@ const T = {
     "share.current":"Gjeldende","share.outdated":"Utdatert","share.expired":"utløpt",
     "share.setup.t":"Ett oppsettsteg.",
     "empty.shares.t":"Ingenting publisert ennå.","empty.shares.d":"Åpne en strategi og publiser den — lenken er måten andre peker på det samme artefaktet.",
-    "sys.families":"De fire familiene","sys.families.h":"Ti systemer · fire levende registre","sys.loop":"Register-løkken","sys.loop.h":"Hvordan de fire registrene faktisk snakker sammen","sys.register":"register","sys.live":"levende register","sys.without":"Uten det:","sys.family":"Familie:","sys.feeds":"Mater",
-    "loop.1":"Innsikter mater diagnosen i Forstå.","loop.2":"Diagnosen produserer Antakelser — bettene strategien hviler på.","loop.3":"Hvert Signal overvåker en navngitt antakelse; hver Beslutning registrerer bettene den hviler på.","loop.4":"Når et signal er uenig eller en antakelse brytes, sendes du tilbake til diagnosen.","loop.5":"Læringsløkken skriver lærdommen fra et brutt bet tilbake inn i Innsikter — og nedgraderer den falsifiserte. Det er det som gjør det til et svinghjul, ikke en engangshendelse.",
+    "sys.families":"De fire familiene","sys.families.h":"Ti systemer · alle ti instrumentert","sys.loop":"Register-løkken","sys.loop.h":"Hvordan registrene faktisk snakker sammen","sys.register":"register","sys.live":"levende register","sys.without":"Uten det:","sys.family":"Familie:","sys.feeds":"Mater",
+    "loop.1":"Innsikter mater diagnosen i Forstå.","loop.2":"Diagnosen produserer Antakelser — bettene strategien hviler på.","loop.3":"Hvert Signal overvåker en navngitt antakelse; hver Beslutning registrerer bettene den hviler på.","loop.4":"Når et signal er uenig eller en antakelse brytes, sendes du tilbake til diagnosen.","loop.5":"Læringsløkken skriver lærdommen fra et brutt bet tilbake inn i Innsikter — og nedgraderer den falsifiserte. Det er det som gjør det til et svinghjul, ikke en engangshendelse.","loop.6":"Rundt løkken: Radaren peker på bettene utenfra, Beslutningsrettigheter sier hvem som hadde lov til å avgjøre, og Verdi spør om gevinsten noen gang landet.",
   },
 };
 function t(k){ return (T[LANG] && T[LANG][k]) ?? T.en[k] ?? k; }
@@ -3307,11 +3322,14 @@ function stratObjectSet(s){
        og ligger i localStorage.
    ════════════════════════════════════════════════════════════════ */
 
-const CV_KINDS = ["goal","outcome","strategy","insight","assumption","signal","decision"];
-const CV_COLL = {goal:"goals", outcome:"outcomes", strategy:"strategies",
-  insight:"insights", assumption:"assumptions", signal:"signals", decision:"decisions"};
-const CV_GLYPH = {goal:"M", outcome:"U", strategy:"S", insight:"I", assumption:"A", signal:"G", decision:"B"};
-const CV_W = {strategy:212, goal:190, outcome:190, insight:178, assumption:178, signal:178, decision:178};
+const CV_KINDS = ["goal","outcome","value","strategy","insight","assumption","signal","decision","right","force"];
+const CV_COLL = {goal:"goals", outcome:"outcomes", value:"values", strategy:"strategies",
+  insight:"insights", assumption:"assumptions", signal:"signals", decision:"decisions",
+  right:"rights", force:"radar"};
+const CV_GLYPH = {goal:"M", outcome:"U", value:"V", strategy:"S", insight:"I", assumption:"A",
+  signal:"G", decision:"B", right:"R", force:"K"};
+const CV_W = {strategy:212, goal:190, outcome:190, value:190, insight:178, assumption:178,
+  signal:178, decision:178, right:190, force:190};
 
 /* ---- ett oppslag over alt som kan ligge på lerretet ---- */
 function cvEntity(id){
@@ -3320,13 +3338,14 @@ function cvEntity(id){
 }
 function cvAll(){
   const out=[];
-  CV_KINDS.forEach(k=>DB[CV_COLL[k]].forEach(o=>out.push({id:o.id, kind:k, o})));
+  CV_KINDS.forEach(k=>(DB[CV_COLL[k]]||[]).forEach(o=>out.push({id:o.id, kind:k, o})));
   return out;
 }
 function cvTitle(k,o){
   return k==="goal"?L(o,"title") : k==="outcome"?L(o,"statement") : k==="strategy"?o.name
        : k==="insight"?L(o,"claim") : k==="assumption"?L(o,"statement")
-       : k==="signal"?L(o,"signal") : L(o,"title");
+       : k==="signal"?L(o,"signal") : k==="value"?L(o,"claim")
+       : k==="force"?L(o,"force") : k==="right"?L(o,"decision") : L(o,"title");
 }
 function cvSub(k,o){
   if(k==="goal")      return (o.horizon||"");
@@ -3336,6 +3355,9 @@ function cvSub(k,o){
   if(k==="assumption")return t("cv.cons")+" "+lvl(o.consequence||"medium");
   if(k==="signal")    return o.owner||"";
   if(k==="decision")  return t("door."+o.door)||o.door;
+  if(k==="value")     return L(o,"beneficiary")||t("val.cur."+(o.currency||"time"));
+  if(k==="force")     return t("radar.dom."+(o.domain||"regulatory"));
+  if(k==="right")     return rightHolderL(o)||t("rt.nobody");
   return "";
 }
 /* hvilken strategi hører elementet til? brukes av det globale strategifilteret */
@@ -3346,6 +3368,11 @@ function cvStrat(k,o){
   if(k==="outcome"){ const g=o.goalId?byId("goals",o.goalId):null;
     const s=g?DB.strategies.find(x=>(x.serves||[]).includes(g.id)):null; return s?s.name:""; }
   if(k==="goal"){ const s=DB.strategies.find(x=>(x.serves||[]).includes(o.id)); return s?s.name:""; }
+  // Verdi, kraft og rett har ikke eget strategifelt — de arver det fra det de
+  // henger på, slik innsikt og utfall allerede gjør.
+  if(k==="value"){ const oc=o.fromOutcome?byId("outcomes",o.fromOutcome):null; return oc?cvStrat("outcome",oc):""; }
+  if(k==="force"){ const a=(o.threatens||[]).map(id=>byId("assumptions",id)).find(Boolean); return a?a.strategy||"":""; }
+  if(k==="right"){ const d=(DB.decisions||[]).find(x=>x.rightId===o.id); return d?d.strategy||"":""; }
   return "";
 }
 
@@ -3408,6 +3435,18 @@ const CV_LINKS = {
     has:(g,s)=>g.strategy===s.name,
     set:(g,s)=>{ const old=g.strategy||null; g.strategy=s.name; return old; },
     cut:(g)=>{ g.strategy=""; } },
+  follows:{ from:"value", to:"outcome", rel:"rel.follows", one:true,
+    has:(v,o)=>v.fromOutcome===o.id,
+    set:(v,o)=>{ const old=v.fromOutcome?byId("outcomes",v.fromOutcome):null; v.fromOutcome=o.id; return old?cvTitle("outcome",old):null; },
+    cut:(v)=>{ v.fromOutcome=""; } },
+  threatens:{ from:"force", to:"assumption", rel:"rel.threatens",
+    has:(f,a)=>(f.threatens||[]).includes(a.id),
+    set:(f,a)=>{ (f.threatens=f.threatens||[]).push(a.id); return null; },
+    cut:(f,a)=>{ f.threatens=(f.threatens||[]).filter(x=>x!==a.id); } },
+  governs:{ from:"decision", to:"right", rel:"rel.governs", one:true,
+    has:(d,r)=>d.rightId===r.id,
+    set:(d,r)=>{ const old=d.rightId?byId("rights",d.rightId):null; d.rightId=r.id; return old?cvTitle("right",old):null; },
+    cut:(d)=>{ d.rightId=""; } },
   strat:{ from:"strategy", to:"strategy", rel:null, pick:true,
     has:(a,b)=>(a.relations||[]).some(r=>r.to===b.id)||(b.relations||[]).some(r=>r.to===a.id),
     set:(a,b,type)=>{ (a.relations=a.relations||[]).push({to:b.id, type:type||"related"}); return null; },
@@ -4313,7 +4352,8 @@ function renderCanvas(host, opts={}){
 
   /* ---- Rydd opp: lag på lag, sortert etter naboen, brekt og sentrert ---- */
   function tidy(){
-    const rows=[["goal"],["outcome"],["strategy"],["assumption"],["insight","signal","decision"]];
+    const rows=[["goal"],["outcome"],["value"],["strategy"],["assumption"],
+                ["insight","signal","decision","right"],["force"]];
     const GAPX=40, GAPY=68, MAXW=1560;
     let y=40;
     const anchorX=id=>{ const ns=[...(NB[id]||[])].filter(x=>{const e=cvEntity(x);return e&&e.o.pos;});
@@ -5310,7 +5350,7 @@ function vFlywheel(){
   const lh = el("div","sect-h",`<h2>${esc(t("sys.loop"))}</h2><span class="hint">${esc(t("sys.loop.h"))}</span>`);
   w.appendChild(lh);
   const loop = el("div","panel panel-pad");
-  const steps = [[t("loop.1")],[t("loop.2")],[t("loop.3")],[t("loop.4")],[t("loop.5")]];
+  const steps = [[t("loop.1")],[t("loop.2")],[t("loop.3")],[t("loop.4")],[t("loop.5")],[t("loop.6")]];
   const lw = el("div","wheel-loop");
   steps.forEach((s,i)=>{ lw.appendChild(el("div","loop-step",`<div class="ix">${i+1}</div><div class="tx">${s[0]}</div>`)); });
   loop.appendChild(lw);
@@ -5326,7 +5366,7 @@ function vSystems(){
   SYSTEMS.forEach(s=>{
     const f = FAM[s.fam];
     const c = el("div","panel sys-card");
-    c.innerHTML = `<div class="top"><span class="dotm" style="background:${f.c}"></span><span class="nm">${esc(sysName(s))}</span>${s.reg?`<span class="badge b-acc" style="margin-left:auto"><span class="dot"></span>${esc(t("sys.live"))}</span>`:`<span class="chip" style="margin-left:auto">${esc(famLabel(s.fam))}</span>`}</div>
+    c.innerHTML = `<div class="top"><span class="dotm" style="background:${f.c}"></span><span class="nm">${esc(sysName(s))}</span>${s.reg?`<span class="badge b-acc" style="margin-left:auto"><span class="dot"></span>${esc(t("nav."+s.reg.toLowerCase()))}</span>`:`<span class="chip" style="margin-left:auto">${esc(famLabel(s.fam))}</span>`}</div>
       <div class="dies"><b style="color:var(--bad)">${esc(t("sys.without"))}</b> ${esc(sysDies(s))}</div>
       <div class="feeds">${esc(t("sys.family"))} ${esc(famLabel(s.fam))} · ${esc(t("sys.feeds"))} ${esc(feedsL(s.feeds))}</div>`;
     if(s.reg){ clickable(c,()=>{ view = s.reg.toLowerCase(); render(); },"Open "+s.reg+" register"); }
