@@ -1,6 +1,6 @@
 # Plan — Strategikart som lerret
 > Relatert: [[Plan — Interaktivt strategikart]] · [[Plan — Goals & Outcomes]] · [[Plan — Rammeverk-router & lenser]] · [[Plan — Delbar kanonisk strategi]] · [[Backend Setup — Supabase]] · `app.html` · `canvas-prototype.html`
-> Status: **Bygget og verifisert i `app.html`** (2026-09-09) — lerret, dra-for-å-koble og sidepanel-inspektør. Prototypen ligger igjen som `canvas-prototype.html`.
+> Status: **Bygget og verifisert i `app.html`** — lerret, dra-for-å-koble, sidepanel-inspektør og opprettelse fra lerretet (2026-09-10). Prototypen ligger igjen som `canvas-prototype.html`.
 
 ## Hvorfor
 Det gamle `vMap()` var et *diagram*: D3-force plasserte nodene, du kunne se på det og klikke deg videre, men ikke jobbe i det. Og det var ikke ett kart — det var to moduser (portefølje / fokus) du hoppet mellom, og mistet konteksten hver gang.
@@ -132,9 +132,35 @@ Tittelen ligger øverst som et redigerbart felt. Under feltene listes **koblinge
 | Dra-koble, klipp, angre, lag, filter, mini-kart | uendret |
 | JS-feil | ingen, norsk og engelsk |
 
+## Runde 4 — opprette fra lerretet
+Den sentrale gesten er ikke en «ny node»-knapp. Det er **å dra fra et kort ut i tomrommet**: da sier bevegelsen noe konkret — «her burde det stå noe som henger på dette, men det finnes ikke ennå.» Slippet tilbyr bare de typene som lovlig kan henge på kilden, lest ut av `CV_LINKS` (`cvCreatableFrom`). Samme tabell som styrer dra-for-å-koble, så en type du kan opprette kan alltid kobles.
+
+Du får entiteten, koblingen og posisjonen i én bevegelse.
+
+**Tittelen skrives på kortet.** Det nye kortet dukker opp i navnemodus med markøren i seg: én setning, Enter lagrer. Inspektøren står allerede åpen til høyre med tilstand, eier og resten — du er aldri innom et modalvindu. **Escape eller en tom tittel angrer hele opprettelsen**: koblingen klippes og objektet fjernes igjen. Et kort uten tittel ble aldri egentlig opprettet, og skal ikke bli liggende som en tom oppføring i registeret.
+
+**Strategier går gjennom rammeverk-routeren** som ellers. En strategi er en større forpliktelse enn et signal, og routeren finnes nettopp for at en ny strategi skal bli rammet inn. Posisjonen og koblingen venter i `CV_SEED` til `saveForm` har laget objektet — én krok i `saveForm`, én i `defaultCancel` så en avbrutt dialog ikke etterlater en ventende plassering.
+
+**Fritt kort** — noe som ikke henger på et eksisterende: dobbeltklikk på lerretet der du vil ha det, eller «+ Ny» i topplinjen. Begge åpner samme velger, med alle syv typer.
+
+En detalj som ble rettet på veien: appens `uid()` gir samme prefiks til strategier og signaler (`s`), og `cvEntity()` slår opp på tvers av alle samlinger. `cvFreshId` sjekker derfor hele grafen, ikke bare én samling, før den godtar en id. Verdt å vite at det gamle `saveForm` fortsatt kan lage kolliderende id-er — det er en eksisterende sak, ikke innført her.
+
+### Verifisering (Playwright mot seed)
+| Sjekk | Resultat |
+|---|---|
+| Dra fra antakelse til tomrom | 4 lovlige typer tilbudt (strategi, innsikt, signal, beslutning) |
+| Opprett signal derfra | `watches` satt til antakelsen, `pos` satt, kant 31 → 32 |
+| Tittel + Enter | lagret, inspektøren åpen på det nye kortet |
+| Escape under navngiving | innsikter 6 → 5, ingen tom oppføring igjen |
+| Blur med tom tittel | beslutninger 5 → 4, koblingen klippet |
+| Dobbeltklikk i tomrommet | alle syv typer tilbudt |
+| Ny strategi | routeren åpnet, og etter skjemaet fikk strategien `pos` fra lerretet |
+| Dra-koble, klipp, angre, inspektør, lag, filter, mini-kart | uendret |
+| JS-feil | ingen, norsk og engelsk |
+
 ## Ikke med — bevisst
-- **Opprette nye entiteter fra lerretet**
 - **Re-tilpasning av utsnittet når kolonnen lukkes** — lerretet blir bredere uten at innholdet flytter seg. ⤢ ordner det manuelt.
+- **Opprettelse fra mini-kartet** i strategidetaljen — det er et utsnitt, ikke en arbeidsflate.
 
 ## Avgjort
 - **`pos` forkastes ved import.** `REF_FIELD_TYPES` og `normalizeEntity` tar den ikke med, så et importert element havner i skuffen og må plasseres bevisst. Det er riktig: en posisjon fra et annet lerret betyr ingenting på dette.

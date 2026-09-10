@@ -600,6 +600,16 @@ a{color:inherit}
 .cv-empty .serif{font-size:26px;display:block;margin-bottom:6px;color:var(--ink-2)}
 .cv-empty p{font-size:12.5px;color:var(--ink-3);margin:0;line-height:1.55;max-width:360px}
 
+/* ---- opprette fra lerretet ---- */
+.cv-node.cv-naming{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft),var(--shadow-lg);cursor:default}
+.cv-name{width:100%;border:none;background:none;padding:0;margin:0;resize:none;
+  font-family:inherit;font-size:12.5px;font-weight:600;line-height:1.35;color:var(--ink)}
+.cv-name:focus{outline:none}
+.cv-name::placeholder{color:var(--ink-3);font-weight:500}
+.cv-strategy .cv-name{font-size:14px;font-weight:700}
+.cv-pick-b{display:flex;align-items:center;gap:8px}
+.cv-pick-b .cv-glyph{width:17px;height:17px;flex:none}
+
 /* ---- høyrekolonnen: skuff eller inspektør, og lukkbar ---- */
 .cv-side{background:var(--bg-2);border-left:1px solid var(--line);
   display:flex;flex-direction:column;min-height:0;position:relative}
@@ -1027,6 +1037,11 @@ const T = {
     "nav.goals":"Goals", "nav.outcomes":"Outcomes", "grp.direction":"Direction",
     /* ---- strategy canvas ---- */
     "cv.h1":"Strategy Canvas",
+    "cv.new":"New",
+    "cv.new.h2":"Create something and place it here",
+    "cv.new.h":"What do you want to create?",
+    "cv.new.from":"What hangs on {a}?",
+    "cv.new.ph":"Write it in one sentence — Enter saves, Esc discards",
     "cv.side.close":"Close the panel",
     "cv.side.open":"Open the panel",
     "cv.links":"Links",
@@ -1190,6 +1205,11 @@ const T = {
     "nav.goals":"Mål", "nav.outcomes":"Utfall", "grp.direction":"Retning",
     /* ---- strategikart som lerret ---- */
     "cv.h1":"Strategikart",
+    "cv.new":"Ny",
+    "cv.new.h2":"Opprett noe og plasser det her",
+    "cv.new.h":"Hva vil du opprette?",
+    "cv.new.from":"Hva henger på {a}?",
+    "cv.new.ph":"Skriv det i én setning — Enter lagrer, Esc angrer",
     "cv.side.close":"Lukk panelet",
     "cv.side.open":"Åpne panelet",
     "cv.links":"Koblinger",
@@ -2773,6 +2793,97 @@ function cvRuleAllowed(key, src, dst){
   return true;
 }
 
+/* ════════════════════════════════════════════════════════════════
+   OPPRETTE FRA LERRETET
+   Drar du fra et kort ut i tomrommet sier gesten noe konkret: «her
+   burde det stå noe som henger på dette, men det finnes ikke ennå.»
+   Da er det bare én riktig liste å tilby — typene som lovlig kan
+   henge på kilden. Den leses ut av CV_LINKS, samme tabell som styrer
+   dra-for-å-koble, så en type du kan opprette kan alltid kobles.
+   ════════════════════════════════════════════════════════════════ */
+function cvCreatableFrom(srcKind, srcObj){
+  const out=[];
+  CV_KINDS.forEach(k=>{
+    const m=cvRuleFor(srcKind,k); if(!m) return;
+    // m.flip=false betyr at kilden er «fra»-siden og den nye er «til»-siden
+    const srcIsFrom = !m.flip;
+    // eierskapsreglene gjelder bare når det er kilden som er «fra»-siden;
+    // et helt nytt objekt har ingen spissere kobling å komme i veien for
+    if(srcIsFrom && !cvRuleAllowed(m.key, srcObj, null)) return;
+    out.push({kind:k, key:m.key, srcIsFrom});
+  });
+  return out;
+}
+/* Et tomt objekt med alle felt satt, slik saveForm ville laget det. */
+function cvBlank(coll){
+  const o={};
+  (FIELDS[coll]||[]).forEach(f=>{
+    o[f.k] = (f.t==="lines"||f.t==="multiref"||f.t==="rels") ? []
+           : f.t==="seg" ? (f.noDefault?"":f.opts[0])
+           : "";
+  });
+  if(coll==="signals") o.log=[];
+  return o;
+}
+function cvFreshId(coll){
+  let id;
+  // strategier og signaler deler prefiks i appens uid() — sjekk hele grafen,
+  // ikke bare én samling, så to entiteter aldri kan dele id
+  do { id = uid(coll[0]); } while(cvEntity(id));
+  return id;
+}
+function cvLinkNew(link, o){
+  if(!link) return;
+  const rule=CV_LINKS[link.key], other=cvEntity(link.otherId);
+  if(!rule || !other) return;
+  if(link.srcIsFrom) rule.set(other.o, o);   // kilden er «fra», den nye er «til»
+  else               rule.set(o, other.o);   // den nye er «fra»
+}
+
+/* Strategier går gjennom rammeverk-routeren som ellers — en strategi er en
+   større forpliktelse enn et signal, og routeren finnes nettopp for at en ny
+   strategi skal bli rammet inn. Posisjonen og koblingen venter her til
+   saveForm har laget objektet. */
+let CV_SEED = null;
+function cvApplySeed(coll, o){
+  if(!CV_SEED || CV_SEED.coll!==coll) return;
+  o.pos = CV_SEED.pos;
+  cvLinkNew(CV_SEED.link, o);
+  CV_SEED = null;
+}
+function cvClearSeed(){ CV_SEED = null; }
+
+/* Oppretter entiteten, plasserer den, og kobler den om gesten sa noe om det.
+   Returnerer id-en, eller null når routeren tok over (strategier). */
+function cvNew(kind, x, y, link){
+  const coll=CV_COLL[kind];
+  if(kind==="strategy"){
+    CV_SEED={coll, pos:cvFreeSpot(x,y), link};
+    openRouter();
+    return null;
+  }
+  const o=cvBlank(coll);
+  o.id=cvFreshId(coll);
+  o.pos=cvFreeSpot(x,y);
+  DB[coll].push(o);
+  cvLinkNew(link, o);
+  save();
+  return o.id;
+}
+/* Et kort som aldri fikk en tittel ble aldri egentlig opprettet. Vi angrer
+   koblingen og fjerner objektet igjen — ingen tom oppføring blir liggende. */
+function cvDiscard(id, link){
+  const e=cvEntity(id); if(!e) return;
+  if(link){
+    const rule=CV_LINKS[link.key], other=cvEntity(link.otherId);
+    if(rule&&other){ if(link.srcIsFrom) rule.cut(other.o, e.o); else rule.cut(e.o, other.o); }
+  }
+  const coll=CV_COLL[e.kind];
+  const i=DB[coll].findIndex(x=>x.id===id);
+  if(i>=0) DB[coll].splice(i,1);
+  save();
+}
+
 /* ---- relasjonene: én sannhet, brukt både til kanter og til naboer ---- */
 function cvRelations(){
   const out=[];
@@ -2862,6 +2973,7 @@ function renderCanvas(host, opts={}){
   let NB = cvNeighbourMap(rels);
   const SIZE = {};
   let sel = readonly ? null : mapFocus;
+  let naming = null;   // {id, link} mens et nyopprettet kort venter på en tittel
 
   const stage=el("div","cv-stage"+(readonly?" cv-mini":""));
   const grid=el("div","cv-grid");
@@ -2892,6 +3004,41 @@ function renderCanvas(host, opts={}){
     // dempet når det globale strategifilteret peker et annet sted
     const own=cvStrat(n.kind,n.o);
     if(stratF!=="*" && own && own!==stratF) c.classList.add("cv-off");
+
+    /* Nyopprettet kort: tittelen skrives her, på stedet. Enter lagrer,
+       Escape eller en tom tittel angrer hele opprettelsen — et kort uten
+       tittel ble aldri egentlig opprettet. */
+    if(!readonly && naming && naming.id===n.id){
+      c.classList.add("cv-naming");
+      const link=naming.link, tf=CV_TITLE_F[n.kind];
+      const inp=el("textarea","cv-name"); inp.rows=2;
+      inp.placeholder=t("cv.new.ph");
+      inp.setAttribute("aria-label",t("cv.new.ph"));
+      c.querySelector(".cv-ttl").replaceWith(inp);
+      let settled=false;
+      const keep=()=>{
+        if(settled) return; settled=true;
+        const v=inp.value.trim();
+        naming=null;
+        if(!v){ cvDiscard(n.id, link); sel=null; mapFocus=null; }
+        else { n.o[tf]=v; save(); }
+        refresh();
+      };
+      const drop=()=>{
+        if(settled) return; settled=true;
+        naming=null; cvDiscard(n.id, link); sel=null; mapFocus=null; refresh();
+      };
+      inp.onkeydown=ev=>{
+        if(ev.key==="Enter" && !ev.shiftKey){ ev.preventDefault(); keep(); }
+        else if(ev.key==="Escape"){ ev.preventDefault(); drop(); }
+        ev.stopPropagation();
+      };
+      inp.onblur=keep;
+      inp.onpointerdown=ev=>ev.stopPropagation();
+      requestAnimationFrame(()=>{ inp.focus(); });
+      return c;   // ingen håndtak eller dra mens navnet skrives
+    }
+
     if(!readonly){
       const open=el("button","cv-act cv-open",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M9 7h8v8"/></svg>`);
       open.title=t("cv.open"); open.setAttribute("aria-label",t("cv.open")+": "+cvTitle(n.kind,n.o));
@@ -3128,10 +3275,16 @@ function renderCanvas(host, opts={}){
       window.removeEventListener("pointermove",move); window.removeEventListener("pointerup",up);
       window.removeEventListener("keydown",esckey);
       const cand=CONN&&CONN.cand;
+      const overCard = document.elementFromPoint(e2.clientX,e2.clientY);
+      const onEmpty = !(overCard && overCard.closest && overCard.closest(".cv-node"));
       endConnect();
-      if(!cand || cand.already) return;
-      if(cand.rule.pick) pickType(cand, e2.clientX, e2.clientY);
-      else commit(cand, null);
+      if(cand && !cand.already){
+        if(cand.rule.pick) pickType(cand, e2.clientX, e2.clientY);
+        else commit(cand, null);
+        return;
+      }
+      // sluppet i tomrommet — da spør gesten etter noe som ikke finnes ennå
+      if(!cand && onEmpty && inStage(e2.clientX,e2.clientY)) offerNew(src, e2.clientX, e2.clientY);
     };
     const esckey=e2=>{ if(e2.key==="Escape"){ window.removeEventListener("pointermove",move);
       window.removeEventListener("pointerup",up); window.removeEventListener("keydown",esckey); endConnect(); } };
@@ -3145,22 +3298,65 @@ function renderCanvas(host, opts={}){
     world.querySelectorAll(".cv-node").forEach(c=>c.classList.remove(
       "cv-conn-ok","cv-conn-no","cv-conn-done","cv-conn-hot","cv-conn-src"));
   }
-  /* To strategier kan henge sammen på fire måter — den kan ingen gjette. */
-  function pickType(cand,cx,cy){
+  function inStage(cx,cy){
+    const r=stage.getBoundingClientRect();
+    return cx>=r.left && cx<=r.right && cy>=r.top && cy<=r.bottom;
+  }
+  /* Én velger, tre bruk: relasjonstype, «hva skal det nye være» koblet til
+     kilden, og «hva skal det nye være» helt fritt. */
+  function picker(heading, items, cx, cy){
     const pop=el("div","cv-pick");
-    pop.innerHTML=`<div class="cv-pick-h">${esc(t("cv.pick.h"))}</div>`;
-    Object.keys(REL_TYPES).forEach(k=>{
-      const b=el("button","cv-pick-b",esc(t("rel."+k)));
-      b.onclick=()=>{ close(); commit(cand,k); };
+    pop.appendChild(el("div","cv-pick-h",esc(heading)));
+    items.forEach(it=>{
+      const b=el("button","cv-pick-b"+(it.kind?" cv-p-"+it.kind:""));
+      b.innerHTML = it.kind
+        ? `<span class="cv-glyph">${CV_GLYPH[it.kind]}</span>${esc(it.label)}`
+        : esc(it.label);
+      b.onclick=()=>{ close(); it.pick(); };
       pop.appendChild(b);
     });
     const r=stage.getBoundingClientRect();
-    pop.style.left=Math.min(cx-r.left, r.width-190)+"px";
-    pop.style.top=Math.min(cy-r.top, r.height-180)+"px";
+    pop.style.left=Math.max(6, Math.min(cx-r.left, r.width-200))+"px";
+    pop.style.top=Math.max(6, Math.min(cy-r.top, r.height-56-items.length*34))+"px";
     stage.appendChild(pop);
     const close=()=>{ pop.remove(); document.removeEventListener("pointerdown",away,true); };
     const away=e=>{ if(!pop.contains(e.target)) close(); };
     setTimeout(()=>document.addEventListener("pointerdown",away,true),0);
+    return close;
+  }
+  /* To strategier kan henge sammen på fire måter — den kan ingen gjette. */
+  function pickType(cand,cx,cy){
+    picker(t("cv.pick.h"),
+      Object.keys(REL_TYPES).map(k=>({label:t("rel."+k), pick:()=>commit(cand,k)})),
+      cx, cy);
+  }
+  /* Sluppet i tomrommet: bare typene som lovlig kan henge på kilden. */
+  function offerNew(src, cx, cy){
+    const opts=cvCreatableFrom(src.kind, src.o);
+    if(!opts.length) return;
+    const r=stage.getBoundingClientRect();
+    const wx=(cx-r.left-vp.x)/vp.z, wy=(cy-r.top-vp.y)/vp.z;
+    picker(t("cv.new.from").replace("{a}", trunc(cvTitle(src.kind,src.o),24)),
+      opts.map(o=>({kind:o.kind, label:t("cv.k."+o.kind),
+        pick:()=>create(o.kind, wx, wy, {key:o.key, otherId:src.id, srcIsFrom:o.srcIsFrom})})),
+      cx, cy);
+  }
+  /* Fritt kort — dobbeltklikk på lerretet eller «Ny» i topplinjen. */
+  function offerNewFree(cx, cy){
+    const r=stage.getBoundingClientRect();
+    const wx=(cx-r.left-vp.x)/vp.z, wy=(cy-r.top-vp.y)/vp.z;
+    picker(t("cv.new.h"),
+      CV_KINDS.map(k=>({kind:k, label:t("cv.k."+k), pick:()=>create(k, wx, wy, null)})),
+      cx, cy);
+  }
+  /* Oppretter, tenner laget om det var slukket, og setter kortet i navnemodus. */
+  function create(kind, wx, wy, link){
+    if(!layers[kind]){ layers[kind]=true; cvSaveLayers(); }
+    const id=cvNew(kind, wx-CV_W[kind]/2, wy-40, link);
+    if(!id){ refresh(); return; }        // routeren tok over (strategi)
+    naming={id, link};
+    sel=id; mapFocus=id;
+    refresh();
   }
   function commit(cand,type){
     const from=cand.from.o, to=cand.to.o;
@@ -3206,6 +3402,12 @@ function renderCanvas(host, opts={}){
         stage.classList.remove("cv-panning"); cvSaveView();
         if(!moved && sel){ sel=null; mapFocus=null; paint(); } };
       stage.addEventListener("pointermove",move); stage.addEventListener("pointerup",up);
+    });
+    // dobbeltklikk i tomrommet oppretter der du klikket
+    stage.addEventListener("dblclick",e=>{
+      if(e.target.closest(".cv-node,.cv-statusbar,.cv-toast,.cv-pick,.cv-legend,.cv-edge,.cv-cutbtn,.cv-sopen")) return;
+      e.preventDefault();
+      offerNewFree(e.clientX, e.clientY);
     });
     stage.addEventListener("wheel",e=>{
       e.preventDefault();
@@ -3526,9 +3728,14 @@ function renderCanvas(host, opts={}){
   bTidy.title=t("cv.tidy.h"); bTidy.onclick=tidy;
   const bPull=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>${esc(t("cv.pull"))}`);
   bPull.title=t("cv.pull.h"); bPull.onclick=pull;
+  const bNew=el("button","btn pri",
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>${esc(t("cv.new"))}`);
+  bNew.title=t("cv.new.h2");
+  bNew.onclick=()=>{ const r=stage.getBoundingClientRect();
+    offerNewFree(r.left+r.width/2, r.top+Math.min(180, r.height/3)); };
   const bClear=el("button","btn",esc(t("cv.clear")));
   bClear.onclick=()=>{ if(!confirm(t("cv.clear.ask"))) return; cvPlaced().forEach(n=>delete n.o.pos); sel=null; mapFocus=null; save(); paint(); };
-  bar.appendChild(bTidy); bar.appendChild(bPull); bar.appendChild(bClear);
+  bar.appendChild(bNew); bar.appendChild(bTidy); bar.appendChild(bPull); bar.appendChild(bClear);
 
   /* ════════════════════════════════════════════════════════════════
      HØYREKOLONNEN — én kolonne, to tilstander
@@ -4549,7 +4756,10 @@ function saveForm(){
     }
     DB[coll][i]={...DB[coll][i],...data};
   }
-  else { data.id=uid(coll[0]); if(coll==="signals"&&!data.log) data.log=[]; DB[coll].push(data); }
+  else { data.id=uid(coll[0]); if(coll==="signals"&&!data.log) data.log=[];
+         cvApplySeed(coll, data);   // posisjon + kobling når skjemaet ble
+                                    // åpnet fra lerretet (strategier via routeren)
+         DB[coll].push(data); }
   save(); $("#modal").classList.remove("on"); editing=null;
   syncStrategyFilter(); render();
 }
@@ -4584,7 +4794,7 @@ $("#langSel").onchange = e=>{ setLang(e.target.value==="no"?"no":"en"); };
 $("#search").oninput = e=>{ q=e.target.value.trim().toLowerCase(); if(["insights","decisions","assumptions","signals"].includes(view)) render(); };
 $("#addBtn").onclick = newEntry;
 $("#scrim").onclick = closeDrawer;
-function defaultCancel(){ $("#modal").classList.remove("on"); editing=null; }
+function defaultCancel(){ $("#modal").classList.remove("on"); editing=null; cvClearSeed(); }
 $("#mCancel").onclick = defaultCancel;
 $("#mSave").onclick = saveForm;
 $("#menuBtn").onclick = ()=> $("#side").classList.toggle("open");
