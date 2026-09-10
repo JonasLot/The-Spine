@@ -379,6 +379,30 @@ a{color:inherit}
 .rc-lg .ac{width:12px;height:8px;color:var(--ink-3);flex:none}
 .rc-centre{color:var(--ink-3);font-style:italic}
 @media(max-width:720px){.rc-wrap{gap:18px}.rc-legend{flex-direction:row;flex-wrap:wrap;gap:20px}}
+.val-banner{display:flex;gap:13px;align-items:flex-start;padding:15px 18px;border-radius:var(--r-md);
+  background:var(--outcome-bg);border:1px solid transparent;margin-bottom:16px;color:var(--outcome)}
+.val-banner svg{width:19px;height:19px;flex:none;margin-top:1px}
+.val-banner .sub{font-size:12.5px;color:var(--ink-2);margin-top:6px;max-width:78ch;line-height:1.5}
+.val-weak{font-size:11.5px;color:var(--warn);font-weight:600;margin-top:5px}
+.val-warn{margin-top:16px;padding:11px 13px;border-radius:var(--r-sm);background:var(--warn-bg);
+  color:var(--warn);font-size:12.5px;line-height:1.5}
+.chip.sc-societal{background:var(--goal-bg);color:var(--goal)}
+.chip.sc-organisational{background:var(--align-bg);color:var(--align)}
+.chip.sc-direct{background:var(--outcome-bg);color:var(--outcome)}
+.orph-row{display:flex;gap:14px;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:1px solid var(--line-2);cursor:pointer}
+.orph-row:last-child{border-bottom:none}
+.orph-row:hover{background:var(--bg-2)}
+.orph-row .s{font-size:13.5px;font-weight:500;text-wrap:pretty}
+.ch{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin:14px 0 18px;
+  border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;background:var(--bg-2)}
+.ch-step{flex:1;min-width:120px;padding:11px 13px}
+.ch-step .l{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.ch-step .v{font-size:12.5px;color:var(--ink);margin-top:4px;line-height:1.45;text-wrap:pretty}
+.ch-step.goal .v{color:var(--goal)}
+.ch-step.miss .v{color:var(--warn);font-style:italic}
+.ch-arr{display:flex;align-items:center;padding:0 9px;font-size:10.5px;font-style:italic;
+  color:var(--ink-3);background:var(--panel);border-left:1px solid var(--line);border-right:1px solid var(--line);white-space:nowrap}
 .radar-paste{width:100%;border:1px solid var(--line);background:var(--bg-2);border-radius:var(--r-sm);
   padding:12px 14px;font-family:"Spline Sans Mono",ui-monospace,monospace;font-size:13px;
   line-height:1.6;color:var(--ink);resize:vertical;outline:none}
@@ -840,6 +864,9 @@ line.cv-rubber{stroke:var(--accent);stroke-width:2.2;stroke-dasharray:6 5;stroke
       <span>Outcomes</span><span class="ct" data-count="outcomes">0</span></a>
 
     <div class="nav-grp" data-grp="registers">Registers</div>
+    <a class="nav-item" data-view="values">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v18"/><path d="M7 7h7a3 3 0 0 1 0 6H7"/><path d="M7 17h10"/></svg>
+      <span>Value</span><span class="ct" data-count="values">0</span></a>
     <a class="nav-item" data-view="radar">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 12l6-4"/></svg>
       <span>Environmental Radar</span><span class="ct" data-count="radar">0</span></a>
@@ -935,6 +962,36 @@ line.cv-rubber{stroke:var(--accent);stroke-width:2.2;stroke-dasharray:6 5;stroke
 /* ---- seed data (English; adapted from a real worked example) ---- */
 const SEED = {
   reviews: [],
+  values: [
+    {id:"v1", claim:"Foresatte bruker mindre tid på å søke, og slipper å søke om igjen.",
+     beneficiary:"Foresatte", currency:"time", scope:"direct", fromOutcome:"o4",
+     mechanism:"Flere klarer å søke riktig på første forsøk, slik at de slipper avslag, retting og en ny runde.",
+     state:"partial", evidence:"Færre gjentatte søknader fra samme husstand, og kortere tid fra påbegynt til innsendt søknad.",
+     size:"~15 min spart per søknad", owner:"Jonas",
+     note:"Delvis: selvbetjeningen har steget, men gjentatte søknader er ikke målt ennå."},
+    {id:"v2", claim:"Saksbehandlerne får færre henvendelser om status og feil i søknaden.",
+     beneficiary:"Saksbehandlere i PTA-ene", currency:"cost", scope:"organisational", fromOutcome:"o4",
+     mechanism:"Riktig søknad på første forsøk fjerner hele klassen henvendelser som handler om å rette opp.",
+     state:"claimed", evidence:"Volum av henvendelser merket «søknadshjelp» per hundre søknader.",
+     size:"", owner:"", note:"Talt i business-casen. Ingen baseline hentet ennå."},
+    {id:"v3", claim:"Eleven får raskere avklaring på om skyss er innvilget.",
+     beneficiary:"Eleven og familien", currency:"quality", scope:"direct", fromOutcome:"o2",
+     mechanism:"Automatisert behandling av ordinære saker gjør at kø for de kompliserte sakene kortes ned, slik at alle får svar raskere.",
+     state:"claimed", evidence:"Median dager fra innsendt til vedtak, delt på ordinære og skjønnsbaserte saker.",
+     size:"", owner:"Jonas", note:""},
+    {id:"v5", claim:"Programmet frigjør driftsmidler når de gamle systemene kan slås av.",
+     beneficiary:"Eierne (PTA-ene)", currency:"cost", scope:"organisational", fromOutcome:"o3",
+     mechanism:"Migreringen fullføres uten avbrudd, slik at FSkyss/Voyager kan avvikles og lisens- og driftskostnaden faller bort.",
+     state:"not-materialised", evidence:"Faktisk bortfall av lisens- og driftskostnad på de gamle systemene, ikke bare at migreringen er ferdig.",
+     size:"~2,4 MNOK i året", owner:"Jonas",
+     note:"Utfallet er på sporet, men gevinsten har ikke landet: begge systemene kjører fortsatt parallelt. Klassisk gevinstrealiseringssvikt — migreringen teller som ferdig, besparelsen gjør ikke det."},
+    {id:"v4", claim:"Flere elever får et forutsigbart og likeverdig skysstilbud på tvers av kommunegrenser.",
+     beneficiary:"Elever i alle eierkommuner", currency:"equity", scope:"societal", fromOutcome:"o1",
+     mechanism:"Når omgjøringsraten faller fordi regelanvendelsen er lik, avhenger ikke utfallet lenger av hvilken kommune du bor i.",
+     state:"claimed", evidence:"Spredning i innvilgelsesrate mellom kommuner, ikke bare snittet.",
+     size:"", owner:"", note:"Samfunnsverdien hele programmet til slutt måles på."},
+  ],
+
   radar: [
     {id:"r1", force:"The EU AI Act's high-risk classification is being interpreted by national supervisors — automated decisions affecting a child's schooling sit close to the line.",
      domain:"regulatory", horizon:"<1y", exposure:"high", movement:"accelerating",
@@ -1203,6 +1260,29 @@ const T = {
     "radar.stale.one":"force has gone unchecked past its horizon.","radar.stale.many":"forces have gone unchecked past their horizon.",
     "radar.allfresh":"Every force has been looked at recently.",
     "radar.note":"A radar written once and never revisited is not cover — it is the shift you will discover after it has cost you. How often each force is due follows how soon it bites.",
+    "state.claimed":"Claimed","state.partial":"Partly realised",
+    "state.realised":"Realised","state.not-materialised":"Did not materialise",
+    "vh.values.t":"Value","vh.values.d":"Why each outcome is worth reaching — who gains what, and whether the gain actually landed.",
+    "nav.values":"Value","dr.eye.value":"Value",
+    "th.value":"Value","th.who":"Who gains","th.counted":"Counted in","th.fromoutcome":"Follows from",
+    "val.sothat":"…so that…","val.gain":"Gain",
+    "val.cur.time":"Time","val.cur.cost":"Cost","val.cur.quality":"Quality",
+    "val.cur.trust":"Trust","val.cur.equity":"Equity","val.cur.societal":"Societal",
+    "val.scope.lbl":"Reaches","val.scope.direct":"Direct","val.scope.organisational":"Organisational","val.scope.societal":"Societal",
+    "val.mech":"…so that… — how the outcome becomes this gain",
+    "val.nomech":"No mechanism written. Without it the link is a hope, not a chain.",
+    "val.ev":"How we'd know it landed","val.noev":"Nothing stated — then the claim cannot be checked.",
+    "val.measured":"The outcome is watched by","val.size":"Rough size",
+    "val.weak":"Incomplete","val.weak.mechanism":"no «so that»","val.weak.evidence":"no evidence","val.weak.outcome":"no outcome",
+    "val.weak.warn":"This claim cannot be tested yet —",
+    "val.gap.one":"gain was counted on an outcome that is on track, and has not landed.",
+    "val.gap.many":"gains were counted on outcomes that are on track, and have not landed.",
+    "val.gap.chip":"outcome on track",
+    "val.orphan.one":"outcome has no stated value.","val.orphan.many":"outcomes have no stated value.",
+    "val.orphan.head":"Outcomes nobody has valued","val.orphan.hint":"You are measuring a change without saying why it is worth reaching.",
+    "val.banner.note":"The outcome is the causal bridge between what you do and the value you want. It fails at both ends: a number nobody justified, and a benefit counted in the business case that never arrived.",
+    "val.nooutcome":"no outcome linked",
+    "empty.values.t":"No value stated yet.","empty.values.d":"Take an outcome and write who gains what — and the «so that» between them. If you cannot write the middle, the outcome may not be worth reaching.",
     "radar.imp.file":"Import file","radar.imp.paste":"Paste forces",
     "radar.imp.ey":"Environmental Radar","radar.imp.title":"Paste what you found",
     "radar.imp.lead":"Paste a scan, a bullet list, minutes from a PESTLE session — one force per line or per heading. You review each one before it is added.",
@@ -1411,6 +1491,29 @@ const T = {
     "radar.stale.one":"kraft har stått usett forbi sin horisont.","radar.stale.many":"krefter har stått usett forbi sin horisont.",
     "radar.allfresh":"Alle kreftene er sett på nylig.",
     "radar.note":"En radar skrevet én gang og aldri sett på igjen er ikke dekning — det er skiftet du oppdager etter at det har kostet deg. Hvor ofte hver kraft forfaller følger hvor fort den biter.",
+    "state.claimed":"Påstått","state.partial":"Delvis realisert",
+    "state.realised":"Realisert","state.not-materialised":"Uteble",
+    "vh.values.t":"Verdi","vh.values.d":"Hvorfor hvert utfall er verdt å nå — hvem som får hva, og om gevinsten faktisk landet.",
+    "nav.values":"Verdi","dr.eye.value":"Verdi",
+    "th.value":"Verdi","th.who":"Hvem får det","th.counted":"Telles i","th.fromoutcome":"Følger av",
+    "val.sothat":"…slik at…","val.gain":"Gevinst",
+    "val.cur.time":"Tid","val.cur.cost":"Kostnad","val.cur.quality":"Kvalitet",
+    "val.cur.trust":"Tillit","val.cur.equity":"Rettferdighet","val.cur.societal":"Samfunnsnytte",
+    "val.scope.lbl":"Rekker til","val.scope.direct":"Direkte","val.scope.organisational":"Organisasjon","val.scope.societal":"Samfunn",
+    "val.mech":"…slik at… — hvordan utfallet blir til denne gevinsten",
+    "val.nomech":"Ingen mekanisme skrevet. Uten den er koblingen et håp, ikke en kjede.",
+    "val.ev":"Hvordan vi vet at den landet","val.noev":"Ingenting oppgitt — da kan påstanden ikke etterprøves.",
+    "val.measured":"Utfallet overvåkes av","val.size":"Omtrentlig størrelse",
+    "val.weak":"Ufullstendig","val.weak.mechanism":"mangler «slik at»","val.weak.evidence":"mangler bevis","val.weak.outcome":"mangler utfall",
+    "val.weak.warn":"Denne påstanden kan ennå ikke etterprøves —",
+    "val.gap.one":"gevinst ble talt på et utfall som er på sporet, og har ikke landet.",
+    "val.gap.many":"gevinster ble talt på utfall som er på sporet, og har ikke landet.",
+    "val.gap.chip":"utfall på sporet",
+    "val.orphan.one":"utfall har ingen oppgitt verdi.","val.orphan.many":"utfall har ingen oppgitt verdi.",
+    "val.orphan.head":"Utfall ingen har verdsatt","val.orphan.hint":"Dere måler en endring uten å ha sagt hvorfor den er verdt å nå.",
+    "val.banner.note":"Utfallet er den kausale broen mellom det dere gjør og verdien dere vil skape. Den svikter i begge ender: et tall ingen har begrunnet, og en gevinst som ble talt i business-casen men aldri kom.",
+    "val.nooutcome":"ingen utfall koblet",
+    "empty.values.t":"Ingen verdi oppgitt ennå.","empty.values.d":"Ta et utfall og skriv hvem som får hva — og «slik at» mellom dem. Klarer du ikke skrive mellomleddet, er utfallet kanskje ikke verdt å nå.",
     "radar.imp.file":"Importer fil","radar.imp.paste":"Lim inn krefter",
     "radar.imp.ey":"Omgivelsesradar","radar.imp.title":"Lim inn det du fant",
     "radar.imp.lead":"Lim inn en scan, en punktliste, referatet fra en PESTLE-økt — én kraft per linje eller per overskrift. Du går gjennom hver enkelt før den legges inn.",
@@ -1641,7 +1744,7 @@ function trView(o){
   return out;
 }
 
-const COLLS=["strategies","insights","decisions","assumptions","signals","goals","outcomes","reviews","radar"];
+const COLLS=["strategies","insights","decisions","assumptions","signals","goals","outcomes","values","reviews","radar"];
 function stratNames(){ return DB.strategies.map(s=>s.name); }
 function stratByName(n){ return DB.strategies.find(s=>s.name===n); }
 const STRAT_FW={kernel:"Strategy Kernel",cascade:"Playing-to-Win Cascade",wardley:"Wardley Map",premortem:"Pre-mortem","one-pager":"One-Page Strategy"};
@@ -1843,7 +1946,7 @@ async function pushAll(){
   if(_pushAgain){ _pushAgain=false; pushAll(); }
 }
 async function loadAll(){
-  const out={strategies:[],insights:[],decisions:[],assumptions:[],signals:[],goals:[],outcomes:[],reviews:[],radar:[]};
+  const out={strategies:[],insights:[],decisions:[],assumptions:[],signals:[],goals:[],outcomes:[],values:[],reviews:[],radar:[]};
   // Per-table isolation: a missing table degrades to an empty collection instead of killing the whole load.
   const failed=[];
   for(const coll of COLLS){
@@ -1880,7 +1983,9 @@ const STATE_MAP = {
   broken:["b-bad","Broken"], disagreeing:["b-bad","Disagreeing"],
   retired:["b-mute","Retired"],
   "on-track":["b-good","On track"], "at-risk":["b-warn","At risk"],
-  "off-track":["b-bad","Off track"], "not-measured":["b-mute","Not measured"]
+  "off-track":["b-bad","Off track"], "not-measured":["b-mute","Not measured"],
+  realised:["b-good","Realised"], partial:["b-warn","Partly realised"],
+  claimed:["b-mute","Claimed"], "not-materialised":["b-bad","Did not materialise"]
 };
 function stateBadge(s){ const m=STATE_MAP[s]||["b-mute",s]; const lab=T.en["state."+s]?t("state."+s):m[1]; return `<span class="badge ${m[0]}"><span class="dot"></span>${lab}</span>`; }
 function fwL(k){ return T.en["fw."+k]?t("fw."+k):(STRAT_FW[k]||k); }
@@ -1896,14 +2001,14 @@ function byId(coll,id){ return DB[coll].find(x=>x.id===id); }
 function render(){
   $("#crumb").textContent = t("nav."+view);
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active", n.dataset.view===view));
-  const isRegister = ["radar","insights","decisions","assumptions","signals"].includes(view);
-  const showAdd = ["strategies","radar","insights","decisions","assumptions","signals","goals","outcomes","profile"].includes(view) && !currentStrategy;
+  const isRegister = ["radar","values","insights","decisions","assumptions","signals"].includes(view);
+  const showAdd = ["strategies","radar","values","insights","decisions","assumptions","signals","goals","outcomes","profile"].includes(view) && !currentStrategy;
   $("#addBtn").style.display = showAdd ? "inline-flex":"none";
   $("#searchField").style.display = isRegister ? "flex":"none";
   $("#addLabel").textContent = addLabelFor();
   updateCounts();
   const r = $("#root"); r.innerHTML="";
-  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,goals:vGoals,outcomes:vOutcomes,radar:vRadar,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,shares:vShares,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
+  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,goals:vGoals,outcomes:vOutcomes,values:vValues,radar:vRadar,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,shares:vShares,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
 }
 function reviewDueCount(){
   return DB.signals.filter(s=>s.state==="disagreeing"||s.state==="drifting"||suggestSignalState(s)).length
@@ -4506,6 +4611,101 @@ function radarChart(items){
     </div>
   </div>`;
 }
+function chainStrip(ch){
+  if(!ch) return "";
+  const step=(lbl,txt,cls)=>`<div class="ch-step ${cls||""}"><div class="l">${esc(lbl)}</div><div class="v">${esc(txt||"—")}</div></div>`;
+  const arrow=`<div class="ch-arr">${esc(t("val.sothat"))}</div>`;
+  return `<div class="ch">`
+    + step(t("nav.outcomes"), ch.outcome?trunc(L(ch.outcome,"statement"),64):t("val.nooutcome"), ch.outcome?"":"miss")
+    + arrow
+    + step(t("val.gain"), trunc(L(ch.value,"claim"),64))
+    + (ch.goal?arrow+step(t("nav.goals"), trunc(L(ch.goal,"title"),64),"goal"):"")
+    + `</div>`;
+}
+function vValues(){
+  const w=el("div","view");
+  w.appendChild(headWithExport(t("vh.values.t"),t("vh.values.d"),"values"));
+  const all=(DB.values||[]).filter(x=>matchQ((x.claim||"")+(x.beneficiary||"")+(x.mechanism||"")));
+  const gap=valueGap(), orphan=outcomesWithoutValue();
+
+  if(gap.length || orphan.length){
+    const b=el("div","val-banner");
+    b.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M5 8h14M5 16h14" opacity=".5"/><circle cx="12" cy="12" r="9"/></svg>
+      <div>${gap.length?`<div><b>${gap.length}</b> ${esc(t(gap.length===1?"val.gap.one":"val.gap.many"))}</div>`:""}
+      ${orphan.length?`<div><b>${orphan.length}</b> ${esc(t(orphan.length===1?"val.orphan.one":"val.orphan.many"))}</div>`:""}
+      <div class="sub">${esc(t("val.banner.note"))}</div></div>`;
+    w.appendChild(b);
+  }
+
+  const panel=el("div","panel");
+  if(!all.length) return emptyInto(w,panel,t("empty.values.t"),t("empty.values.d"));
+  // Sviktende gevinster først, deretter de svakeste påstandene.
+  const rows=all.slice().sort((a,b)=>{
+    const ga=gap.includes(a)?0:1, gb=gap.includes(b)?0:1;
+    if(ga!==gb) return ga-gb;
+    return valueWeak(b).length-valueWeak(a).length;
+  });
+  const tb=el("table","tbl");
+  tb.innerHTML=`<thead><tr><th>${esc(t("th.value"))}</th><th>${esc(t("th.who"))}</th><th>${esc(t("th.counted"))}</th><th>${esc(t("th.fromoutcome"))}</th><th>${esc(t("th.state"))}</th></tr></thead>`;
+  const b=el("tbody");
+  rows.forEach(v=>{ v=trView(v);
+    const o=v.fromOutcome?byId("outcomes",v.fromOutcome):null;
+    const weak=valueWeak(v);
+    const inGap=gap.some(x=>x.id===v.id);
+    const tr=el("tr","row");
+    tr.innerHTML=`<td><div class="stmt">${esc(L(v,"claim"))}</div>
+        ${weak.length?`<div class="val-weak">${esc(t("val.weak"))}: ${weak.map(k=>esc(t("val.weak."+k))).join(" · ")}</div>`:""}
+        ${v.size?`<div class="meta">${esc(L(v,"size"))}</div>`:""}</td>
+      <td><div class="meta">${esc(L(v,"beneficiary")||"—")}</div>
+        ${v.scope?`<span class="chip sc-${esc(v.scope)}">${esc(t("val.scope."+v.scope))}</span>`:""}</td>
+      <td><span class="chip">${esc(t("val.cur."+(v.currency||"time")))}</span></td>
+      <td>${o?`<div class="meta" style="max-width:26ch">${esc(trunc(L(o,"statement"),44))}</div>${stateBadge(o.state)}`
+             :`<span class="val-weak">${esc(t("val.nooutcome"))}</span>`}</td>
+      <td>${stateBadge(v.state)}${inGap?` <span class="sug-chip">${esc(t("val.gap.chip"))}</span>`:""}</td>`;
+    clickable(tr,()=>openValue(v.id),"Open value: "+L(v,"claim"));
+    b.appendChild(tr);
+  });
+  tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
+
+  // Utfall uten en eneste verdipåstand — den andre enden av broen.
+  if(orphan.length){
+    w.appendChild(el("div","sect-h",
+      `<h2>${esc(t("val.orphan.head"))}</h2><span class="hint">${esc(t("val.orphan.hint"))}</span>`));
+    const op=el("div","panel");
+    orphan.forEach(o=>{
+      const r=el("div","orph-row");
+      r.innerHTML=`<div class="s">${esc(L(o,"statement"))}</div>${stateBadge(o.state)}`;
+      clickable(r,()=>openOutcome(o.id),"Open outcome");
+      op.appendChild(r);
+    });
+    w.appendChild(op);
+  }
+  return w;
+}
+function openValue(id){
+  const raw=byId("values",id); if(!raw) return;
+  const v=trView(raw);
+  const ch=valueChain(v);
+  const weak=valueWeak(v);
+  drawerShell(t("dr.eye.value"), `<div style="margin-top:6px">${stateBadge(v.state)}</div>`);
+  $("#drawerB").innerHTML=`<h3>${esc(L(v,"claim"))}</h3>
+    ${chainStrip(ch)}
+    <dl class="kv">
+      <dt>${esc(t("th.who"))}</dt><dd>${esc(L(v,"beneficiary")||"—")}</dd>
+      <dt>${esc(t("th.counted"))}</dt><dd>${esc(t("val.cur."+(v.currency||"time")))}</dd>
+      <dt>${esc(t("val.scope.lbl"))}</dt><dd>${esc(t("val.scope."+(v.scope||"direct")))}</dd>
+      <dt>${esc(t("val.size"))}</dt><dd>${esc(L(v,"size")||"—")}</dd>
+      <dt>${esc(t("th.owner"))}</dt><dd>${esc(v.owner||"—")}</dd>
+    </dl>
+    <div class="lbl-mini">${esc(t("val.mech"))}</div>
+    <p class="note">${esc(L(v,"mechanism")||t("val.nomech"))}</p>
+    <div class="lbl-mini">${esc(t("val.ev"))}</div>
+    <p class="note">${esc(L(v,"evidence")||t("val.noev"))}</p>
+    ${ch.signal?`<div class="lbl-mini">${esc(t("val.measured"))}</div><div class="link-row"><a class="linkc" onclick="openSignal('${ch.signal.id}')"><span class="tk">${esc(t("state."+ch.signal.state)||ch.signal.state)}</span>${esc(trunc(L(ch.signal,"signal"),38))}</a></div>`:""}
+    ${weak.length?`<div class="val-warn">${esc(t("val.weak.warn"))} ${weak.map(k=>esc(t("val.weak."+k))).join(" · ")}</div>`:""}
+    ${L(v,"note")?`<div class="lbl-mini">${esc(t("th.note"))}</div><p class="note">${esc(L(v,"note"))}</p>`:""}`;
+  drawerFoot("values",id); openDrawer();
+}
 function vRadar(){
   const w=el("div","view");
   const head=headWithExport(t("vh.radar.t"),t("vh.radar.d"),"radar");
@@ -4915,6 +5115,19 @@ const FIELDS = {
     {k:"note",l:"Note",t:"textarea"},
     {k:"watchedBy",l:"Watched by signal",t:"ref",ref:"signals"},
   ],
+  values:[
+    {k:"claim",l:"Value",t:"textarea",req:1,ph:"Who gains what — «foresatte bruker mindre tid», not «bedre brukeropplevelse»"},
+    {k:"beneficiary",l:"Who gains",t:"text",ph:"The party that actually feels it — a person or a body, not «virksomheten»"},
+    {k:"currency",l:"Counted in",t:"seg",opts:["time","cost","quality","trust","equity","societal"]},
+    {k:"scope",l:"Reaches",t:"seg",opts:["direct","organisational","societal"]},
+    {k:"fromOutcome",l:"Follows from outcome",t:"ref",ref:"outcomes"},
+    {k:"mechanism",l:"…so that…",t:"textarea",ph:"How the outcome turns into this gain. If you cannot write it, the link is a hope."},
+    {k:"state",l:"State",t:"seg",opts:["claimed","partial","realised","not-materialised"]},
+    {k:"evidence",l:"How we'd know it landed",t:"textarea",ph:"What you would see if the gain is real — not the outcome's number again"},
+    {k:"size",l:"Rough size",t:"text",ph:"e.g. ~400 hours a year, ~1.2 MNOK, 3 fewer weeks"},
+    {k:"owner",l:"Owner",t:"text"},
+    {k:"note",l:"Note",t:"textarea"},
+  ],
   radar:[
     {k:"force",l:"Force",t:"textarea",req:1,ph:"What is moving out there — not what you believe, but what is shifting"},
     {k:"domain",l:"Domain",t:"seg",opts:["regulatory","technology","market","political","supplier","capability"]},
@@ -4958,11 +5171,22 @@ const FIELDS = {
     {k:"note",l:"Note",t:"textarea"},
   ],
 };
-const SING = {radar:"Force",strategies:"Strategy",insights:"Insight",decisions:"Decision",assumptions:"Assumption",signals:"Signal",goals:"Goal",outcomes:"Outcome",org:"Organisation"};
-const SING_NO = {radar:"Kraft",strategies:"Strategi",insights:"Innsikt",decisions:"Beslutning",assumptions:"Antakelse",signals:"Signal",goals:"Mål",outcomes:"Resultat",org:"Organisasjon"};
+const SING = {values:"Value",radar:"Force",strategies:"Strategy",insights:"Insight",decisions:"Decision",assumptions:"Assumption",signals:"Signal",goals:"Goal",outcomes:"Outcome",org:"Organisation"};
+const SING_NO = {values:"Verdi",radar:"Kraft",strategies:"Strategi",insights:"Innsikt",decisions:"Beslutning",assumptions:"Antakelse",signals:"Signal",goals:"Mål",outcomes:"Resultat",org:"Organisasjon"};
 // Norsk overlay for redigeringsskjemaet: [etikett, plassholder].
 // FIELDS er kilden for engelsk — mangler en nøkkel her, faller den tilbake dit.
 const FLD_NO = {
+  values:{
+    claim:["Verdi","Hvem som får hva — «foresatte bruker mindre tid», ikke «bedre brukeropplevelse»"],
+    beneficiary:["Hvem får det","Parten som faktisk merker det — en person eller et organ, ikke «virksomheten»"],
+    currency:["Telles i",""], scope:["Rekker til",""],
+    fromOutcome:["Følger av utfall",""],
+    mechanism:["…slik at…","Hvordan utfallet blir til denne gevinsten. Klarer du ikke skrive det, er koblingen et håp."],
+    state:["Tilstand",""],
+    evidence:["Hvordan vi vet at den landet","Hva du ville sett hvis gevinsten er ekte — ikke utfallets tall om igjen"],
+    size:["Omtrentlig størrelse","f.eks. ~400 timer i året, ~1,2 MNOK, 3 uker kortere"],
+    owner:["Eier",""], note:["Notat",""],
+  },
   radar:{
     force:["Kraft","Hva som er i bevegelse der ute — ikke hva du tror, men hva som flytter seg"],
     domain:["Område",""], horizon:["Biter når",""], exposure:["Vår eksponering",""],
@@ -5062,6 +5286,43 @@ const ROUTER_Q2=[
 // Pre-mortem produserer naturlig det som skal inn i to registre: hver årsak er
 // en kandidat-antakelse (invertert), hvert tidligste varsel et kandidat-signal.
 // Paret vises eksplisitt før noe opprettes — appen gjetter ikke i det skjulte.
+// ── Verdi ────────────────────────────────────────────────────────────────
+// Utfall er den kausale broen mellom det du gjør og verdien du vil skape.
+// Registeret finnes fordi broen kan svikte i begge ender: et utfall ingen har
+// sagt hvorfor er verdt noe, og en gevinst som ble talt i business-casen men
+// aldri landet. Begge er usynlige uten et sted å skrive dem ned.
+function valuesOf(oid){ return (DB.values||[]).filter(v=>v.fromOutcome===oid); }
+// Et utfall uten en eneste verdipåstand: du måler noe ingen har begrunnet.
+function outcomesWithoutValue(){
+  return (DB.outcomes||[]).filter(o=>!valuesOf(o.id).length);
+}
+// Den viktige svikten: utfallet er nådd, men gevinsten uteble.
+// "Vi traff tallet og ingen fikk det bedre."
+function valueGap(){
+  return (DB.values||[]).filter(v=>{
+    if(v.state!=="not-materialised" && v.state!=="partial") return false;
+    const o=v.fromOutcome ? byId("outcomes",v.fromOutcome) : null;
+    return o && o.state==="on-track";
+  });
+}
+// En verdi uten mekanisme er et håp. Uten bevis er den ikke etterprøvbar.
+function valueWeak(v){
+  const miss=[];
+  if(!String(v&&v.mechanism||"").trim()) miss.push("mechanism");
+  if(!String(v&&v.evidence||"").trim()) miss.push("evidence");
+  if(!v||!v.fromOutcome) miss.push("outcome");
+  return miss;
+}
+// «Slik at»-kjeden, lest ut av de faktiske koblingene — ikke skrevet på nytt.
+function valueChain(v){
+  if(!v) return null;
+  const o=v.fromOutcome ? byId("outcomes",v.fromOutcome) : null;
+  const g=o&&o.goalId ? byId("goals",o.goalId) : null;
+  const sig=o&&o.measuredBy ? byId("signals",o.measuredBy) : null;
+  return {goal:g, outcome:o, signal:sig, value:v};
+}
+const VAL_SCOPE_RANK={direct:0, organisational:1, societal:2};
+
 // ── Omgivelsesradar ──────────────────────────────────────────────────────
 // De andre systemene svikter ved å mangle. Radaren svikter ved å finnes og
 // være gammel: en liste over ytre krefter skrevet én gang ser ut som dekning.

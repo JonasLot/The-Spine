@@ -90,7 +90,7 @@ if (!global.crypto) Object.defineProperty(global, "crypto", {
 global.d3 = undefined;                            // kartet skal degradere pent
 
 // ── last appen ───────────────────────────────────────────────────────────
-const VIEWS = ["vDashboard","vStrategies","vMap","vGoals","vOutcomes","vRadar","vInsights",
+const VIEWS = ["vDashboard","vStrategies","vMap","vGoals","vOutcomes","vValues","vRadar","vInsights",
                "vDecisions","vAssumptions","vSignals","vReview","vShares",
                "vFlywheel","vSystems","vProfile"];
 let app;

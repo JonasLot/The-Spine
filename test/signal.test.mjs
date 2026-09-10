@@ -60,6 +60,8 @@ const harness = [
   decl("RADAR_DUE"), decl("RADAR_H"), decl("RADAR_E"),
   func("radarStatus"), func("radarWeight"), func("radarThreatening"),
   decl("RADAR_RINGS"), decl("RADAR_DOMS"), func("radarChart"), func("lvl"),
+  func("valuesOf"), func("outcomesWithoutValue"), func("valueGap"),
+  func("valueWeak"), func("valueChain"), decl("VAL_SCOPE_RANK"),
   decl("RADAR_KEYS"), decl("RADAR_VALS"),
   func("radarMapValue"), func("radarKeyFor"), func("parseRadarText"),
   decl("STRAT_FW"), decl("LENSES"), decl("LENSES_NO"),
@@ -88,6 +90,7 @@ const harness = [
   "reviewNoteSignal,reviewNoteBet,reviewChanged,closeReview," +
   "radarStatus,radarWeight,radarThreatening,RADAR_DUE," +
   "radarChart,RADAR_RINGS,RADAR_DOMS,parseRadarText,radarMapValue," +
+  "valuesOf,outcomesWithoutValue,valueGap,valueWeak,valueChain," +
   "resetReview:()=>{REVIEW_SESSION=null}," +
   "setLang:v=>{LANG=v},setDB:v=>{DB=v}};",
 ].join("\n");
@@ -102,6 +105,7 @@ const {
   reviewNoteSignal, reviewNoteBet, reviewChanged, closeReview, resetReview,
   radarStatus, radarWeight, radarThreatening, RADAR_DUE,
   radarChart, RADAR_RINGS, RADAR_DOMS, parseRadarText, radarMapValue,
+  valuesOf, outcomesWithoutValue, valueGap, valueWeak, valueChain,
   setLang, setDB,
 } = new Function(harness)();
 
@@ -705,6 +709,74 @@ const segOpts = Object.fromEntries(FIELDS.radar.filter(f => f.t === "seg").map(f
 ok(P2.every(r => ["domain","horizon","exposure","movement"]
    .every(k => !r[k] || segOpts[k].includes(r[k]))),
    "hver mappet verdi er en gyldig opsjon i skjemaet");
+
+group("verdi — kjeden mellom utfall og gevinst");
+const fullDB = () => setDB({
+  strategies:SEED.strategies, assumptions:SEED.assumptions, signals:SEED.signals,
+  goals:SEED.goals, outcomes:SEED.outcomes, values:SEED.values,
+  decisions:SEED.decisions, radar:SEED.radar, reviews:[] });
+fullDB();
+ok(valuesOf("o4").length === 2, "o4 bærer to verdipåstander — ett utfall, flere gevinster");
+ok(valuesOf("o3").length === 1, "o3 bærer driftsbesparelsen");
+ok(valuesOf("finnes-ikke").length === 0, "ukjent utfall gir tom liste");
+const ch = valueChain(SEED.values.find(v => v.id === "v1"));
+ok(ch.outcome && ch.outcome.id === "o4", "kjeden finner utfallet");
+ok(ch.goal && ch.goal.id === "g3", "kjeden går videre til målet gjennom utfallet");
+ok(ch.signal && ch.signal.id === "s4", "kjeden finner signalet som måler utfallet");
+ok(valueChain(null) === null, "tom verdi gir ingen kjede");
+ok(valueChain({claim:"løs"}).outcome === null, "verdi uten utfall gir kjede uten utfall, ikke krasj");
+
+group("verdi — de to svikttilstandene");
+// Den viktige: utfallet er på sporet, men gevinsten uteble.
+setDB({ outcomes:[{id:"oX", statement:"nådd", state:"on-track"}],
+        values:[{id:"vX", claim:"gevinst", fromOutcome:"oX", state:"not-materialised"}],
+        goals:[], signals:[] });
+ok(valueGap().length === 1, "utfall på sporet + gevinst uteble = gap");
+setDB({ outcomes:[{id:"oX", state:"on-track"}],
+        values:[{id:"vX", fromOutcome:"oX", state:"partial"}], goals:[], signals:[] });
+ok(valueGap().length === 1, "delvis realisert på et utfall på sporet teller også");
+setDB({ outcomes:[{id:"oX", state:"on-track"}],
+        values:[{id:"vX", fromOutcome:"oX", state:"realised"}], goals:[], signals:[] });
+ok(valueGap().length === 0, "realisert gevinst er ikke et gap");
+setDB({ outcomes:[{id:"oX", state:"off-track"}],
+        values:[{id:"vX", fromOutcome:"oX", state:"not-materialised"}], goals:[], signals:[] });
+ok(valueGap().length === 0,
+   "gevinst som uteble mens utfallet IKKE er nådd er ikke gapet — da er årsaken kjent");
+setDB({ outcomes:[], values:[{id:"vX", state:"not-materialised"}], goals:[], signals:[] });
+ok(valueGap().length === 0, "verdi uten utfall kan ikke være et gap");
+
+// Den andre enden: et utfall ingen har begrunnet.
+fullDB();
+ok(outcomesWithoutValue().length === 0, "hvert utfall i seed har minst én verdipåstand");
+ok(valueGap().length === 1, "seed viser gapet: ett utfall på sporet der gevinsten ikke landet");
+ok(valueGap()[0].id === "v5", "det er driftsbesparelsen på TØFF-migreringen");
+setDB({ outcomes:SEED.outcomes, values:[], goals:[], signals:[] });
+ok(outcomesWithoutValue().length === SEED.outcomes.length, "uten verdier er alle utfall ubegrunnet");
+
+group("verdi — når påstanden ikke kan etterprøves");
+ok(valueWeak({mechanism:"a", evidence:"b", fromOutcome:"o1"}).length === 0, "komplett påstand er ikke svak");
+ok(valueWeak({evidence:"b", fromOutcome:"o1"}).includes("mechanism"), "mangler «slik at»");
+ok(valueWeak({mechanism:"a", fromOutcome:"o1"}).includes("evidence"), "mangler bevis");
+ok(valueWeak({mechanism:"a", evidence:"b"}).includes("outcome"), "mangler utfall");
+ok(valueWeak({mechanism:"   ", evidence:"b", fromOutcome:"o1"}).includes("mechanism"),
+   "bare blanke teller som manglende mekanisme");
+ok(valueWeak({}).length === 3 && valueWeak(null).length === 3, "tomt input gir alle tre, ikke krasj");
+
+group("verdi — treffer datamodellen");
+fullDB();
+const vfelt = new Set(FIELDS.values.map(f => f.k));
+ok(SEED.values.every(v => Object.keys(v).every(k => k === "id" || vfelt.has(k))),
+   "seed bruker bare felt som finnes i FIELDS.values");
+const vseg = Object.fromEntries(FIELDS.values.filter(f => f.t === "seg").map(f => [f.k, f.opts]));
+ok(SEED.values.every(v => ["currency","scope","state"].every(k => !v[k] || vseg[k].includes(v[k]))),
+   "alle seed-verdier bruker gyldige opsjoner");
+ok(SEED.values.every(v => !v.fromOutcome || SEED.outcomes.some(o => o.id === v.fromOutcome)),
+   "hver kobling peker på et utfall som finnes");
+ok(FIELDS.values.some(f => f.k === "mechanism"), "mekanismen er et eget felt, ikke gjemt i et notat");
+["claimed","partial","realised","not-materialised"].forEach(st =>
+  ok(T.en["state." + st] !== undefined && T.no["state." + st] !== undefined,
+     "state." + st + " finnes i begge språk"));
+ok(SEED.values.some(v => v.scope === "societal"), "seed viser samfunnsverdi-nivået");
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,
