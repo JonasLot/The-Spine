@@ -364,6 +364,8 @@ a{color:inherit}
 .rt-other{margin-top:18px;padding-top:14px;border-top:1px solid var(--line-2)}
 .rt-other .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:8px}
 .rt-other .rt-opts{flex-direction:row;flex-wrap:wrap}
+.op-edge{margin-top:12px;padding-top:11px;border-top:1px dashed var(--line);
+  font-size:12.5px;color:var(--ink-3);line-height:1.5;text-wrap:pretty;max-width:64ch}
 .lens-panel{display:flex;flex-direction:column;gap:14px;padding:18px}
 .lens-panel .fg{display:flex;flex-direction:column;gap:6px}
 .lens-panel label{font-size:12px;font-weight:600;color:var(--ink-2)}
@@ -1120,7 +1122,8 @@ const T = {
     "empty.insights.t":"No insights yet.","empty.insights.d":"Capture what you've learned — one claim, its evidence, a confidence level.","empty.decisions.t":"No decisions logged.","empty.decisions.d":"Log the next real choice — what was decided, and what you rejected.","empty.assumptions.t":"No assumptions yet.","empty.assumptions.d":"Harvest bets from your diagnosis and pre-mortem failure modes.","empty.signals.t":"No signals yet.","empty.signals.d":"Design 3–5 per strategy. Each watches one assumption.","empty.strat.t":"No strategies yet.","empty.strat.d":"Create one — name it, pick a framework, and write the one-page artifact.",
     "btn.back.strat":"All strategies","btn.edit":"Edit","btn.expand":"Expand",
     "strat.canon":"Canonical artifact","strat.owner":"owner","strat.derived":"derived from the","strat.cites":"Everything else cites this.","strat.unowned":"unowned",
-    "op.1":"1 · The challenge","op.2":"2 · Our approach","op.3":"3 · The big moves","op.4":"4 · What we are NOT doing","op.5":"5 · How we'll know it's working","op.nodiag":"No diagnosis written yet.",
+    "op.1":"1 · The challenge","op.2":"2 · Our approach","op.3":"3 · The big moves","op.4":"4 · What we are NOT doing","op.5":"5 · How we'll know it's working",
+    "op.3.edge":"The moves live in whatever you deliver work with — Jira, Notion, a board. The Spine does not track them, and will not become a task tool. What it owns is the bet each move rests on, and the signal that says whether it is holding.","op.nodiag":"No diagnosis written yet.",
     "sect.influence":"Influence map","sect.influence.h":"Insights feed the bets, signals watch them, decisions rest on them","sect.rests":"What rests on it","sect.rests.h":"The bets, signals and decisions this strategy owns",
     "sect.matrix":"Confidence × consequence","sect.matrix.h":"The top-left cell is where strategies quietly die — watch those first",
     "rev.1":"Read the signals","rev.1.h":"Append a fresh reading; set the new state","rev.2":"Re-rate the bets","rev.2.h":"Has confidence moved? Is it broken?","rev.3":"End in a decision","rev.3.h":"If nothing changed, it was theatre",
@@ -1288,7 +1291,8 @@ const T = {
     "empty.insights.t":"Ingen innsikter ennå.","empty.insights.d":"Fang det du har lært — én påstand, beviset, et konfidensnivå.","empty.decisions.t":"Ingen beslutninger loggført.","empty.decisions.d":"Loggfør neste reelle valg — hva som ble besluttet, og hva du forkastet.","empty.assumptions.t":"Ingen antakelser ennå.","empty.assumptions.d":"Høst bets fra diagnosen og pre-mortem-feilmodusene.","empty.signals.t":"Ingen signaler ennå.","empty.signals.d":"Design 3–5 per strategi. Hvert overvåker én antakelse.","empty.strat.t":"Ingen strategier ennå.","empty.strat.d":"Lag én — gi den navn, velg et rammeverk, og skriv énsides-artefaktet.",
     "btn.back.strat":"Alle strategier","btn.edit":"Rediger","btn.expand":"Utvid",
     "strat.canon":"Kanonisk artefakt","strat.owner":"eier","strat.derived":"avledet fra","strat.cites":"Alt annet siterer denne.","strat.unowned":"ingen eier",
-    "op.1":"1 · Utfordringen","op.2":"2 · Vår tilnærming","op.3":"3 · De store trekkene","op.4":"4 · Det vi IKKE gjør","op.5":"5 · Hvordan vi vet at det virker","op.nodiag":"Ingen diagnose skrevet ennå.",
+    "op.1":"1 · Utfordringen","op.2":"2 · Vår tilnærming","op.3":"3 · De store trekkene","op.4":"4 · Det vi IKKE gjør","op.5":"5 · Hvordan vi vet at det virker",
+    "op.3.edge":"Trekkene lever der dere leverer arbeid — Jira, Notion, en tavle. Spine sporer dem ikke, og skal ikke bli et oppgaveverktøy. Det den eier er bettet hvert trekk hviler på, og signalet som sier om det holder.","op.nodiag":"Ingen diagnose skrevet ennå.",
     "sect.influence":"Påvirkningskart","sect.influence.h":"Innsikter mater bettene, signaler overvåker dem, beslutninger hviler på dem","sect.rests":"Hva som hviler på den","sect.rests.h":"Bettene, signalene og beslutningene denne strategien eier",
     "sect.matrix":"Konfidens × konsekvens","sect.matrix.h":"Cellen øverst til venstre er der strategier stille dør — se på dem først",
     "rev.1":"Les signalene","rev.1.h":"Legg til en fersk avlesning; sett ny tilstand","rev.2":"Revurder bettene","rev.2.h":"Har konfidensen flyttet seg? Er det brutt?","rev.3":"Avslutt med en beslutning","rev.3.h":"Hvis ingenting endret seg, var det teater",
@@ -2044,7 +2048,7 @@ function vStrategyDetail(id){
   op.innerHTML=`
     ${opSection(t("op.1"),`<p>${esc(L(s,"challenge")||"—")}</p>`)}
     ${opSection(t("op.2"),`<p>${esc(L(s,"approach")||"—")}</p>`)}
-    ${opSection(t("op.3"),opList(L(s,"moves"),"ol"))}
+    ${opSection(t("op.3"),opList(L(s,"moves"),"ol")+`<div class="op-edge">${esc(t("op.3.edge"))}</div>`)}
     ${opSection(t("op.4"),opList(L(s,"notDoing"),"ul"))}
     ${opSection(t("op.5"),opList(L(s,"howKnow"),"ul"))}`;
   w.appendChild(op);
