@@ -2428,9 +2428,12 @@ function vReview(){
   // Et friskt signal som nettopp begynte å briste må også opp — ellers når
   // forslaget aldri fram i akkurat det tilfellet som betyr mest.
   const sigs=DB.signals.filter(s=>matchStrat(s.strategy)&&(s.state==="disagreeing"||s.state==="drifting"||suggestSignalState(s)));
+  const asmp=DB.assumptions.filter(a=>matchStrat(a.strategy)&&(a.state==="shaky"||a.state==="broken"||assumptionFollowUp(a)));
+  // NB: må stå etter både sigs og asmp. Leste asmp før deklarasjonen én gang —
+  // temporal dead zone, og hele visningen kastet og rendret tomt.
+  // test/views.smoke.mjs fanger den klassen nå.
   const sugCount=sigs.filter(s=>suggestSignalState(s)).length
                 + asmp.filter(a=>assumptionFollowUp(a)).length;
-  const asmp=DB.assumptions.filter(a=>matchStrat(a.strategy)&&(a.state==="shaky"||a.state==="broken"||assumptionFollowUp(a)));
 
   const banner=el("div","rev-banner");
   banner.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
