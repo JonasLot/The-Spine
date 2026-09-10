@@ -364,6 +364,21 @@ a{color:inherit}
 .rt-other{margin-top:18px;padding-top:14px;border-top:1px solid var(--line-2)}
 .rt-other .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:8px}
 .rt-other .rt-opts{flex-direction:row;flex-wrap:wrap}
+.rc-wrap{display:flex;gap:26px;align-items:center;flex-wrap:wrap;justify-content:center}
+.rc{width:min(100%,470px);height:auto;flex:none}
+.rc-dom{font-size:10.5px;font-weight:600;fill:var(--ink-3);letter-spacing:.04em;text-transform:uppercase}
+.rc-ring{font-size:9.5px;fill:var(--ink-3);opacity:.85;font-family:"Spline Sans Mono",monospace}
+.rc-dot{cursor:pointer;outline:none}
+.rc-dot:hover circle:last-of-type,.rc-dot:focus-visible circle:last-of-type{stroke:var(--ink);stroke-width:1.5}
+.rc-legend{display:flex;flex-direction:column;gap:16px;min-width:150px}
+.rc-lg{display:flex;flex-direction:column;gap:6px}
+.rc-lg .lt{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.rc-lg .li{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-2)}
+.rc-lg .d{width:11px;height:11px;border-radius:50%;background:var(--ink-3);flex:none}
+.rc-lg .d.s1{width:8px;height:8px} .rc-lg .d.s2{width:11px;height:11px} .rc-lg .d.s3{width:14px;height:14px}
+.rc-lg .ac{width:12px;height:8px;color:var(--ink-3);flex:none}
+.rc-centre{color:var(--ink-3);font-style:italic}
+@media(max-width:720px){.rc-wrap{gap:18px}.rc-legend{flex-direction:row;flex-wrap:wrap;gap:20px}}
 .radar-banner{display:flex;gap:13px;align-items:flex-start;padding:15px 18px;border-radius:var(--r-md);
   background:var(--sense-bg);border:1px solid transparent;margin-bottom:16px;color:var(--sense)}
 .radar-banner.hot{background:var(--bad-bg);color:var(--bad)}
@@ -1182,6 +1197,10 @@ const T = {
     "radar.stale.one":"force has gone unchecked past its horizon.","radar.stale.many":"forces have gone unchecked past their horizon.",
     "radar.allfresh":"Every force has been looked at recently.",
     "radar.note":"A radar written once and never revisited is not cover — it is the shift you will discover after it has cost you. How often each force is due follows how soon it bites.",
+    "radar.chart.aria":"Radar with {n} forces. {s} are overdue for a look. {c} bite within a year. The table below lists them all.",
+    "radar.lg.colour":"Colour — last looked at","radar.lg.fresh":"Recent","radar.lg.due":"Due soon","radar.lg.over":"Overdue",
+    "radar.lg.size":"Size — our exposure","radar.lg.other":"Also",
+    "radar.lg.centre":"Centre = biting already",
     "radar.mark":"I have looked at this","radar.promote":"This has happened — file as insight",
     "radar.fromradar":"Environmental radar","radar.unchecked":"unchecked",
     "radar.betnote":"An outside force is aimed at this bet. Re-rate it with that in view.",
@@ -1379,6 +1398,10 @@ const T = {
     "radar.stale.one":"kraft har stått usett forbi sin horisont.","radar.stale.many":"krefter har stått usett forbi sin horisont.",
     "radar.allfresh":"Alle kreftene er sett på nylig.",
     "radar.note":"En radar skrevet én gang og aldri sett på igjen er ikke dekning — det er skiftet du oppdager etter at det har kostet deg. Hvor ofte hver kraft forfaller følger hvor fort den biter.",
+    "radar.chart.aria":"Radar med {n} krefter. {s} er forfalt til gjennomgang. {c} biter innen et år. Tabellen under lister dem alle.",
+    "radar.lg.colour":"Farge — sist sett på","radar.lg.fresh":"Nylig","radar.lg.due":"Snart forfalt","radar.lg.over":"Forfalt",
+    "radar.lg.size":"Størrelse — vår eksponering","radar.lg.other":"Dessuten",
+    "radar.lg.centre":"Sentrum = biter allerede",
     "radar.mark":"Jeg har sett på denne","radar.promote":"Dette har skjedd — før som innsikt",
     "radar.fromradar":"Omgivelsesradar","radar.unchecked":"usett",
     "radar.betnote":"En ytre kraft peker på dette bettet. Revurder det med den i sikte.",
@@ -4233,6 +4256,105 @@ function nextImport(){
 function finalizeImport(){ endImport(); }
 
 /* ---------- Flywheel ---------- */
+// Horisontvisualisering. Kanalene gjør én jobb hver:
+//   vinkel  = område   (nominal kategori — posisjon, ikke farge)
+//   radius  = horisont (ordinal, diskrete ringer; sentrum = biter allerede)
+//   størrelse = eksponering
+//   farge   = foreldelse (status — reservert, og alarmen som skal poppe)
+//   akselererer = liten pil innover (sekundær koding, ikke farge)
+// Fordi posisjonen bærer området, er fargekanalen fri til status alene.
+const RADAR_RINGS = ["already","<1y","1-3y",">3y"];
+const RADAR_DOMS  = ["regulatory","technology","market","political","supplier","capability"];
+function radarChart(items){
+  const S=460, C=S/2, R=[58,102,146,190], LBL=204;
+  // Områdeetikettene på 0° og 180° er de bredeste. De får en gutter i viewBox
+  // framfor overflow:visible — ellers legger de seg oppå legenden.
+  const VB=`-78 -8 ${S+156} ${S+16}`;
+  if(!items.length) return "";
+  // Plasser hver kraft i sin sektor; flere i samme bøtte spres ut så de ikke stables.
+  const buckets={};
+  const placed=items.map(r=>{
+    const di=Math.max(0,RADAR_DOMS.indexOf(r.domain||"regulatory"));
+    const ri=Math.max(0,RADAR_RINGS.indexOf(r.horizon||">3y"));
+    const key=di+"/"+ri;
+    (buckets[key]=buckets[key]||[]).push(r);
+    return {r, di, ri, key};
+  });
+  const seen={};
+  const pts=placed.map(p=>{
+    const n=buckets[p.key].length;
+    const i=(seen[p.key]=(seen[p.key]??-1)+1);
+    // sektormidte, forskjøvet innenfor sektoren når flere deler bøtte
+    // Sektormidten forskyves litt bort fra toppen, der ringetikettene står.
+    const mid=(p.di+0.5)*(360/RADAR_DOMS.length)-90+8;
+    const spread=n>1 ? (i-(n-1)/2)*(34/n) : 0;
+    const a=(mid+spread)*Math.PI/180;
+    const rad=p.ri===0 ? R[0]*0.58 : (R[p.ri-1]+R[p.ri])/2;
+    return {...p, x:C+Math.cos(a)*rad, y:C+Math.sin(a)*rad};
+  });
+  const EXP={high:8, medium:6.5, low:5};
+  const rings=R.map((rr,i)=>
+    `<circle cx="${C}" cy="${C}" r="${rr}" fill="${i%2?"var(--bg-2)":"var(--panel)"}" stroke="var(--line)" stroke-width="1"/>`
+  ).reverse().join("");
+  const spokes=RADAR_DOMS.map((d,i)=>{
+    const a=(i*(360/RADAR_DOMS.length)-90)*Math.PI/180;
+    return `<line x1="${C}" y1="${C}" x2="${(C+Math.cos(a)*R[3]).toFixed(1)}" y2="${(C+Math.sin(a)*R[3]).toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`;
+  }).join("");
+  const domLabels=RADAR_DOMS.map((d,i)=>{
+    const a=((i+0.5)*(360/RADAR_DOMS.length)-90)*Math.PI/180;
+    const x=C+Math.cos(a)*LBL, y=C+Math.sin(a)*LBL;
+    const anchor=Math.abs(Math.cos(a))<0.25 ? "middle" : (Math.cos(a)>0?"start":"end");
+    return `<text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="${anchor}" class="rc-dom">${esc(t("radar.dom."+d))}</text>`;
+  }).join("");
+  // Den innerste ringen merkes ikke i plottet — legenden sier "sentrum = biter
+  // allerede", og etiketten kolliderte med punktene som ligger nærmest midten.
+  const ringLabels=R.map((rr,i)=>{
+    if(i===0) return "";
+    const txt=t("radar.hz."+RADAR_RINGS[i]);
+    const y=C-rr+12, w=txt.length*5.6+10;
+    return `<rect x="${(C-w/2).toFixed(1)}" y="${(y-9).toFixed(1)}" width="${w.toFixed(1)}" height="13" rx="3" fill="var(--bg)" opacity=".85"/>`
+         + `<text x="${C}" y="${y.toFixed(1)}" text-anchor="middle" class="rc-ring">${esc(txt)}</text>`;
+  }).join("");
+  const dots=pts.map(p=>{
+    const st=radarStatus(p.r);
+    const col=st.cls==="b-bad"?"var(--bad)":st.cls==="b-warn"?"var(--warn)":"var(--good)";
+    const rr=EXP[p.r.exposure]||5;
+    const acc=p.r.movement==="accelerating"
+      ? `<path d="M${(p.x-4).toFixed(1)},${(p.y-rr-4).toFixed(1)} L${p.x.toFixed(1)},${(p.y-rr-9).toFixed(1)} L${(p.x+4).toFixed(1)},${(p.y-rr-4).toFixed(1)}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`
+      : "";
+    const label=`${L(p.r,"force")}\n${t("radar.hz."+(p.r.horizon||">3y"))} · ${t("radar.exp")} ${lvl(p.r.exposure)} · ${t(st.key).replace("{d}",st.days)}`;
+    return `<g class="rc-dot" data-id="${esc(p.r.id)}" tabindex="0" role="button">
+      <title>${esc(label)}</title>
+      <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${rr+2.5}" fill="var(--panel)"/>
+      <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${rr}" fill="${col}"/>
+      ${acc}</g>`;
+  }).join("");
+  const stale=items.filter(r=>radarStatus(r).stale).length;
+  const aria=t("radar.chart.aria")
+    .replace("{n}",items.length)
+    .replace("{s}",stale)
+    .replace("{c}",items.filter(r=>r.horizon==="already"||r.horizon==="<1y").length);
+  return `<div class="rc-wrap">
+    <svg class="rc" viewBox="${VB}" role="img" aria-label="${esc(aria)}">
+      ${rings}${spokes}${ringLabels}
+      <circle cx="${C}" cy="${C}" r="3" fill="var(--ink-3)"/>
+      ${domLabels}${dots}
+    </svg>
+    <div class="rc-legend">
+      <div class="rc-lg"><span class="lt">${esc(t("radar.lg.colour"))}</span>
+        <span class="li"><i class="d" style="background:var(--good)"></i>${esc(t("radar.lg.fresh"))}</span>
+        <span class="li"><i class="d" style="background:var(--warn)"></i>${esc(t("radar.lg.due"))}</span>
+        <span class="li"><i class="d" style="background:var(--bad)"></i>${esc(t("radar.lg.over"))}</span></div>
+      <div class="rc-lg"><span class="lt">${esc(t("radar.lg.size"))}</span>
+        <span class="li"><i class="d s1"></i>${esc(lvl("low"))}</span>
+        <span class="li"><i class="d s2"></i>${esc(lvl("medium"))}</span>
+        <span class="li"><i class="d s3"></i>${esc(lvl("high"))}</span></div>
+      <div class="rc-lg"><span class="lt">${esc(t("radar.lg.other"))}</span>
+        <span class="li"><svg class="ac" viewBox="0 0 12 8"><path d="M2,6 L6,2 L10,6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>${esc(t("radar.mv.accelerating"))}</span>
+        <span class="li rc-centre">${esc(t("radar.lg.centre"))}</span></div>
+    </div>
+  </div>`;
+}
 function vRadar(){
   const w=el("div","view");
   w.appendChild(headWithExport(t("vh.radar.t"),t("vh.radar.d"),"radar"));
@@ -4246,6 +4368,16 @@ function vRadar(){
         : esc(t("radar.allfresh"))}
       <div class="sub">${esc(t("radar.note"))}</div></div>`;
     w.appendChild(b);
+  }
+  if(all.length>1){
+    const cw=el("div","panel panel-pad");
+    cw.innerHTML=radarChart(all.map(x=>trView(x)));
+    cw.querySelectorAll(".rc-dot").forEach(g=>{
+      const open=()=>openRadar(g.dataset.id);
+      g.onclick=open;
+      g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); open(); } });
+    });
+    w.appendChild(cw);
   }
   // Tyngst først: eksponering × nærhet, og en foreldet kraft løftes uansett.
   const rows=all.slice().sort((a,b)=>{

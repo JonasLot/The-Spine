@@ -59,6 +59,7 @@ const harness = [
   func("fldTr"), func("fldL"), func("fldPh"), func("singL"),
   decl("RADAR_DUE"), decl("RADAR_H"), decl("RADAR_E"),
   func("radarStatus"), func("radarWeight"), func("radarThreatening"),
+  decl("RADAR_RINGS"), decl("RADAR_DOMS"), func("radarChart"), func("lvl"),
   decl("STRAT_FW"), decl("LENSES"), decl("LENSES_NO"),
   func("lensNO"), func("lensWhen"), func("lensAnatomy"), func("lensSmells"), func("smellsFlagged"),
   func("lensFields"), func("lensDerive"), func("lensVal"), func("artifactEmpty"),
@@ -84,6 +85,7 @@ const harness = [
   "buildSharePayload,shareUrl,shareStale,setShares:v=>{SHARES=v}," +
   "reviewNoteSignal,reviewNoteBet,reviewChanged,closeReview," +
   "radarStatus,radarWeight,radarThreatening,RADAR_DUE," +
+  "radarChart,RADAR_RINGS,RADAR_DOMS," +
   "resetReview:()=>{REVIEW_SESSION=null}," +
   "setLang:v=>{LANG=v},setDB:v=>{DB=v}};",
 ].join("\n");
@@ -97,6 +99,7 @@ const {
   buildSharePayload, shareUrl, shareStale, setShares,
   reviewNoteSignal, reviewNoteBet, reviewChanged, closeReview, resetReview,
   radarStatus, radarWeight, radarThreatening, RADAR_DUE,
+  radarChart, RADAR_RINGS, RADAR_DOMS,
   setLang, setDB,
 } = new Function(harness)();
 
@@ -561,6 +564,69 @@ ok(radarThreatening("finnes-ikke").length === 0, "ukjent bet gir tom liste");
 ok(SEED.radar.every(r => (r.threatens||[]).every(id => SEED.assumptions.some(a => a.id === id))),
    "hver kobling i seed peker på et bet som faktisk finnes");
 ok(SEED.radar.some(r => !r.checked), "seed har en kraft som aldri er sett på — demoen viser alarmen");
+
+group("horisontvisualisering");
+const chart = radarChart(SEED.radar);
+ok(chart.includes("<svg"), "grafen tegnes");
+ok(radarChart([]) === "", "tom radar gir ingen graf, ikke en tom ramme");
+ok(radarChart([SEED.radar[0]]).includes("<svg"), "én kraft tegner fortsatt");
+// Hver kraft må få nøyaktig ett punkt — ingen som forsvinner i en bøtte.
+const dots = (chart.match(/class="rc-dot"/g) || []).length;
+ok(dots === SEED.radar.length, `alle ${SEED.radar.length} kreftene får et punkt (fikk ${dots})`);
+ok(!/NaN|undefined/.test(chart), "ingen NaN eller undefined i SVG-en");
+
+// Geometri: alt innenfor viewBox, og radius følger horisonten.
+const rcPts = [...chart.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)" r="([\d.]+)" fill="var\(--(bad|warn|good)\)"/g)]
+  .map(m => ({ x:+m[1], y:+m[2], r:+m[3], col:m[4] }));
+ok(rcPts.length === SEED.radar.length, "fant alle datapunktene i markup-en");
+ok(rcPts.every(c => c.x >= 0 && c.x <= 460 && c.y >= 0 && c.y <= 460), "alle punkter innenfor viewBox");
+ok(rcPts.every(c => c.r * 2 >= 8), "hvert punkt er minst 8px i diameter");
+const dist = c => Math.hypot(c.x - 230, c.y - 230);
+ok(rcPts.every(c => dist(c) <= 190), "ingen punkter utenfor ytterste ring");
+
+group("horisontvisualisering — kanalene koder riktig");
+const one = (horizon, exposure, movement, checked) =>
+  radarChart([{ id:"x", force:"f", domain:"regulatory", horizon, exposure, movement, checked }]);
+const posOf = svg => {
+  const m = /<circle cx="([\d.]+)" cy="([\d.]+)" r="([\d.]+)" fill="var\(--(bad|warn|good)\)"/.exec(svg);
+  return { x:+m[1], y:+m[2], r:+m[3], col:m[4] };
+};
+const dNow = posOf(one("already","high","steady",daysAgo(1)));
+const dFar = posOf(one(">3y","high","steady",daysAgo(1)));
+ok(Math.hypot(dNow.x-230,dNow.y-230) < Math.hypot(dFar.x-230,dFar.y-230),
+   "det som biter allerede ligger nærmere sentrum enn det som ligger etter 3 år");
+ok(posOf(one("<1y","high","steady",daysAgo(1))).r > posOf(one("<1y","low","steady",daysAgo(1))).r,
+   "høy eksponering gir større punkt");
+ok(posOf(one("<1y","high","steady","")).col === "bad", "aldri sett på farges rødt");
+ok(posOf(one("<1y","high","steady",daysAgo(1))).col === "good", "nylig sett på farges grønt");
+// Bare inne i <svg> — legenden har sitt eget pil-ikon som alltid er der.
+const svgOf = h => h.slice(h.indexOf("<svg"), h.indexOf("</svg>"));
+ok(/<path d="M[\d.]+,[\d.]+ L/.test(svgOf(one("<1y","high","accelerating",daysAgo(1)))),
+   "akselererende kraft får pil — sekundær koding, ikke bare farge");
+ok(!/<path d="M[\d.]+,[\d.]+ L/.test(svgOf(one("<1y","high","steady",daysAgo(1)))),
+   "jevn bevegelse får ingen pil i grafen");
+
+group("horisontvisualisering — sammenfall og tilgjengelighet");
+// Fire krefter i samme område og horisont skal spres, ikke stables oppå hverandre.
+const same = ["a","b","c","d"].map(id =>
+  ({ id, force:id, domain:"market", horizon:"<1y", exposure:"medium", movement:"steady", checked:daysAgo(1) }));
+const spread = [...radarChart(same).matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)" r="6.5"/g)]
+  .map(m => `${m[1]},${m[2]}`);
+ok(new Set(spread).size === 4, "fire krefter i samme bøtte får fire ulike posisjoner");
+ok(chart.includes('role="img"'), "grafen er merket som bilde");
+ok(/aria-label="[^"]{40,}"/.test(chart), "aria-label beskriver innholdet, ikke bare «radar»");
+ok(chart.includes("<title>"), "hvert punkt har en tittel for hover");
+ok(chart.includes('tabindex="0"'), "punktene kan nås med tastatur");
+ok(RADAR_DOMS.every(d => chart.includes(">" + T.en["radar.dom." + d] + "<")),
+   "alle seks områdene er merket rundt kanten");
+ok(RADAR_RINGS.slice(1).every(r => chart.includes(">" + T.en["radar.hz." + r] + "<")),
+   "de tre ytre ringene er merket i plottet");
+ok(!chart.includes(">" + T.en["radar.hz.already"] + "<"),
+   "innerste ring merkes ikke i plottet — legenden sier det, og etiketten kolliderte");
+ok(chart.includes(T.en["radar.lg.centre"]), "legenden forklarer hva sentrum betyr");
+setLang("no");
+ok(radarChart(SEED.radar).includes("Regulatorisk"), "grafen bytter språk");
+setLang("en");
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,
