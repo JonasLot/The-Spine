@@ -364,6 +364,19 @@ a{color:inherit}
 .rt-other{margin-top:18px;padding-top:14px;border-top:1px solid var(--line-2)}
 .rt-other .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:8px}
 .rt-other .rt-opts{flex-direction:row;flex-wrap:wrap}
+.rev-tally{margin-top:8px;font-size:12.5px;color:var(--accent-ink);font-weight:600}
+.arch-row{display:flex;gap:14px;align-items:flex-start;padding:14px 18px;border-bottom:1px solid var(--line-2)}
+.arch-row:last-child{border-bottom:none}
+.arch-row .d{font-size:12px;color:var(--ink-3);flex:none;width:88px;padding-top:2px}
+.arch-row .b{flex:1;min-width:0}
+.arch-row .sum{font-size:13.5px;color:var(--ink);font-weight:500}
+.arch-row .sum .st{color:var(--ink-3);font-weight:400}
+.arch-row .mv{display:flex;flex-direction:column;gap:4px;margin-top:7px}
+.arch-row .chg{font-size:12.5px;color:var(--ink-2);text-wrap:pretty}
+.arch-row .chg b{color:var(--warn);font-weight:600}
+.arch-row .dec{font-size:12.5px;color:var(--accent-ink);margin-top:7px}
+.learn-note{font-size:12.5px;color:var(--ink-3);margin-top:14px;padding-top:12px;border-top:1px solid var(--line-2)}
+.learn-note b{color:var(--warn)}
 .op-edge{margin-top:12px;padding-top:11px;border-top:1px dashed var(--line);
   font-size:12.5px;color:var(--ink-3);line-height:1.5;text-wrap:pretty;max-width:64ch}
 .lens-panel{display:flex;flex-direction:column;gap:14px;padding:18px}
@@ -886,6 +899,7 @@ line.cv-rubber{stroke:var(--accent);stroke-width:2.2;stroke-dasharray:6 5;stroke
 
 /* ---- seed data (English; adapted from a real worked example) ---- */
 const SEED = {
+  reviews: [],
   strategies: [
     {id:"st1", name:"Tet Vedtak — Case Platform", framework:"kernel", status:"committed", owner:"Jonas", review:"2026-07-15", version:3, serves:["g1","g2"],
       challenge:"150+ municipalities run school transport on legacy systems (FSkyss/Voyager) that can neither automate nor isolate tenant data — and ~90% of appeals are overturned, signalling systemic rule-application errors rather than caseworker discretion.",
@@ -975,11 +989,11 @@ const SYSTEMS = [
   {name:"Decision Log", fam:"Memory", feeds:"Whole loop", reg:"Decisions", dies:"Endless re-litigation; nobody remembers why."},
   {name:"Assumption Register", fam:"Memory", feeds:"Develop ↔ Track", reg:"Assumptions", dies:"The bets that fail are never noticed failing."},
   {name:"Canonical Strategy Artifact", fam:"Alignment", feeds:"Communicate", reg:"Shares", dies:"Five versions of the strategy, all slightly wrong."},
-  {name:"Operating Rhythm", fam:"Alignment", feeds:"Communicate", reg:"", dies:"Strategy is set, then quietly drifts, unexamined."},
+  {name:"Operating Rhythm", fam:"Alignment", feeds:"Communicate", reg:"Reviews", dies:"Strategy is set, then quietly drifts, unexamined."},
   {name:"Decision Rights", fam:"Alignment", feeds:"Communicate", reg:"", dies:"Strategy stalls in execution on 'who decides this?'"},
   {name:"Signals Ledger", fam:"Feedback", feeds:"Track", reg:"Signals", dies:"The signals you designed are never actually watched."},
   {name:"Resource Allocation", fam:"Feedback", feeds:"Track", reg:"", dies:"A strategy no budget moves toward — a wishlist."},
-  {name:"Learning Loop", fam:"Feedback", feeds:"Track → Understand", reg:"", dies:"Every strategy starts from zero; the org never compounds."},
+  {name:"Learning Loop", fam:"Feedback", feeds:"Track → Understand", reg:"Reviews", dies:"Every strategy starts from zero; the org never compounds."},
 ];
 const FAM = {
   Sensing:{c:"var(--sense)", bg:"var(--sense-bg)", feeds:"feeds Understand"},
@@ -1123,6 +1137,18 @@ const T = {
     "btn.back.strat":"All strategies","btn.edit":"Edit","btn.expand":"Expand",
     "strat.canon":"Canonical artifact","strat.owner":"owner","strat.derived":"derived from the","strat.cites":"Everything else cites this.","strat.unowned":"unowned",
     "op.1":"1 · The challenge","op.2":"2 · Our approach","op.3":"3 · The big moves","op.4":"4 · What we are NOT doing","op.5":"5 · How we'll know it's working",
+    "rev.close":"Close the review","rev.tally":"{n} change(s) this session.",
+    "rev.tally.none":"Nothing has changed yet. A review that changes nothing was theatre.",
+    "rev.arch":"Previous reviews","rev.arch.h":"What each pass actually produced",
+    "rev.arch.empty.t":"No reviews closed yet.","rev.arch.empty.d":"Read the signals, re-rate the bets, then close the review — it lands here.",
+    "rev.arch.sum":"{s} signal(s) read · {b} bet(s) changed state","rev.arch.dec":"Decision","rev.arch.broke":"broke",
+    "learn.head":"Learning Loop","learn.head.h":"Read out of the review archive — does the organisation compound?",
+    "learn.empty.t":"Nothing to learn from yet.","learn.empty.d":"Close a review and this fills in.",
+    "learn.k1":"Reviews","learn.k1.s":"closed in the last 90 days",
+    "learn.k2":"Bets moved","learn.k2.s":"state changes across all reviews",
+    "learn.k3":"Bets broken","learn.k3.s":"each one is a lesson paid for",
+    "learn.k4":"Ended in a decision","learn.k4.s":"the rest changed nothing",
+    "learn.last":"Last review","learn.theatre":"{n} closed without a decision",
     "op.3.edge":"The moves live in whatever you deliver work with — Jira, Notion, a board. The Spine does not track them, and will not become a task tool. What it owns is the bet each move rests on, and the signal that says whether it is holding.","op.nodiag":"No diagnosis written yet.",
     "sect.influence":"Influence map","sect.influence.h":"Insights feed the bets, signals watch them, decisions rest on them","sect.rests":"What rests on it","sect.rests.h":"The bets, signals and decisions this strategy owns",
     "sect.matrix":"Confidence × consequence","sect.matrix.h":"The top-left cell is where strategies quietly die — watch those first",
@@ -1292,6 +1318,18 @@ const T = {
     "btn.back.strat":"Alle strategier","btn.edit":"Rediger","btn.expand":"Utvid",
     "strat.canon":"Kanonisk artefakt","strat.owner":"eier","strat.derived":"avledet fra","strat.cites":"Alt annet siterer denne.","strat.unowned":"ingen eier",
     "op.1":"1 · Utfordringen","op.2":"2 · Vår tilnærming","op.3":"3 · De store trekkene","op.4":"4 · Det vi IKKE gjør","op.5":"5 · Hvordan vi vet at det virker",
+    "rev.close":"Avslutt gjennomgangen","rev.tally":"{n} endring(er) i denne økten.",
+    "rev.tally.none":"Ingenting er endret ennå. En gjennomgang som ikke endrer noe, var teater.",
+    "rev.arch":"Tidligere gjennomganger","rev.arch.h":"Hva hver runde faktisk produserte",
+    "rev.arch.empty.t":"Ingen gjennomganger avsluttet ennå.","rev.arch.empty.d":"Les signalene, revurder bettene, og avslutt gjennomgangen — den havner her.",
+    "rev.arch.sum":"{s} signal(er) lest · {b} bet endret tilstand","rev.arch.dec":"Beslutning","rev.arch.broke":"brutt",
+    "learn.head":"Læringssløyfe","learn.head.h":"Lest ut av gjennomgangsarkivet — samler organisasjonen seg opp?",
+    "learn.empty.t":"Ingenting å lære av ennå.","learn.empty.d":"Avslutt en gjennomgang, så fylles dette ut.",
+    "learn.k1":"Gjennomganger","learn.k1.s":"avsluttet siste 90 dager",
+    "learn.k2":"Bets flyttet","learn.k2.s":"tilstandsendringer på tvers av alle",
+    "learn.k3":"Bets brutt","learn.k3.s":"hver av dem er en betalt lærdom",
+    "learn.k4":"Endte i en beslutning","learn.k4.s":"resten endret ingenting",
+    "learn.last":"Siste gjennomgang","learn.theatre":"{n} avsluttet uten beslutning",
     "op.3.edge":"Trekkene lever der dere leverer arbeid — Jira, Notion, en tavle. Spine sporer dem ikke, og skal ikke bli et oppgaveverktøy. Det den eier er bettet hvert trekk hviler på, og signalet som sier om det holder.","op.nodiag":"Ingen diagnose skrevet ennå.",
     "sect.influence":"Påvirkningskart","sect.influence.h":"Innsikter mater bettene, signaler overvåker dem, beslutninger hviler på dem","sect.rests":"Hva som hviler på den","sect.rests.h":"Bettene, signalene og beslutningene denne strategien eier",
     "sect.matrix":"Konfidens × konsekvens","sect.matrix.h":"Cellen øverst til venstre er der strategier stille dør — se på dem først",
@@ -1495,7 +1533,7 @@ function trView(o){
   return out;
 }
 
-const COLLS=["strategies","insights","decisions","assumptions","signals","goals","outcomes"];
+const COLLS=["strategies","insights","decisions","assumptions","signals","goals","outcomes","reviews"];
 function stratNames(){ return DB.strategies.map(s=>s.name); }
 function stratByName(n){ return DB.strategies.find(s=>s.name===n); }
 const STRAT_FW={kernel:"Strategy Kernel",cascade:"Playing-to-Win Cascade",wardley:"Wardley Map",premortem:"Pre-mortem","one-pager":"One-Page Strategy"};
@@ -1697,7 +1735,7 @@ async function pushAll(){
   if(_pushAgain){ _pushAgain=false; pushAll(); }
 }
 async function loadAll(){
-  const out={strategies:[],insights:[],decisions:[],assumptions:[],signals:[],goals:[],outcomes:[]};
+  const out={strategies:[],insights:[],decisions:[],assumptions:[],signals:[],goals:[],outcomes:[],reviews:[]};
   // Per-table isolation: a missing table degrades to an empty collection instead of killing the whole load.
   const failed=[];
   for(const coll of COLLS){
@@ -2421,6 +2459,47 @@ function matrixPanel(rows){
   return panel;
 }
 
+// Én gjennomgang er ikke en dato — det er hva som endret seg. Økten samler
+// endringene mens du jobber, og arkiveres når du avslutter. Det er dette som
+// gjør Operating Rhythm til et register og Learning Loop til noe synlig.
+let REVIEW_SESSION = null;
+function reviewSessionStart(){
+  if(!REVIEW_SESSION) REVIEW_SESSION={started:new Date().toISOString(), strategy:stratF, signals:[], bets:[]};
+  return REVIEW_SESSION;
+}
+function reviewNoteSignal(s, from, reading){
+  const r=reviewSessionStart();
+  const prev=r.signals.find(x=>x.id===s.id);
+  if(prev){ prev.to=s.state; if(reading) prev.reading=reading; return; }
+  r.signals.push({id:s.id, signal:L(s,"signal"), from, to:s.state, reading:reading||""});
+}
+function reviewNoteBet(a, fromState, fromConf){
+  const r=reviewSessionStart();
+  const prev=r.bets.find(x=>x.id===a.id);
+  if(prev){ prev.to=a.state; prev.confTo=a.confidence; return; }
+  r.bets.push({id:a.id, statement:L(a,"statement"), from:fromState, to:a.state,
+               confFrom:fromConf, confTo:a.confidence});
+}
+// Endret noe seg? "Hvis ingenting endret seg, var det teater."
+function reviewChanged(){
+  const r=REVIEW_SESSION; if(!r) return 0;
+  return r.signals.filter(x=>x.from!==x.to||x.reading).length
+       + r.bets.filter(x=>x.from!==x.to||x.confFrom!==x.confTo).length;
+}
+function closeReview(decisionId){
+  const r=REVIEW_SESSION; if(!r) return null;
+  const rec={
+    id:uid("rv"), date:new Date().toISOString().slice(0,10),
+    strategy:r.strategy==="*"?"":r.strategy,
+    signals:r.signals, bets:r.bets,
+    decision:decisionId||"",
+    betsBroken:r.bets.filter(b=>b.to==="broken"&&b.from!=="broken").length,
+  };
+  (DB.reviews=DB.reviews||[]).push(rec);
+  REVIEW_SESSION=null;
+  save();
+  return rec;
+}
 /* ---------- Operating Rhythm (the review ritual) ---------- */
 function vReview(){
   const w=el("div","view");
@@ -2460,11 +2539,49 @@ function vReview(){
   w.appendChild(el("div","rev-step",`<span class="num">3</span><h2>${esc(t("rev.3"))}</h2><span class="hint">${esc(t("rev.3.h"))}</span>`));
   const dp=el("div","panel panel-pad");
   dp.style.display="flex"; dp.style.justifyContent="space-between"; dp.style.alignItems="center"; dp.style.gap="16px"; dp.style.flexWrap="wrap";
-  dp.innerHTML=`<div style="max-width:52ch;color:var(--ink-2);font-size:13.5px">${t("rev.3.body")}</div>`;
+  const changed=reviewChanged();
+  dp.innerHTML=`<div style="max-width:52ch;color:var(--ink-2);font-size:13.5px">${t("rev.3.body")}
+    <div class="rev-tally">${changed
+      ? esc(t("rev.tally").replace("{n}",changed))
+      : esc(t("rev.tally.none"))}</div></div>`;
   const dbtn=el("button","btn pri",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>${esc(t("rev.3.btn"))}`);
   dbtn.onclick=()=>{ view="decisions"; render(); newEntry(); };
-  dp.appendChild(dbtn);
+  const cbtn=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>${esc(t("rev.close"))}`);
+  cbtn.disabled=!changed; cbtn.style.opacity=changed?"1":".45"; cbtn.style.pointerEvents=changed?"":"none";
+  cbtn.onclick=()=>{ closeReview(""); render(); };
+  const bwrap=el("div"); bwrap.style.cssText="display:flex;gap:9px;flex-wrap:wrap";
+  bwrap.appendChild(cbtn); bwrap.appendChild(dbtn);
+  dp.appendChild(bwrap);
   w.appendChild(dp);
+
+  // ── arkivet: hva forrige gjennomganger faktisk produserte ──
+  const past=(DB.reviews||[]).filter(r=>!r.strategy||matchStrat(r.strategy))
+    .slice().sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  w.appendChild(el("div","sect-h",
+    `<h2>${esc(t("rev.arch"))}</h2><span class="hint">${esc(t("rev.arch.h"))}</span>`));
+  const ap2=el("div","panel");
+  if(!past.length){
+    ap2.innerHTML=`<div class="empty"><span class="serif">${esc(t("rev.arch.empty.t"))}</span>${esc(t("rev.arch.empty.d"))}</div>`;
+  }else{
+    past.slice(0,12).forEach(r=>{
+      const row=el("div","arch-row");
+      const moved=(r.bets||[]).filter(b=>b.from!==b.to);
+      const dec=r.decision?byId("decisions",r.decision):null;
+      row.innerHTML=`<div class="d mono">${esc(r.date)}</div>
+        <div class="b">
+          <div class="sum">${esc(t("rev.arch.sum")
+            .replace("{s}",(r.signals||[]).length)
+            .replace("{b}",moved.length))}${r.strategy?` · <span class="st">${esc(r.strategy)}</span>`:""}</div>
+          ${moved.length?`<div class="mv">${moved.map(b=>
+            `<span class="chg">${esc(trunc(b.statement,44))} <b>${esc(t("state."+b.from)||b.from)} → ${esc(t("state."+b.to)||b.to)}</b></span>`
+          ).join("")}</div>`:""}
+          ${dec?`<div class="dec">${esc(t("rev.arch.dec"))}: ${esc(trunc(L(dec,"title"),60))}</div>`:""}
+        </div>
+        ${r.betsBroken?`<span class="badge b-bad"><span class="dot"></span>${r.betsBroken} ${esc(t("rev.arch.broke"))}</span>`:""}`;
+      ap2.appendChild(row);
+    });
+  }
+  w.appendChild(ap2);
   return w;
 }
 function reviewSignalCard(s){
@@ -2496,6 +2613,7 @@ function reviewSignalCard(s){
     const today=new Date().toISOString().slice(0,10);
     const txt=inp.value.trim();
     const val=numOrBlank(num.value);
+    const wasState=s.state;
     s.state=seg.dataset.val;
     if(txt || val!==""){
       const shown=txt||(val+(s.unit||""));
@@ -2505,6 +2623,7 @@ function reviewSignalCard(s){
       (s.log=s.log||[]).unshift(entry);
       inp.value=""; num.value="";
     }
+    reviewNoteSignal(s, wasState, txt||(val!==""?String(val):""));
     saveData(); flash.classList.add("on"); setTimeout(()=>{ render(); },650);
   };
   ctrl.appendChild(inp); ctrl.appendChild(num); ctrl.appendChild(seg); ctrl.appendChild(save); ctrl.appendChild(flash);
@@ -2535,7 +2654,12 @@ function reviewAssumptionCard(a){
   }
   const save=el("button","btn pri",t("rev.rerate")); save.style.alignSelf="flex-end";
   const flash=el("span","saved-flash",t("rev.saved")); flash.style.alignSelf="flex-end";
-  save.onclick=()=>{ a.confidence=segC.dataset.val; a.state=segS.dataset.val; saveData(); flash.classList.add("on"); setTimeout(()=>render(),650); };
+  save.onclick=()=>{
+    const wasState=a.state, wasConf=a.confidence;
+    a.confidence=segC.dataset.val; a.state=segS.dataset.val;
+    reviewNoteBet(a, wasState, wasConf);
+    saveData(); flash.classList.add("on"); setTimeout(()=>render(),650);
+  };
   ctrl.style.alignItems="flex-end";
   ctrl.appendChild(wrapConf); ctrl.appendChild(wrapState); ctrl.appendChild(save); ctrl.appendChild(flash);
   c.appendChild(ctrl);
@@ -4091,6 +4215,31 @@ function vFlywheel(){
     grid.appendChild(card);
   });
   w.appendChild(grid);
+
+  // Learning Loop — leses ut av gjennomgangsarkivet, ikke et eget register.
+  w.appendChild(el("div","sect-h",
+    `<h2>${esc(t("learn.head"))}</h2><span class="hint">${esc(t("learn.head.h"))}</span>`));
+  const lp=el("div","panel panel-pad");
+  const revs=DB.reviews||[];
+  if(!revs.length){
+    lp.innerHTML=`<div class="empty"><span class="serif">${esc(t("learn.empty.t"))}</span>${esc(t("learn.empty.d"))}</div>`;
+  }else{
+    const cut=new Date(Date.now()-90*864e5).toISOString().slice(0,10);
+    const recent=revs.filter(r=>(r.date||"")>=cut);
+    const moved=revs.reduce((n,r)=>n+(r.bets||[]).filter(b=>b.from!==b.to).length,0);
+    const broke=revs.reduce((n,r)=>n+(r.betsBroken||0),0);
+    const withDec=revs.filter(r=>r.decision).length;
+    const last=revs.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||""))[0];
+    lp.innerHTML=`<div class="grid kpis">
+      ${kpiCard(t("learn.k1"), recent.length, "k-acc", t("learn.k1.s"))}
+      ${kpiCard(t("learn.k2"), moved, "k-warn", t("learn.k2.s"))}
+      ${kpiCard(t("learn.k3"), broke, broke?"k-bad":"k-good", t("learn.k3.s"))}
+      ${kpiCard(t("learn.k4"), withDec+"/"+revs.length, "k-acc", t("learn.k4.s"))}
+      </div>
+      <div class="learn-note">${esc(t("learn.last"))} ${esc(last?last.date:"—")}${
+        withDec<revs.length?` · <b>${esc(t("learn.theatre").replace("{n}",revs.length-withDec))}</b>`:""}</div>`;
+  }
+  w.appendChild(lp);
 
   const lh = el("div","sect-h",`<h2>${esc(t("sys.loop"))}</h2><span class="hint">${esc(t("sys.loop.h"))}</span>`);
   w.appendChild(lh);

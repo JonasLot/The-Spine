@@ -62,6 +62,11 @@ const harness = [
   func("lensFields"), func("lensDerive"), func("lensVal"), func("artifactEmpty"),
   func("routeLens"), decl("KEEP_KEYS"), func("premortemCandidates"),
   func("buildSharePayload"), func("shareUrl"),
+  "let REVIEW_SESSION=null;", "let stratF='*';",
+  func("reviewSessionStart"), func("reviewNoteSignal"), func("reviewNoteBet"),
+  func("reviewChanged"), func("closeReview"),
+  "function uid(p){return p+Math.random().toString(36).slice(2,8)}",
+  "function save(){}",
   "let SHARES=[];", func("shareOf"), func("shareStale"),
   "function byId(c,i){return (DB[c]||[]).find(x=>x.id===i)}",
   // shareUrl leser location; stubbes saa lenkeformatet kan testes utenfor nettleser.
@@ -75,6 +80,8 @@ const harness = [
   "STRAT_FW,LENSES,LENSES_NO,lensWhen,lensAnatomy,lensSmells,smellsFlagged," +
   "lensFields,lensDerive,lensVal,artifactEmpty,routeLens,KEEP_KEYS,premortemCandidates," +
   "buildSharePayload,shareUrl,shareStale,setShares:v=>{SHARES=v}," +
+  "reviewNoteSignal,reviewNoteBet,reviewChanged,closeReview," +
+  "resetReview:()=>{REVIEW_SESSION=null}," +
   "setLang:v=>{LANG=v},setDB:v=>{DB=v}};",
 ].join("\n");
 
@@ -85,6 +92,7 @@ const {
   STRAT_FW, LENSES, LENSES_NO, lensWhen, lensAnatomy, lensSmells, smellsFlagged,
   lensFields, lensDerive, lensVal, artifactEmpty, routeLens, KEEP_KEYS, premortemCandidates,
   buildSharePayload, shareUrl, shareStale, setShares,
+  reviewNoteSignal, reviewNoteBet, reviewChanged, closeReview, resetReview,
   setLang, setDB,
 } = new Function(harness)();
 
@@ -464,6 +472,49 @@ const u = shareUrl("tok-123");
 ok(u.includes("s.html#"), "tokenet står i fragmentet, ikke i query");
 ok(!u.includes("?"), "ingen query-parametre — tokenet havner ikke i serverlogger");
 ok(shareUrl("a b&c").includes(encodeURIComponent("a b&c")), "tokenet URL-kodes");
+
+group("gjennomgangsøkten");
+const freshDB = () => { setDB({ signals:[], assumptions:[], goals:[], decisions:[],
+  strategies:SEED.strategies, reviews:[] }); resetReview(); };
+freshDB();
+ok(reviewChanged() === 0, "ingen økt: ingenting endret");
+reviewNoteSignal({ id:"s1", signal:"x", state:"drifting" }, "drifting", "");
+ok(reviewChanged() === 0, "signal lagret uten endring og uten avlesning teller ikke");
+reviewNoteSignal({ id:"s2", signal:"y", state:"disagreeing" }, "drifting", "");
+ok(reviewChanged() === 1, "tilstandsendring teller");
+reviewNoteSignal({ id:"s3", signal:"z", state:"agreeing" }, "agreeing", "62%");
+ok(reviewChanged() === 2, "ny avlesning teller selv uten tilstandsendring");
+reviewNoteBet({ id:"a1", statement:"b", state:"broken", confidence:"low" }, "shaky", "low");
+ok(reviewChanged() === 3, "bet som flyttet tilstand teller");
+reviewNoteBet({ id:"a2", statement:"c", state:"holding", confidence:"medium" }, "holding", "low");
+ok(reviewChanged() === 4, "bet som bare endret konfidens teller");
+reviewNoteBet({ id:"a2", statement:"c", state:"shaky", confidence:"high" }, "holding", "low");
+ok(reviewChanged() === 4, "samme bet igjen oppdaterer, dobbelttelles ikke");
+
+group("arkivering");
+freshDB();
+reviewNoteSignal({ id:"s1", signal:"x", state:"disagreeing" }, "drifting", "12");
+reviewNoteBet({ id:"a1", statement:"b", state:"broken", confidence:"low" }, "shaky", "low");
+reviewNoteBet({ id:"a2", statement:"c", state:"holding", confidence:"low" }, "holding", "low");
+const rec = closeReview("");
+ok(rec !== null, "gjennomgangen arkiveres");
+ok(/^\d{4}-\d{2}-\d{2}$/.test(rec.date), "datoen er en ren dato");
+ok(rec.signals.length === 1 && rec.bets.length === 2, "både signaler og bets følger med");
+ok(rec.betsBroken === 1, "teller bets som faktisk brakk");
+ok(rec.signals[0].from === "drifting" && rec.signals[0].to === "disagreeing",
+   "arkivet husker hva tilstanden var før");
+ok(reviewChanged() === 0, "økten nullstilles etter avslutning");
+ok(closeReview("") === null, "avslutte to ganger arkiverer ikke tomt");
+
+group("arkivering — bet som ikke brakk");
+freshDB();
+reviewNoteBet({ id:"a1", statement:"b", state:"broken", confidence:"low" }, "broken", "low");
+ok(closeReview("").betsBroken === 0, "et bet som allerede var brutt telles ikke som nytt brudd");
+freshDB();
+reviewNoteSignal({ id:"s1", signal:"x", state:"agreeing" }, "disagreeing", "");
+const r2 = closeReview("d1");
+ok(r2.decision === "d1", "beslutningen kobles til gjennomgangen");
+ok(r2.bets.length === 0, "en gjennomgang uten bet-endringer arkiveres likevel");
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,
