@@ -57,6 +57,8 @@ const harness = [
   func("trunc"), decl("ASM_RANK"), func("assumptionFollowUp"), func("followUpText"),
   decl("FIELDS"), decl("SING"), decl("SING_NO"), decl("FLD_NO"),
   func("fldTr"), func("fldL"), func("fldPh"), func("singL"),
+  decl("RADAR_DUE"), decl("RADAR_H"), decl("RADAR_E"),
+  func("radarStatus"), func("radarWeight"), func("radarThreatening"),
   decl("STRAT_FW"), decl("LENSES"), decl("LENSES_NO"),
   func("lensNO"), func("lensWhen"), func("lensAnatomy"), func("lensSmells"), func("smellsFlagged"),
   func("lensFields"), func("lensDerive"), func("lensVal"), func("artifactEmpty"),
@@ -81,6 +83,7 @@ const harness = [
   "lensFields,lensDerive,lensVal,artifactEmpty,routeLens,KEEP_KEYS,premortemCandidates," +
   "buildSharePayload,shareUrl,shareStale,setShares:v=>{SHARES=v}," +
   "reviewNoteSignal,reviewNoteBet,reviewChanged,closeReview," +
+  "radarStatus,radarWeight,radarThreatening,RADAR_DUE," +
   "resetReview:()=>{REVIEW_SESSION=null}," +
   "setLang:v=>{LANG=v},setDB:v=>{DB=v}};",
 ].join("\n");
@@ -93,6 +96,7 @@ const {
   lensFields, lensDerive, lensVal, artifactEmpty, routeLens, KEEP_KEYS, premortemCandidates,
   buildSharePayload, shareUrl, shareStale, setShares,
   reviewNoteSignal, reviewNoteBet, reviewChanged, closeReview, resetReview,
+  radarStatus, radarWeight, radarThreatening, RADAR_DUE,
   setLang, setDB,
 } = new Function(harness)();
 
@@ -515,6 +519,48 @@ reviewNoteSignal({ id:"s1", signal:"x", state:"agreeing" }, "disagreeing", "");
 const r2 = closeReview("d1");
 ok(r2.decision === "d1", "beslutningen kobles til gjennomgangen");
 ok(r2.bets.length === 0, "en gjennomgang uten bet-endringer arkiveres likevel");
+
+group("omgivelsesradar — foreldelse er alarmen");
+const daysAgo = n => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
+const force = (horizon, checked) => ({ horizon, checked, exposure:"high", movement:"steady" });
+ok(radarStatus(force("already", "")).stale === true, "aldri sett på er alltid foreldet");
+ok(radarStatus(force("already", "")).key === "radar.never", "og sier at den aldri er sett på");
+ok(radarStatus(force("already", daysAgo(5))).stale === false, "nylig sett på: fersk");
+ok(radarStatus(force("already", daysAgo(40))).stale === true,
+   "kraft som biter allerede forfaller etter 30 dager");
+ok(radarStatus(force(">3y", daysAgo(40))).stale === false,
+   "samme alder, fjern horisont: ikke forfalt");
+ok(radarStatus(force(">3y", daysAgo(200))).stale === true, "men 200 dager er forfalt selv på >3y");
+ok(radarStatus(force("already", daysAgo(25))).cls === "b-warn",
+   "nærmer seg forfall gir advarsel før den bikker");
+ok(radarStatus(null).stale === true, "tomt input er foreldet, ikke krasj");
+ok(radarStatus({ horizon:"tull", checked:daysAgo(200) }).stale === true,
+   "ukjent horisont faller til 90 dager");
+// Jo nærmere det biter, jo oftere må du se på det.
+ok(RADAR_DUE["already"] < RADAR_DUE["<1y"], "already forfaller før <1y");
+ok(RADAR_DUE["<1y"] < RADAR_DUE["1-3y"], "<1y forfaller før 1-3y");
+ok(RADAR_DUE["1-3y"] < RADAR_DUE[">3y"], "1-3y forfaller før >3y");
+
+group("omgivelsesradar — vekting");
+const wf = (exposure, horizon, movement) => radarWeight({ exposure, horizon, movement });
+ok(wf("high","already","steady") > wf("low","already","steady"), "høy eksponering veier tyngre");
+ok(wf("high","already","steady") > wf("high",">3y","steady"), "nært veier tyngre enn fjernt");
+ok(wf("high","already","accelerating") > wf("high","already","steady"),
+   "akselererende bevegelse løfter vekten");
+ok(wf("low",">3y","stalling") >= 1, "svakeste kraft har fortsatt en vekt, ikke null");
+ok(radarWeight({}) >= 1, "tomt objekt krasjer ikke");
+
+group("omgivelsesradar — kobling til bettene");
+setDB({ radar:SEED.radar, assumptions:SEED.assumptions, signals:SEED.signals,
+        insights:SEED.insights, goals:SEED.goals, decisions:SEED.decisions,
+        strategies:SEED.strategies, reviews:[] });
+ok(radarThreatening("a1").length === 2, "a1 trues av to krefter i seed");
+ok(radarThreatening("a3").length === 1, "a3 trues av én");
+ok(radarThreatening("a5").length === 0, "a5 trues ikke av noen");
+ok(radarThreatening("finnes-ikke").length === 0, "ukjent bet gir tom liste");
+ok(SEED.radar.every(r => (r.threatens||[]).every(id => SEED.assumptions.some(a => a.id === id))),
+   "hver kobling i seed peker på et bet som faktisk finnes");
+ok(SEED.radar.some(r => !r.checked), "seed har en kraft som aldri er sett på — demoen viser alarmen");
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,

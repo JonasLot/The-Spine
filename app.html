@@ -364,6 +364,17 @@ a{color:inherit}
 .rt-other{margin-top:18px;padding-top:14px;border-top:1px solid var(--line-2)}
 .rt-other .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:8px}
 .rt-other .rt-opts{flex-direction:row;flex-wrap:wrap}
+.radar-banner{display:flex;gap:13px;align-items:flex-start;padding:15px 18px;border-radius:var(--r-md);
+  background:var(--sense-bg);border:1px solid transparent;margin-bottom:16px;color:var(--sense)}
+.radar-banner.hot{background:var(--bad-bg);color:var(--bad)}
+.radar-banner svg{width:19px;height:19px;flex:none;margin-top:1px}
+.radar-banner .sub{font-size:12.5px;opacity:.8;margin-top:3px;color:var(--ink-2)}
+.radar-acts{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--line-2)}
+.radar-note{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;border-radius:var(--r-sm);
+  background:var(--sense-bg);color:var(--ink);font-size:13px;line-height:1.5;order:-2}
+.radar-note svg{width:16px;height:16px;flex:none;margin-top:2px;color:var(--sense)}
+.radar-note .hint{font-size:12px;color:var(--ink-3);margin-top:4px}
+.lbl-mini{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:16px}
 .rev-tally{margin-top:8px;font-size:12.5px;color:var(--accent-ink);font-weight:600}
 .arch-row{display:flex;gap:14px;align-items:flex-start;padding:14px 18px;border-bottom:1px solid var(--line-2)}
 .arch-row:last-child{border-bottom:none}
@@ -808,6 +819,9 @@ line.cv-rubber{stroke:var(--accent);stroke-width:2.2;stroke-dasharray:6 5;stroke
       <span>Outcomes</span><span class="ct" data-count="outcomes">0</span></a>
 
     <div class="nav-grp" data-grp="registers">Registers</div>
+    <a class="nav-item" data-view="radar">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 12l6-4"/></svg>
+      <span>Environmental Radar</span><span class="ct" data-count="radar">0</span></a>
     <a class="nav-item" data-view="insights">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.3 1 2.1h6c0-.8.4-1.5 1-2.1A6 6 0 0 0 12 3Z"/></svg>
       <span>Insights</span><span class="ct" data-count="insights">0</span></a>
@@ -900,6 +914,25 @@ line.cv-rubber{stroke:var(--accent);stroke-width:2.2;stroke-dasharray:6 5;stroke
 /* ---- seed data (English; adapted from a real worked example) ---- */
 const SEED = {
   reviews: [],
+  radar: [
+    {id:"r1", force:"The EU AI Act's high-risk classification is being interpreted by national supervisors — automated decisions affecting a child's schooling sit close to the line.",
+     domain:"regulatory", horizon:"<1y", exposure:"high", movement:"accelerating",
+     threatens:["a1","a2"], checked:"2026-05-20", source:"Datatilsynet guidance round, spring 2026",
+     note:"If school-transport casework is classed high-risk, the automation bet needs a conformity assessment we have not budgeted for."},
+    {id:"r2", force:"FSkyss/Voyager vendor has signalled end of maintenance — no firm date, but no roadmap either.",
+     domain:"supplier", horizon:"1-3y", exposure:"high", movement:"unclear",
+     threatens:["a4"], checked:"2026-06-02", source:"Vendor meeting notes",
+     note:"Sets a floor under the TØFF deadline. If they stop first, the migration window closes for us."},
+    {id:"r3", force:"Municipal reform consolidations would change the tenant count and the per-tenant configuration assumptions.",
+     domain:"political", horizon:">3y", exposure:"medium", movement:"stalling",
+     threatens:["a3"], checked:"2026-04-11", source:"KS consultation",
+     note:""},
+    {id:"r4", force:"Caseworker recruitment is tightening across PTAs — fewer people who know the rule domain well enough to review automated decisions.",
+     domain:"capability", horizon:"already", exposure:"medium", movement:"accelerating",
+     threatens:["a1"], checked:"", source:"Informal, from three PTAs",
+     note:"Never properly examined. If review capacity is the constraint, automation quality matters more, not less."},
+  ],
+
   strategies: [
     {id:"st1", name:"Tet Vedtak — Case Platform", framework:"kernel", status:"committed", owner:"Jonas", review:"2026-07-15", version:3, serves:["g1","g2"],
       challenge:"150+ municipalities run school transport on legacy systems (FSkyss/Voyager) that can neither automate nor isolate tenant data — and ~90% of appeals are overturned, signalling systemic rule-application errors rather than caseworker discretion.",
@@ -985,7 +1018,7 @@ const SEED = {
 /* ---- standing systems reference ---- */
 const SYSTEMS = [
   {name:"Insight Repository", fam:"Sensing", feeds:"Understand", reg:"Insights", dies:"Strategy built on whoever shouted loudest, not what's true."},
-  {name:"Environmental Radar", fam:"Sensing", feeds:"Understand", reg:"", dies:"You discover the shift after it's already cost you."},
+  {name:"Environmental Radar", fam:"Sensing", feeds:"Understand", reg:"Radar", dies:"You discover the shift after it's already cost you."},
   {name:"Decision Log", fam:"Memory", feeds:"Whole loop", reg:"Decisions", dies:"Endless re-litigation; nobody remembers why."},
   {name:"Assumption Register", fam:"Memory", feeds:"Develop ↔ Track", reg:"Assumptions", dies:"The bets that fail are never noticed failing."},
   {name:"Canonical Strategy Artifact", fam:"Alignment", feeds:"Communicate", reg:"Shares", dies:"Five versions of the strategy, all slightly wrong."},
@@ -1137,6 +1170,22 @@ const T = {
     "btn.back.strat":"All strategies","btn.edit":"Edit","btn.expand":"Expand",
     "strat.canon":"Canonical artifact","strat.owner":"owner","strat.derived":"derived from the","strat.cites":"Everything else cites this.","strat.unowned":"unowned",
     "op.1":"1 · The challenge","op.2":"2 · Our approach","op.3":"3 · The big moves","op.4":"4 · What we are NOT doing","op.5":"5 · How we'll know it's working",
+    "vh.radar.t":"Environmental Radar","vh.radar.d":"What is moving out there that your diagnosis does not yet account for.",
+    "nav.radar":"Environmental Radar","dr.eye.radar":"Force",
+    "th.force":"Force","th.domain":"Domain","th.bites":"Bites","th.threatens":"Threatens","th.looked":"Last looked","th.movement":"Movement","th.note":"Note",
+    "radar.exp":"exposure","radar.breaks":"Would break these bets","radar.nobets":"Not linked to any bet — then it is an observation, not a risk.",
+    "radar.dom.regulatory":"Regulatory","radar.dom.technology":"Technology","radar.dom.market":"Market",
+    "radar.dom.political":"Political","radar.dom.supplier":"Supplier","radar.dom.capability":"Capability",
+    "radar.hz.already":"Already biting","radar.hz.<1y":"Within a year","radar.hz.1-3y":"1–3 years","radar.hz.>3y":"Beyond 3 years",
+    "radar.mv.accelerating":"Accelerating","radar.mv.steady":"Steady","radar.mv.stalling":"Stalling","radar.mv.unclear":"Movement unclear",
+    "radar.fresh":"{d}d ago","radar.ageing":"{d}d ago","radar.stale":"{d}d — overdue","radar.never":"never looked at",
+    "radar.stale.one":"force has gone unchecked past its horizon.","radar.stale.many":"forces have gone unchecked past their horizon.",
+    "radar.allfresh":"Every force has been looked at recently.",
+    "radar.note":"A radar written once and never revisited is not cover — it is the shift you will discover after it has cost you. How often each force is due follows how soon it bites.",
+    "radar.mark":"I have looked at this","radar.promote":"This has happened — file as insight",
+    "radar.fromradar":"Environmental radar","radar.unchecked":"unchecked",
+    "radar.betnote":"An outside force is aimed at this bet. Re-rate it with that in view.",
+    "empty.radar.t":"Nothing on the radar.","empty.radar.d":"Name what is moving outside you — a regulation, a supplier, a technology. A diagnosis that ignores the outside ages fastest.",
     "rev.close":"Close the review","rev.tally":"{n} change(s) this session.",
     "rev.tally.none":"Nothing has changed yet. A review that changes nothing was theatre.",
     "rev.arch":"Previous reviews","rev.arch.h":"What each pass actually produced",
@@ -1318,6 +1367,22 @@ const T = {
     "btn.back.strat":"Alle strategier","btn.edit":"Rediger","btn.expand":"Utvid",
     "strat.canon":"Kanonisk artefakt","strat.owner":"eier","strat.derived":"avledet fra","strat.cites":"Alt annet siterer denne.","strat.unowned":"ingen eier",
     "op.1":"1 · Utfordringen","op.2":"2 · Vår tilnærming","op.3":"3 · De store trekkene","op.4":"4 · Det vi IKKE gjør","op.5":"5 · Hvordan vi vet at det virker",
+    "vh.radar.t":"Omgivelsesradar","vh.radar.d":"Hva som er i bevegelse der ute som diagnosen din ennå ikke tar høyde for.",
+    "nav.radar":"Omgivelsesradar","dr.eye.radar":"Kraft",
+    "th.force":"Kraft","th.domain":"Område","th.bites":"Biter","th.threatens":"Truer","th.looked":"Sist sett","th.movement":"Bevegelse","th.note":"Notat",
+    "radar.exp":"eksponering","radar.breaks":"Ville brutt disse bettene","radar.nobets":"Ikke koblet til noe bet — da er det en observasjon, ikke en risiko.",
+    "radar.dom.regulatory":"Regulatorisk","radar.dom.technology":"Teknologi","radar.dom.market":"Marked",
+    "radar.dom.political":"Politisk","radar.dom.supplier":"Leverandør","radar.dom.capability":"Kompetanse",
+    "radar.hz.already":"Biter allerede","radar.hz.<1y":"Innen et år","radar.hz.1-3y":"1–3 år","radar.hz.>3y":"Etter 3 år",
+    "radar.mv.accelerating":"Akselererer","radar.mv.steady":"Jevn","radar.mv.stalling":"Stopper opp","radar.mv.unclear":"Uklar bevegelse",
+    "radar.fresh":"for {d}d siden","radar.ageing":"for {d}d siden","radar.stale":"{d}d — forfalt","radar.never":"aldri sett på",
+    "radar.stale.one":"kraft har stått usett forbi sin horisont.","radar.stale.many":"krefter har stått usett forbi sin horisont.",
+    "radar.allfresh":"Alle kreftene er sett på nylig.",
+    "radar.note":"En radar skrevet én gang og aldri sett på igjen er ikke dekning — det er skiftet du oppdager etter at det har kostet deg. Hvor ofte hver kraft forfaller følger hvor fort den biter.",
+    "radar.mark":"Jeg har sett på denne","radar.promote":"Dette har skjedd — før som innsikt",
+    "radar.fromradar":"Omgivelsesradar","radar.unchecked":"usett",
+    "radar.betnote":"En ytre kraft peker på dette bettet. Revurder det med den i sikte.",
+    "empty.radar.t":"Ingenting på radaren.","empty.radar.d":"Sett navn på hva som beveger seg utenfor dere — en forskrift, en leverandør, en teknologi. En diagnose som ignorerer utsiden eldes raskest.",
     "rev.close":"Avslutt gjennomgangen","rev.tally":"{n} endring(er) i denne økten.",
     "rev.tally.none":"Ingenting er endret ennå. En gjennomgang som ikke endrer noe, var teater.",
     "rev.arch":"Tidligere gjennomganger","rev.arch.h":"Hva hver runde faktisk produserte",
@@ -1533,7 +1598,7 @@ function trView(o){
   return out;
 }
 
-const COLLS=["strategies","insights","decisions","assumptions","signals","goals","outcomes","reviews"];
+const COLLS=["strategies","insights","decisions","assumptions","signals","goals","outcomes","reviews","radar"];
 function stratNames(){ return DB.strategies.map(s=>s.name); }
 function stratByName(n){ return DB.strategies.find(s=>s.name===n); }
 const STRAT_FW={kernel:"Strategy Kernel",cascade:"Playing-to-Win Cascade",wardley:"Wardley Map",premortem:"Pre-mortem","one-pager":"One-Page Strategy"};
@@ -1735,7 +1800,7 @@ async function pushAll(){
   if(_pushAgain){ _pushAgain=false; pushAll(); }
 }
 async function loadAll(){
-  const out={strategies:[],insights:[],decisions:[],assumptions:[],signals:[],goals:[],outcomes:[],reviews:[]};
+  const out={strategies:[],insights:[],decisions:[],assumptions:[],signals:[],goals:[],outcomes:[],reviews:[],radar:[]};
   // Per-table isolation: a missing table degrades to an empty collection instead of killing the whole load.
   const failed=[];
   for(const coll of COLLS){
@@ -1788,14 +1853,14 @@ function byId(coll,id){ return DB[coll].find(x=>x.id===id); }
 function render(){
   $("#crumb").textContent = t("nav."+view);
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active", n.dataset.view===view));
-  const isRegister = ["insights","decisions","assumptions","signals"].includes(view);
-  const showAdd = ["strategies","insights","decisions","assumptions","signals","goals","outcomes","profile"].includes(view) && !currentStrategy;
+  const isRegister = ["radar","insights","decisions","assumptions","signals"].includes(view);
+  const showAdd = ["strategies","radar","insights","decisions","assumptions","signals","goals","outcomes","profile"].includes(view) && !currentStrategy;
   $("#addBtn").style.display = showAdd ? "inline-flex":"none";
   $("#searchField").style.display = isRegister ? "flex":"none";
   $("#addLabel").textContent = addLabelFor();
   updateCounts();
   const r = $("#root"); r.innerHTML="";
-  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,goals:vGoals,outcomes:vOutcomes,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,shares:vShares,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
+  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,goals:vGoals,outcomes:vOutcomes,radar:vRadar,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,shares:vShares,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
 }
 function reviewDueCount(){
   return DB.signals.filter(s=>s.state==="disagreeing"||s.state==="drifting"||suggestSignalState(s)).length
@@ -2645,6 +2710,14 @@ function reviewAssumptionCard(a){
   const segS=el("div","seg");
   ["holding","shaky","broken","retired"].forEach(o=>{ const b=el("button",o===pickS?"on":""); b.type="button"; b.textContent=t("state."+o); b.onclick=()=>{segS.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); segS.dataset.val=o;}; segS.appendChild(b); });
   segS.dataset.val=pickS; wrapState.appendChild(segS);
+  const forces=radarThreatening(a.id).filter(r=>radarStatus(r).stale || r.horizon==="already");
+  if(forces.length){
+    const rn=el("div","radar-note");
+    rn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>
+      <div>${forces.map(f=>`<div><b>${esc(trunc(L(f,"force"),56))}</b> — ${esc(t("radar.hz."+(f.horizon||">3y")))}${radarStatus(f).stale?` · ${esc(t("radar.unchecked"))}`:""}</div>`).join("")}
+      <div class="hint">${esc(t("radar.betnote"))}</div></div>`;
+    c.appendChild(rn);
+  }
   if(fu){
     const note=el("div","sug-note");
     note.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16v-4M12 8h.01"/><circle cx="12" cy="12" r="9"/></svg>
@@ -4160,6 +4233,76 @@ function nextImport(){
 function finalizeImport(){ endImport(); }
 
 /* ---------- Flywheel ---------- */
+function vRadar(){
+  const w=el("div","view");
+  w.appendChild(headWithExport(t("vh.radar.t"),t("vh.radar.d"),"radar"));
+  const all=(DB.radar||[]).filter(x=>matchQ((x.force||"")+(x.note||"")));
+  const stale=all.filter(r=>radarStatus(r).stale).length;
+  if(all.length){
+    const b=el("div","radar-banner"+(stale?" hot":""));
+    b.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3"/></svg>
+      <div>${stale
+        ? `<b>${stale}</b> ${esc(t(stale===1?"radar.stale.one":"radar.stale.many"))}`
+        : esc(t("radar.allfresh"))}
+      <div class="sub">${esc(t("radar.note"))}</div></div>`;
+    w.appendChild(b);
+  }
+  // Tyngst først: eksponering × nærhet, og en foreldet kraft løftes uansett.
+  const rows=all.slice().sort((a,b)=>{
+    const sa=radarStatus(a).stale?1:0, sb=radarStatus(b).stale?1:0;
+    if(sa!==sb) return sb-sa;
+    return radarWeight(b)-radarWeight(a);
+  });
+  const panel=el("div","panel");
+  if(!rows.length) return emptyInto(w,panel,t("empty.radar.t"),t("empty.radar.d"));
+  const tb=el("table","tbl");
+  tb.innerHTML=`<thead><tr><th>${esc(t("th.force"))}</th><th>${esc(t("th.domain"))}</th><th>${esc(t("th.bites"))}</th><th>${esc(t("th.threatens"))}</th><th>${esc(t("th.looked"))}</th></tr></thead>`;
+  const b=el("tbody");
+  rows.forEach(r=>{ r=trView(r);
+    const st=radarStatus(r);
+    const th=(r.threatens||[]).map(id=>byId("assumptions",id)).filter(Boolean);
+    const tr=el("tr","row");
+    tr.innerHTML=`<td><div class="stmt">${esc(L(r,"force"))}</div>
+        <div class="meta">${esc(t("radar.mv."+(r.movement||"unclear")))} · ${esc(t("radar.exp"))} ${esc(lvl(r.exposure))}</div></td>
+      <td><span class="chip">${esc(t("radar.dom."+(r.domain||"regulatory")))}</span></td>
+      <td><span class="badge ${r.horizon==="already"?"b-bad":r.horizon==="<1y"?"b-warn":"b-mute"}"><span class="dot"></span>${esc(t("radar.hz."+(r.horizon||">3y")))}</span></td>
+      <td>${th.length?`<span class="meta" style="max-width:24ch">${esc(trunc(L(th[0],"statement"),40))}${th.length>1?` +${th.length-1}`:""}</span>`:`<span class="meta">—</span>`}</td>
+      <td><span class="badge ${st.cls}"><span class="dot"></span>${esc(t(st.key).replace("{d}",st.days))}</span></td>`;
+    clickable(tr,()=>openRadar(r.id),"Open force: "+L(r,"force"));
+    b.appendChild(tr);
+  });
+  tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
+  return w;
+}
+function openRadar(id){
+  const raw=byId("radar",id); if(!raw) return;
+  const r=trView(raw);
+  const st=radarStatus(r);
+  drawerShell(t("dr.eye.radar"), `<div style="margin-top:6px"><span class="badge ${st.cls}">${esc(t(st.key).replace("{d}",st.days))}</span></div>`);
+  const th=(r.threatens||[]).map(x=>byId("assumptions",x)).filter(Boolean);
+  $("#drawerB").innerHTML=`<h3>${esc(L(r,"force"))}</h3>
+    <dl class="kv">
+      <dt>${esc(t("th.domain"))}</dt><dd>${esc(t("radar.dom."+(r.domain||"regulatory")))}</dd>
+      <dt>${esc(t("th.bites"))}</dt><dd>${esc(t("radar.hz."+(r.horizon||">3y")))}</dd>
+      <dt>${esc(t("radar.exp"))}</dt><dd>${esc(lvl(r.exposure))}</dd>
+      <dt>${esc(t("th.movement"))}</dt><dd>${esc(t("radar.mv."+(r.movement||"unclear")))}</dd>
+      <dt>${esc(t("th.looked"))}</dt><dd>${esc(r.checked||"—")}</dd>
+      <dt>${esc(t("dr.source"))}</dt><dd>${esc(L(r,"source")||"—")}</dd>
+    </dl>
+    ${th.length?`<div class="lbl-mini">${esc(t("radar.breaks"))}</div><div class="link-row">${
+      th.map(a=>`<a class="linkc" onclick="openAssumption('${a.id}')"><span class="tk">${esc(t("state."+a.state)||a.state)}</span>${esc(trunc(L(a,"statement"),38))}</a>`).join("")
+    }</div>`:`<div class="note">${esc(t("radar.nobets"))}</div>`}
+    ${L(r,"note")?`<div class="lbl-mini">${esc(t("th.note"))}</div><p class="note">${esc(L(r,"note"))}</p>`:""}`;
+  // To handlinger: bekreft at du har sett på den, eller erkjenn at den har skjedd.
+  const acts=el("div","radar-acts");
+  const seen=el("button","btn",esc(t("radar.mark")));
+  seen.onclick=()=>{ raw.checked=new Date().toISOString().slice(0,10); saveData(); openRadar(id); render(); };
+  const prom=el("button","btn pri",esc(t("radar.promote")));
+  prom.onclick=()=>{ radarToInsight(raw); raw.checked=new Date().toISOString().slice(0,10); saveData(); closeDrawer(); view="insights"; render(); };
+  acts.appendChild(seen); acts.appendChild(prom);
+  $("#drawerB").appendChild(acts);
+  drawerFoot("radar",id); openDrawer();
+}
 function vShares(){
   const w=el("div","view");
   w.appendChild(el("div","view-head",t("vh.shares")));
@@ -4481,6 +4624,17 @@ const FIELDS = {
     {k:"note",l:"Note",t:"textarea"},
     {k:"watchedBy",l:"Watched by signal",t:"ref",ref:"signals"},
   ],
+  radar:[
+    {k:"force",l:"Force",t:"textarea",req:1,ph:"What is moving out there — not what you believe, but what is shifting"},
+    {k:"domain",l:"Domain",t:"seg",opts:["regulatory","technology","market","political","supplier","capability"]},
+    {k:"horizon",l:"Bites when",t:"seg",opts:["already","<1y","1-3y",">3y"]},
+    {k:"exposure",l:"Our exposure",t:"seg",opts:["low","medium","high"]},
+    {k:"movement",l:"Movement",t:"seg",opts:["accelerating","steady","stalling","unclear"]},
+    {k:"threatens",l:"Would break these bets",t:"multiref",ref:"assumptions"},
+    {k:"checked",l:"Last looked at",t:"date"},
+    {k:"source",l:"Source",t:"text",ph:"Where you saw it move"},
+    {k:"note",l:"Note",t:"textarea"},
+  ],
   signals:[
     {k:"signal",l:"Signal",t:"textarea",req:1,ph:"What you'll observe over time"},
     {k:"strategy",l:"Strategy",t:"strat"},
@@ -4513,11 +4667,18 @@ const FIELDS = {
     {k:"note",l:"Note",t:"textarea"},
   ],
 };
-const SING = {strategies:"Strategy",insights:"Insight",decisions:"Decision",assumptions:"Assumption",signals:"Signal",goals:"Goal",outcomes:"Outcome",org:"Organisation"};
-const SING_NO = {strategies:"Strategi",insights:"Innsikt",decisions:"Beslutning",assumptions:"Antakelse",signals:"Signal",goals:"Mål",outcomes:"Resultat",org:"Organisasjon"};
+const SING = {radar:"Force",strategies:"Strategy",insights:"Insight",decisions:"Decision",assumptions:"Assumption",signals:"Signal",goals:"Goal",outcomes:"Outcome",org:"Organisation"};
+const SING_NO = {radar:"Kraft",strategies:"Strategi",insights:"Innsikt",decisions:"Beslutning",assumptions:"Antakelse",signals:"Signal",goals:"Mål",outcomes:"Resultat",org:"Organisasjon"};
 // Norsk overlay for redigeringsskjemaet: [etikett, plassholder].
 // FIELDS er kilden for engelsk — mangler en nøkkel her, faller den tilbake dit.
 const FLD_NO = {
+  radar:{
+    force:["Kraft","Hva som er i bevegelse der ute — ikke hva du tror, men hva som flytter seg"],
+    domain:["Område",""], horizon:["Biter når",""], exposure:["Vår eksponering",""],
+    movement:["Bevegelse",""], threatens:["Ville brutt disse bettene",""],
+    checked:["Sist sett på",""], source:["Kilde","Hvor du så den bevege seg"],
+    note:["Notat",""],
+  },
   strategies:{
     name:["Strateginavn","Visningsnavnet på dette arbeidet"],
     framework:["Rammeverk",""], status:["Status",""], owner:["Eier",""],
@@ -4610,6 +4771,48 @@ const ROUTER_Q2=[
 // Pre-mortem produserer naturlig det som skal inn i to registre: hver årsak er
 // en kandidat-antakelse (invertert), hvert tidligste varsel et kandidat-signal.
 // Paret vises eksplisitt før noe opprettes — appen gjetter ikke i det skjulte.
+// ── Omgivelsesradar ──────────────────────────────────────────────────────
+// De andre systemene svikter ved å mangle. Radaren svikter ved å finnes og
+// være gammel: en liste over ytre krefter skrevet én gang ser ut som dekning.
+// Derfor er foreldelse selve alarmen — hvor ofte du MÅ se på en kraft igjen
+// følger av hvor fort den biter, ikke av en fast kadens.
+const RADAR_DUE = {already:30, "<1y":60, "1-3y":120, ">3y":180};
+function radarStatus(r){
+  const days=RADAR_DUE[r&&r.horizon] ?? 90;
+  if(!r || !r.checked) return {cls:"b-bad", key:"radar.never", days:null, stale:true};
+  const age=Math.floor((Date.now()-new Date(r.checked))/864e5);
+  if(Number.isNaN(age)) return {cls:"b-bad", key:"radar.never", days:null, stale:true};
+  if(age>days)      return {cls:"b-bad",  key:"radar.stale",  days:age, stale:true};
+  if(age>days*0.7)  return {cls:"b-warn", key:"radar.ageing", days:age, stale:false};
+  return {cls:"b-good", key:"radar.fresh", days:age, stale:false};
+}
+// Eksponering × hvor nært det biter. Samme grammatikk som konfidens × konsekvens.
+const RADAR_H = {already:3, "<1y":3, "1-3y":2, ">3y":1};
+const RADAR_E = {high:3, medium:2, low:1};
+function radarWeight(r){
+  return (RADAR_E[r&&r.exposure]||1) * (RADAR_H[r&&r.horizon]||1)
+       + ((r&&r.movement)==="accelerating" ? 2 : 0);
+}
+function radarStale(){ return (DB.radar||[]).filter(r=>radarStatus(r).stale).length; }
+// Krefter som ville brutt et gitt bet — vises der bettet vurderes.
+function radarThreatening(aid){
+  return (DB.radar||[]).filter(r=>(r.threatens||[]).includes(aid));
+}
+// En kraft som faktisk har materialisert seg er ikke lenger en kraft — den er
+// noe du VET. Da hører den hjemme i innsiktsregisteret.
+function radarToInsight(r){
+  const id=uid("i");
+  DB.insights.push({
+    id, claim:L(r,"force"), evidence:L(r,"source")||"",
+    theme:t("radar.dom."+(r.domain||"regulatory")),
+    confidence:"medium", captured:new Date().toISOString().slice(0,10),
+    source:L(r,"source")||t("radar.fromradar"),
+    feeds:(r.threatens||[])[0]||"",
+  });
+  save();
+  return id;
+}
+
 // ── Deling ───────────────────────────────────────────────────────────────
 // Et share er et øyeblikksbilde, ikke et vindu. Den delte lenken endrer seg
 // ikke mens leseren ser på den — "v3, committed" er et kanonisk artefakt,
