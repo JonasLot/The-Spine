@@ -62,6 +62,10 @@ const harness = [
   decl("RADAR_RINGS"), decl("RADAR_DOMS"), func("radarChart"), func("lvl"),
   func("valuesOf"), func("outcomesWithoutValue"), func("valueGap"),
   func("valueWeak"), func("valueChain"), decl("VAL_SCOPE_RANK"),
+  func("rightHolder"), func("rightVetoHolder"), func("rightsDrift"),
+  func("decisionsOfRight"), oneLine(/const RIGHT_STALE_DAYS\s*=/), func("rightUnexercised"),
+  func("nameMatches"), func("decisionMandate"), func("rightsOrphans"),
+  func("rightsOutside"), func("rightsDrifted"), func("rightWeak"), decl("RIGHT_RANK"),
   decl("RADAR_KEYS"), decl("RADAR_VALS"),
   func("radarMapValue"), func("radarKeyFor"), func("parseRadarText"),
   decl("STRAT_FW"), decl("LENSES"), decl("LENSES_NO"),
@@ -91,6 +95,9 @@ const harness = [
   "radarStatus,radarWeight,radarThreatening,RADAR_DUE," +
   "radarChart,RADAR_RINGS,RADAR_DOMS,parseRadarText,radarMapValue," +
   "valuesOf,outcomesWithoutValue,valueGap,valueWeak,valueChain," +
+  "rightHolder,rightVetoHolder,rightsDrift,decisionsOfRight,rightUnexercised," +
+  "nameMatches,decisionMandate,rightsOrphans,rightsOutside,rightsDrifted,rightWeak," +
+  "RIGHT_RANK,RIGHT_STALE_DAYS," +
   "resetReview:()=>{REVIEW_SESSION=null}," +
   "setLang:v=>{LANG=v},setDB:v=>{DB=v}};",
 ].join("\n");
@@ -106,6 +113,9 @@ const {
   radarStatus, radarWeight, radarThreatening, RADAR_DUE,
   radarChart, RADAR_RINGS, RADAR_DOMS, parseRadarText, radarMapValue,
   valuesOf, outcomesWithoutValue, valueGap, valueWeak, valueChain,
+  rightHolder, rightVetoHolder, rightsDrift, decisionsOfRight, rightUnexercised,
+  nameMatches, decisionMandate, rightsOrphans, rightsOutside, rightsDrifted, rightWeak,
+  RIGHT_RANK, RIGHT_STALE_DAYS,
   setLang, setDB,
 } = new Function(harness)();
 
@@ -777,6 +787,98 @@ ok(FIELDS.values.some(f => f.k === "mechanism"), "mekanismen er et eget felt, ik
   ok(T.en["state." + st] !== undefined && T.no["state." + st] !== undefined,
      "state." + st + " finnes i begge språk"));
 ok(SEED.values.some(v => v.scope === "societal"), "seed viser samfunnsverdi-nivået");
+
+group("beslutningsrettigheter — hvem holder retten");
+setDB({ signals: SEED.signals, assumptions: SEED.assumptions,
+        decisions: SEED.decisions, rights: SEED.rights, outcomes: SEED.outcomes, values: SEED.values });
+const R = id => SEED.rights.find(x => x.id === id);
+const D = id => SEED.decisions.find(x => x.id === id);
+
+ok(rightHolder(R("dr1")) === "Jonas, confirmed afterwards", "praksis slår mandatet når den er fylt ut");
+ok(rightHolder(R("dr2")) === "Architecture forum", "mandatet gjelder når praksis står tom");
+ok(rightVetoHolder(R("dr3")) === "Each owner, by not turning up", "skjult veto leses fra praksis-kolonnen");
+ok(rightHolder({}) === "", "tom klasse gir tom innehaver, ikke undefined");
+
+group("beslutningsrettigheter — avdrift");
+ok(rightsDrift(R("dr1")).join() === "decides", "r1 har flyttet seg på ja-en, ikke på nei-en");
+ok(rightsDrift(R("dr3")).join() === "veto", "r3 har flyttet seg på nei-en");
+ok(rightsDrift(R("dr2")).length === 0, "tom praksis-kolonne er ikke avdrift");
+ok(rightsDrift(R("dr5")).length === 0, "et mandat som følges gir ingen avdrift");
+ok(rightsDrift({decides:"X", decidesReal:"X"}).length === 0, "identisk praksis er ikke avdrift");
+ok(rightsDrift({decides:"", decidesReal:"Noen"}).join() === "decides", "praksis uten mandat er også avdrift");
+ok(rightsDrifted().length === 2, "to klasser er i utakt med mandatet (r1 avdrift, r3 omstridt)");
+
+group("beslutningsrettigheter — utøvelse");
+ok(decisionsOfRight("dr1").length === 1 && decisionsOfRight("dr1")[0].id === "d3", "d3 ligger under milepælsporten");
+ok(decisionsOfRight("dr2")[0].id === "d2", "d2 ligger under arkitekturklassen");
+ok(decisionsOfRight("dr4").length === 0, "ingen loggført beslutning under personvernklassen");
+ok(rightUnexercised(R("dr3")) === true, "en rett uten dato og uten beslutning er aldri utøvd");
+ok(rightUnexercised(R("dr4")) === false, "sist utøvd-datoen alene er nok til å telle som utøvd");
+ok(rightUnexercised(R("dr1")) === false, "en loggført beslutning teller som utøvelse");
+ok(rightUnexercised({id:"x", lastUsed:"1990-01-01"}) === true, "en utøvelse eldre enn terskelen teller ikke lenger");
+ok(RIGHT_STALE_DAYS === 365, "terskelen for foreldet utøvelse er ett år");
+
+group("beslutningsrettigheter — navnematching er et spørsmål, ikke en dom");
+ok(nameMatches("Jonas, confirmed afterwards", "Jonas") === true, "personen finnes i praksis-strengen");
+ok(nameMatches("Product lead (Jonas)", "Jonas") === true, "rollen navngir innehaveren");
+ok(nameMatches("Architecture forum", "Jonas") === false, "et organ som ikke navngir personen matcher ikke");
+ok(nameMatches("", "Jonas") === true, "uten mandat stilles ingen spørsmål");
+ok(nameMatches("Arkitekturforum", "") === true, "uten eier stilles ingen spørsmål");
+
+group("beslutningsrettigheter — loggen mot registeret");
+ok(decisionMandate(D("d1")).status === "no-class", "d1 er den store døren uten mandat");
+ok(decisionMandate(D("d2")).status === "outside", "d2 ble tatt utenfor arkitekturmandatet");
+ok(decisionMandate(D("d2")).holder === "Architecture forum", "avviket navngir hvem klassen peker på");
+ok(decisionMandate(D("d3")).status === "ok", "d3 stemmer med praksis, selv om klassen har avdrift");
+ok(decisionMandate(D("d4")).status === "ok", "d4 er innenfor produktlederens delegasjon");
+ok(decisionMandate({rightId:"finnes-ikke"}).status === "no-class", "en peker til en slettet klasse er ingen klasse");
+ok(rightsOrphans().length === 1 && rightsOrphans()[0].id === "d1", "nøyaktig én beslutning står uten klasse");
+ok(rightsOutside().length === 1 && rightsOutside()[0].id === "d2", "nøyaktig én beslutning er utenfor mandatet");
+
+group("beslutningsrettigheter — hva som mangler");
+ok(rightWeak(R("dr3")).length === 0, "«ingenting skrevet» er et svar, ikke et tomt felt");
+ok(rightWeak({}).join() === "decides,applies,basis", "en tom klasse mangler alle tre");
+ok(rightWeak(R("dr1")).length === 0, "en utfylt klasse flagges ikke");
+ok(rightWeak({decides:"", decidesReal:"Noen", applies:"x", basis:"y"}).length === 0,
+   "praksis alene er nok til at noen holder ja-en");
+ok(RIGHT_RANK.contested < RIGHT_RANK.aligned, "omstridte klasser sorteres foran de som holder");
+
+group("beslutningsrettigheter — språk og skjema");
+["aligned","drifted","unwritten","contested"].forEach(st =>
+  ok(T.en["state." + st] !== undefined && T.no["state." + st] !== undefined,
+     "state." + st + " finnes i begge språk"));
+ok(FIELDS.rights.some(f => f.k === "decidesReal") && FIELDS.rights.some(f => f.k === "vetoReal"),
+   "skjemaet har begge praksis-feltene");
+ok(FIELDS.decisions.some(f => f.k === "rightId" && f.ref === "rights"),
+   "beslutningen kan peke på en klasse");
+FIELDS.rights.forEach(f =>
+  ok(FLD_NO.rights[f.k] !== undefined, "FLD_NO.rights dekker " + f.k));
+Object.keys(FLD_NO.rights).forEach(k =>
+  ok(FIELDS.rights.some(f => f.k === k), "FLD_NO.rights." + k + " peker på et felt som finnes"));
+ok(SING_NO.rights !== undefined, "klassen har et norsk entallsnavn");
+ok(SEED.rights.some(r => r.state === "contested") && SEED.rights.some(r => r.state === "aligned"),
+   "seed viser både en omstridt og en fungerende rett");
+setDB({ signals: SEED.signals, assumptions: SEED.assumptions });
+
+group("seed-ider er globalt unike");
+{
+  const seen = new Map();
+  const dupes = [];
+  for (const coll of Object.keys(SEED)) {
+    if (!Array.isArray(SEED[coll])) continue;
+    for (const o of SEED[coll]) {
+      if (!o || !o.id) continue;
+      if (seen.has(o.id)) dupes.push(`${o.id} (${seen.get(o.id)} og ${coll})`);
+      else seen.set(o.id, coll);
+    }
+  }
+  ok(dupes.length === 0,
+     "ingen seed-id går igjen i to kollesjoner — seedById() og SEED_NO slår opp globalt" +
+     (dupes.length ? ": " + dupes.join(", ") : ""));
+  const orphanNO = Object.keys(SEED_NO).filter(id => !seen.has(id));
+  ok(orphanNO.length === 0, "hver SEED_NO-nøkkel peker på en entitet som finnes" +
+     (orphanNO.length ? ": " + orphanNO.join(", ") : ""));
+}
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,

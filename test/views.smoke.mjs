@@ -90,7 +90,7 @@ if (!global.crypto) Object.defineProperty(global, "crypto", {
 global.d3 = undefined;                            // kartet skal degradere pent
 
 // ── last appen ───────────────────────────────────────────────────────────
-const VIEWS = ["vDashboard","vStrategies","vMap","vGoals","vOutcomes","vValues","vRadar","vInsights",
+const VIEWS = ["vDashboard","vStrategies","vMap","vGoals","vOutcomes","vValues","vRadar","vRights","vInsights",
                "vDecisions","vAssumptions","vSignals","vReview","vShares",
                "vFlywheel","vSystems","vProfile"];
 let app;
@@ -103,7 +103,7 @@ try {
     ;return {ctx:{${VIEWS.join(",")}}, setLang:v=>{LANG=v}, setStrat:v=>{stratF=v},
              setDB:v=>{DB=v}, setCur:v=>{currentStrategy=v},
              vStrategyDetail:typeof vStrategyDetail==="function"?vStrategyDetail:null,
-             SEED};
+             SEED, SYSTEMS, T};
   `)();
 } catch (err) {
   console.log("  ✗ app.html lastet ikke i det hele tatt");
@@ -152,6 +152,18 @@ if (app.vStrategyDetail) {
   runView("vStrategyDetail", () => app.vStrategyDetail("finnes-ikke"), "vStrategyDetail(ukjent id)");
 } else {
   failures.push("vStrategyDetail ble ikke funnet i app.html");
+}
+
+console.log("stående systemer peker på visninger som finnes");
+{
+  const views = new Set(Object.keys(app.ctx).map(n => n.slice(1).toLowerCase()));
+  for (const s of app.SYSTEMS) {
+    if (!s.reg) continue;
+    const v = s.reg.toLowerCase();
+    ok(views.has(v), `SYSTEMS "${s.name}" peker på visningen ${v}, som må finnes`);
+    ok(app.T.en["nav." + v] !== undefined && app.T.no["nav." + v] !== undefined,
+       `SYSTEMS "${s.name}" trenger nav.${v} på begge språk`);
+  }
 }
 
 if (failures.length) {
