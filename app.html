@@ -977,24 +977,24 @@ kbd.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:
       <span>Value</span><span class="ct" data-count="values">0</span></a>
 
     <div class="nav-grp" data-grp="registers">Registers</div>
-    <a class="nav-item" data-view="radar">
-      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 12l6-4"/></svg>
-      <span>Environmental Radar</span><span class="ct" data-count="radar">0</span></a>
-    <a class="nav-item" data-view="rights">
-      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v18M6 7l-3 6h6l-3-6ZM18 7l-3 6h6l-3-6Z"/><path d="M5 21h14M8 5h8"/></svg>
-      <span>Decision Rights</span><span class="ct" data-count="rights">0</span></a>
     <a class="nav-item" data-view="insights">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.3 1 2.1h6c0-.8.4-1.5 1-2.1A6 6 0 0 0 12 3Z"/></svg>
       <span>Insights</span><span class="ct" data-count="insights">0</span></a>
+    <a class="nav-item" data-view="radar">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 12l6-4"/></svg>
+      <span>Environmental Radar</span><span class="ct" data-count="radar">0</span></a>
     <a class="nav-item" data-view="diagnoses">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/><path d="M11 8v3M11 14h.01"/></svg>
       <span>Diagnoses</span><span class="ct" data-count="diagnoses">0</span></a>
-    <a class="nav-item" data-view="decisions">
-      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      <span>Decisions</span><span class="ct" data-count="decisions">0</span></a>
     <a class="nav-item" data-view="assumptions">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3"/></svg>
       <span>Assumptions</span><span class="ct" data-count="assumptions">0</span></a>
+    <a class="nav-item" data-view="decisions">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span>Decisions</span><span class="ct" data-count="decisions">0</span></a>
+    <a class="nav-item" data-view="rights">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v18M6 7l-3 6h6l-3-6ZM18 7l-3 6h6l-3-6Z"/><path d="M5 21h14M8 5h8"/></svg>
+      <span>Decision Rights</span><span class="ct" data-count="rights">0</span></a>
     <a class="nav-item" data-view="signals">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 14a8 8 0 0 1 8-8M4 18a4 4 0 0 1 4-4"/><circle cx="5" cy="19" r="1.4" fill="currentColor" stroke="none"/><path d="M14 4a14 14 0 0 1 6 6" opacity=".5"/></svg>
       <span>Signals</span><span class="ct" data-count="signals">0</span></a>
@@ -3557,10 +3557,14 @@ const CV_TOKEN = {need:"--need", goal:"--goal", outcome:"--outcome", value:"--va
   diagnosis:"--diag", strategy:"--accent", insight:"--sense", assumption:"--align",
   signal:"--feed", decision:"--mem", right:"--right", force:"--force"};
 /* Lagbaren følger navigasjonens egen inndeling, så de to leser likt. */
+/* Registrene står i ryggradens egen rekkefølge, ikke alfabetisk og ikke
+   etter når de ble bygget: Forstå (innsikt → kraft → diagnose) · Utvikle
+   (antakelse) · Kommuniser (beslutning → rett) · Spor (signal). Navigasjonen
+   står i samme rekkefølge, og en test holder de to i takt. */
 const CV_GROUPS = [
   {lbl:"grp.direction", kinds:["need","goal","outcome","value"]},
   {lbl:"",              kinds:["strategy"]},
-  {lbl:"grp.registers", kinds:["force","right","insight","diagnosis","decision","assumption","signal"]},
+  {lbl:"grp.registers", kinds:["insight","force","diagnosis","assumption","decision","right","signal"]},
 ];
 
 /* ---- ett oppslag over alt som kan ligge på lerretet ---- */

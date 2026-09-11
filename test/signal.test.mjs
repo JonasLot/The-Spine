@@ -1060,6 +1060,38 @@ setLang("en");
 Object.keys(LABEL_F).forEach(c =>
   ok(COLLS.includes(c), "LABEL_F." + c + " er en kollesjon som finnes"));
 
+group("navigasjonen og lerretet står i samme rekkefølge");
+// Registrene står i ryggradens rekkefølge — Forstå, Utvikle, Kommuniser,
+// Spor. To steder holder den lista: sidemenyen (HTML) og lagbaren (JS).
+// Denne testen leser begge og krever at de er identiske, så en omstokking
+// ett sted ikke stilltiende etterlater det andre.
+{
+  const src = readFileSync(join(root, "app.html"), "utf8");
+  const navOrder = grp => {
+    const i = src.indexOf(`data-grp="${grp}"`);
+    const j = src.indexOf("nav-grp", i + 10);
+    return [...src.slice(i, j < 0 ? src.length : j).matchAll(/data-view="(\w+)"/g)].map(m => m[1]);
+  };
+  const cvOrder = lbl => {
+    const g = CV_GROUPS.find(x => x.lbl === lbl);
+    return g ? g.kinds.map(k => CV_COLL[k]) : [];
+  };
+  ok(navOrder("direction").join() === cvOrder("grp.direction").join(),
+     "Retning: " + navOrder("direction").join(" → ") + "  vs  " + cvOrder("grp.direction").join(" → "));
+  ok(navOrder("registers").join() === cvOrder("grp.registers").join(),
+     "Registre: " + navOrder("registers").join(" → ") + "  vs  " + cvOrder("grp.registers").join(" → "));
+  // Ryggradens logikk, eksplisitt: forstå før du utvikler, utvikle før du
+  // kommuniserer, kommuniser før du sporer.
+  const reg = navOrder("registers");
+  const pos = v => reg.indexOf(v);
+  ok(pos("insights") < pos("diagnoses"), "innsikt kommer før diagnosen den mater");
+  ok(pos("radar") < pos("diagnoses"), "radaren kommer før diagnosen den mater");
+  ok(pos("diagnoses") < pos("assumptions"), "diagnosen kommer før bettene den produserer");
+  ok(pos("assumptions") < pos("decisions"), "bettene kommer før beslutningene som hviler på dem");
+  ok(pos("decisions") < pos("rights"), "beslutningen kommer før retten som skulle dekket den");
+  ok(pos("signals") === reg.length - 1, "signalene står sist — det er der virkeligheten svarer");
+}
+
 group("strategikartet — nodetypene henger sammen");
 {
   ok(CV_KINDS.includes("value") && CV_KINDS.includes("right") && CV_KINDS.includes("force"),
