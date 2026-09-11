@@ -97,7 +97,8 @@ const harness = [
   func("strategiesOfValue"), func("valuesDue"), func("valueGapInView"),
   "function uid(p){return p+Math.random().toString(36).slice(2,8)}",
   "function save(){}",
-  "let SHARES=[];", func("shareOf"), func("shareStale"),
+  "let SHARES=[];", func("shareOf"), oneLine(/const SHARE_V\s*=/),
+  func("shareBehind"), func("shareOldFormat"), func("shareStale"),
   "function byId(c,i){return (DB[c]||[]).find(x=>x.id===i)}",
   // shareUrl leser location; stubbes saa lenkeformatet kan testes utenfor nettleser.
   "const location={href:'https://spine.example/app.html'};",
@@ -109,7 +110,8 @@ const harness = [
   "FIELDS,SING,SING_NO,FLD_NO,fldL,fldPh,singL," +
   "STRAT_FW,LENSES,LENSES_NO,lensWhen,lensAnatomy,lensSmells,smellsFlagged," +
   "lensFields,lensDerive,lensVal,artifactEmpty,routeLens,KEEP_KEYS,premortemCandidates," +
-  "buildSharePayload,shareUrl,shareStale,setShares:v=>{SHARES=v}," +
+  "buildSharePayload,shareUrl,shareStale,shareBehind,shareOldFormat,SHARE_V," +
+  "setShares:v=>{SHARES=v}," +
   "reviewNoteSignal,reviewNoteBet,reviewChanged,closeReview,reviewNoteValue," +
   "strategiesOfValue,valuesDue,valueGapInView,setStratF:v=>{stratF=v}," +
   "radarStatus,radarWeight,radarThreatening,RADAR_DUE," +
@@ -139,7 +141,7 @@ const {
   FIELDS, SING, SING_NO, FLD_NO, fldL, fldPh, singL,
   STRAT_FW, LENSES, LENSES_NO, lensWhen, lensAnatomy, lensSmells, smellsFlagged,
   lensFields, lensDerive, lensVal, artifactEmpty, routeLens, KEEP_KEYS, premortemCandidates,
-  buildSharePayload, shareUrl, shareStale, setShares,
+  buildSharePayload, shareUrl, shareStale, shareBehind, shareOldFormat, SHARE_V, setShares,
   reviewNoteSignal, reviewNoteBet, reviewChanged, closeReview, resetReview,
   reviewNoteValue, strategiesOfValue, valuesDue, valueGapInView, setStratF,
   radarStatus, radarWeight, radarThreatening, RADAR_DUE,
@@ -492,7 +494,7 @@ setDB({
 });
 const st1 = SEED.strategies.find(x => x.id === "st1");
 const pay = buildSharePayload(st1, {});
-ok(pay.v === 1, "payload er versjonert for framtidig lesing");
+ok(pay.v === SHARE_V, "payloaden baerer formatversjonen den ble skrevet i");
 ok(pay.strategy.name === st1.name, "artefaktet er med");
 ok(Array.isArray(pay.strategy.moves), "moves er en liste, ikke undefined");
 ok(pay.bets.length > 0, "bettene er med");
@@ -526,7 +528,7 @@ setDB({
 });
 
 group("delt artefakt — versjonssporing");
-setShares([{ token: "abc", strategy_id: "st1", version: "3" }]);
+setShares([{ token: "abc", strategy_id: "st1", version: "3", format: SHARE_V }]);
 ok(shareStale({ id: "st1", version: 3 }) === false, "samme versjon er ikke utdatert");
 ok(shareStale({ id: "st1", version: 4 }) === true, "ny versjon gjør delingen utdatert");
 ok(shareStale({ id: "st2", version: 1 }) === false, "strategi uten deling er ikke utdatert");
@@ -1477,6 +1479,63 @@ setDB({ signals:SEED.signals, assumptions:SEED.assumptions, goals:SEED.goals,
   ok(!JSON.stringify(p1).includes("user_id"), "fortsatt ingen bruker-id i payloaden");
 }
 fullDB();
+
+group("delt artefakt - formen er versjonert, sa gamle lenker blir merket");
+// Selve invarianten: endrer payloaden form, MA SHARE_V bumpes. Uten dette
+// blir en gammel deling liggende og se gyldig ut mens den mangler noe.
+{
+  const KEYS = ["v","published","lang","strategy","goals","bets","signals","value"];
+  const now = Object.keys(buildSharePayload(SEED.strategies[0], {})).sort().join(",");
+  ok(now === KEYS.slice().sort().join(","),
+     "payloadens felter er uendret siden SHARE_V " + SHARE_V +
+     " — endrer du dem, bump SHARE_V og oppdater denne listen (fikk: " + now + ")");
+  const withDec = Object.keys(buildSharePayload(SEED.strategies[0], {decisions:true})).sort().join(",");
+  ok(withDec === KEYS.concat("decisions").sort().join(","),
+     "beslutningsloggen er det eneste feltet et valg kan legge til");
+}
+// To uavhengige grunner til at en lenke er utdatert.
+{
+  const st = SEED.strategies.find(x => x.id === "st1");   // version 3
+  setShares([{token:"t", strategy_id:st.id, version:"3", format:SHARE_V}]);
+  ok(shareStale(st) === false, "samme versjon og samme form: ingenting a si fra om");
+  setShares([{token:"t", strategy_id:st.id, version:"2", format:SHARE_V}]);
+  ok(shareBehind(st) === true && shareOldFormat(st) === false,
+     "artefaktet er skrevet om siden delingen — det er versjonen, ikke formen");
+  setShares([{token:"t", strategy_id:st.id, version:"3", format:1}]);
+  ok(shareBehind(st) === false && shareOldFormat(st) === true,
+     "uendret artefakt, men publisert i en eldre form — det er nettopp tilfellet " +
+     "som tidligere gikk stille forbi");
+  ok(shareStale(st) === true, "og da er lenken utdatert, selv om versjonen stemmer");
+  setShares([{token:"t", strategy_id:st.id, version:"3"}]);
+  ok(shareOldFormat(st) === true,
+     "en rad fra for format-kolonnen fantes regnes som form 1, ikke som ukjent");
+  setShares([]);
+  ok(shareStale(st) === false, "uten deling er ingenting utdatert");
+}
+ok(T.en["share.oldform"] !== undefined && T.no["share.oldform"] !== undefined,
+   "share.oldform finnes i begge sprak");
+
+group("norsk overlay - alt eller ingenting per register");
+// Radarkreftene sto pa engelsk i den norske versjonen fordi overlayet manglet.
+// Regelen som hindrer gjentakelse: et register er enten helt oversatt eller
+// helt uoversatt (verdier og behov er skrevet pa norsk fra starten).
+{
+  const halve = [];
+  for (const coll of Object.keys(SEED)) {
+    if (!Array.isArray(SEED[coll])) continue;
+    const n = SEED[coll].length;
+    const o = SEED[coll].filter(x => x && x.id && SEED_NO[x.id]).length;
+    if (o !== 0 && o !== n) halve.push(`${coll} (${o}/${n})`);
+  }
+  ok(halve.length === 0,
+     "ingen register er halvveis oversatt" + (halve.length ? ": " + halve.join(", ") : ""));
+  ok(SEED.radar.every(r => SEED_NO[r.id] && SEED_NO[r.id].force),
+     "hver radarkraft har en norsk tekst — det var den som manglet");
+  ok(SEED.radar.every(r => !r.note || (SEED_NO[r.id] && SEED_NO[r.id].note !== undefined)),
+     "notatet folger med der det finnes");
+  ok(SEED.radar.every(r => !r.source || (SEED_NO[r.id] && SEED_NO[r.id].source)),
+     "kilden er oversatt der den finnes");
+}
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,

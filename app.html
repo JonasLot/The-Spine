@@ -1748,6 +1748,7 @@ const T = {
     "share.copy":"Copy link","share.copied":"✓ copied","share.republish":"Republish",
     "share.revoke":"Stop sharing",
     "share.stale":"The shared version is v{a}. The live one is v{b}.",
+    "share.oldform":"This link uses an older shape of the artifact. Republish, and the reader gets everything that is in it now.",
     "share.setup":"Sharing needs one setup step — re-run supabase-schema.sql in the Supabase SQL editor, then reload.",
     "share.failed":"Could not publish. Check that supabase-schema.sql has been re-run.",
     "vh.shares":"<h1>Canonical Artifact</h1><p>Every version you have published, and whether it still matches the live strategy.</p>",
@@ -2103,6 +2104,7 @@ const T = {
     "share.copy":"Kopier lenke","share.copied":"✓ kopiert","share.republish":"Publiser på nytt",
     "share.revoke":"Opphev deling",
     "share.stale":"Delt versjon er v{a}. Gjeldende er v{b}.",
+    "share.oldform":"Denne lenken bruker en eldre form av artefaktet. Publiser på nytt, så får mottakeren alt som nå er med.",
     "share.setup":"Deling krever ett oppsettsteg — kjør supabase-schema.sql på nytt i Supabase SQL-editoren, og last inn siden på nytt.",
     "share.failed":"Kunne ikke publisere. Sjekk at supabase-schema.sql er kjørt på nytt.",
     "vh.shares":"<h1>Kanonisk artefakt</h1><p>Hver versjon du har publisert, og om den fortsatt stemmer med den levende strategien.</p>",
@@ -2192,6 +2194,17 @@ const SEED_NO = {
     consulted:["Leveranseteamet","Drift, når det berører en løpende tjeneste"],
     informed:["Programledelsen"],
     basis:"Delegert i Partnerforum-mandatet §6", note:""},
+  r1:{force:"EU-forordningen om KI får høyrisiko-klassifiseringen tolket av nasjonale tilsyn — automatiserte vedtak som berører et barns skolegang ligger tett på grensen.",
+    source:"Veiledningsrunde fra Datatilsynet, våren 2026",
+    note:"Blir skoleskyss-saksbehandling klassifisert som høyrisiko, krever automatiseringsbettet en samsvarsvurdering vi ikke har budsjettert med."},
+  r2:{force:"Leverandøren bak FSkyss/Voyager har varslet slutt på vedlikehold — ingen fast dato, men heller ikke noe veikart.",
+    source:"Notater fra leverandørmøte",
+    note:"Legger et gulv under TØFF-fristen. Stopper de først, lukkes migreringsvinduet for oss."},
+  r3:{force:"Kommunesammenslåinger ville endret antallet tenants og forutsetningene for konfigurasjon per tenant.",
+    source:"KS-høring", note:""},
+  r4:{force:"Rekrutteringen av saksbehandlere strammer seg til hos alle eierne — færre folk som kan regelverket godt nok til å kontrollere automatiserte vedtak.",
+    source:"Uformelt, fra tre eiere",
+    note:"Aldri ordentlig undersøkt. Hvis kontrollkapasiteten er begrensningen, betyr automatiseringskvaliteten mer, ikke mindre."},
   st1:{
     challenge:"150+ kommuner kjører skoleskyss på utdaterte systemer (FSkyss/Voyager) som verken kan automatisere eller isolere tenant-data — og ~90 % av klagene omgjøres, noe som signaliserer systematiske feil i regelanvendelsen snarere enn saksbehandlerskjønn.",
     approach:"Bygg én multi-tenant saksplattform med en transparent, sporbar regelmotor — så samme beslutningslogikk kjører overalt, automatiserer det rutinemessige, og gjør hvert utfall etterprøvbart.",
@@ -2835,7 +2848,8 @@ function vStrategyDetail(id){
     const exp=sh.expires_at?` · ${t("share.expires")} ${String(sh.expires_at).slice(0,10)}`:"";
     const info=el("div","sh-txt");
     info.innerHTML=`<b>${esc(t("share.live"))}</b> · v${esc(sh.version)} · ${esc(t("share.on"))} ${esc(String(sh.created_at||"").slice(0,10))}${esc(exp)}`
-      + (stale?`<div class="sh-stale">${esc(t("share.stale").replace("{a}",sh.version).replace("{b}",s.version||1))}</div>`:"");
+      + (shareBehind(s)?`<div class="sh-stale">${esc(t("share.stale").replace("{a}",sh.version).replace("{b}",s.version||1))}</div>`:"")
+      + (shareOldFormat(s)?`<div class="sh-stale">${esc(t("share.oldform"))}</div>`:"");
     const url=el("input","sh-url"); url.readOnly=true; url.value=shareUrl(sh.token);
     url.onclick=()=>url.select();
     const copy=el("button","btn",esc(t("share.copy")));
@@ -6960,17 +6974,30 @@ function shareUrl(token){
   return location.href.replace(/[^/]*$/,"") + "s.html#" + encodeURIComponent(token);
 }
 // Er den delte versjonen fortsatt den samme som den levende?
-function shareStale(s){
+// Formatversjonen til det delte artefaktet. BUMP DEN hver gang payloaden
+// far eller mister et felt: uten det blir en gammel deling liggende og se
+// gyldig ut mens den mangler noe leseren burde sett. Feltlisten er festet i
+// en test, sa neste endring av formen tvinger fram en bump.
+const SHARE_V = 2;
+// Delt versjon mot levende versjon: er artefaktet skrevet om siden?
+function shareBehind(s){
   const sh=shareOf(s.id); if(!sh) return false;
   return String(sh.version||"") !== String(s.version||1);
 }
+// Delt FORM mot dagens form: mangler delingen noe som na er med?
+// (format-kolonnen kom etter tabellen; mangler den, antar vi 1.)
+function shareOldFormat(s){
+  const sh=shareOf(s.id); if(!sh) return false;
+  return Number(sh.format||1) < SHARE_V;
+}
+function shareStale(s){ return shareBehind(s) || shareOldFormat(s); }
 function buildSharePayload(s, opts){
   const name=s.name;
   const asmp=DB.assumptions.filter(a=>a.strategy===name && a.state!=="retired");
   const sigs=DB.signals.filter(x=>x.strategy===name && x.state!=="retired");
   const gIds=s.serves||[];
   const p={
-    v:1,
+    v:SHARE_V,
     published:new Date().toISOString(),
     lang:LANG,
     strategy:{
@@ -7016,9 +7043,12 @@ function buildSharePayload(s, opts){
 async function loadShares(){
   if(!SB||!USER) return;
   try{
-    const {data,error}=await SB.from("shares").select("token,strategy_id,version,created_at,expires_at");
-    if(error) throw error;
-    SHARES=data||[]; SHARES_OK=true;
+    const cols="token,strategy_id,version,created_at,expires_at";
+    let r=await SB.from("shares").select(cols+",format");
+    // Eldre skjema uten format-kolonnen skal ikke ta ned hele delingslinja.
+    if(r.error) r=await SB.from("shares").select(cols);
+    if(r.error) throw r.error;
+    SHARES=r.data||[]; SHARES_OK=true;
   }catch(err){
     SHARES=[]; SHARES_OK=false;
     console.warn("Shares unavailable — kjør supabase-schema.sql på nytt:",err.message||err);
@@ -7033,7 +7063,11 @@ async function publishShare(s, opts){
     payload:buildSharePayload(s,opts),
     expires_at: days ? new Date(Date.now()+days*864e5).toISOString() : null,
   };
-  const {error}=await SB.from("shares").upsert(row);
+  let {error}=await SB.from("shares").upsert({...row, format:SHARE_V});
+  // Samme grunn som i loadShares: publisering skal virke ogsa for skjemaet
+  // er kjort pa nytt. Da mangler formatet, og delingen merkes som gammel
+  // til kolonnen finnes — som er sant, og bedre enn a feile stille.
+  if(error) ({error}=await SB.from("shares").upsert(row));
   if(error) throw error;
   await loadShares();
   return token;

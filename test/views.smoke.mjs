@@ -225,6 +225,20 @@ console.log("gevinstspørsmalet i gjennomgangen");
   app.setDB(structuredClone(app.SEED));
 }
 
+console.log("radaren snakker norsk");
+{
+  app.setLang("no");
+  const r = app.ctx.vRadar().deepText || "";
+  ok(r.includes("Leverand\u00f8ren bak FSkyss/Voyager"),
+     "radarkraften star pa norsk i den norske versjonen");
+  ok(!r.includes("vendor has signalled end of maintenance"),
+     "den engelske teksten er borte, ikke bare supplert");
+  app.setLang("en");
+  const e = app.ctx.vRadar().deepText || "";
+  ok(e.includes("vendor has signalled end of maintenance"),
+     "og den engelske star fortsatt i den engelske versjonen");
+}
+
 console.log("det delte artefaktet (s.html)");
 // s.html hadde ingen test. Den er det eneste eksterne oyet pa produktet -
 // kaster den, ser mottakeren «Kunne ikke laste» og ingen oppdager det.

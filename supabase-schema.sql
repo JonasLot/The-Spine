@@ -64,6 +64,10 @@ create table if not exists public.shares (
   expires_at  timestamptz
 );
 
+-- Formen på payloaden, ikke strategiens versjon. Appen bruker den til å si
+-- «denne lenken ble publisert før artefaktet fikk X — publiser på nytt».
+alter table public.shares add column if not exists format int not null default 1;
+
 create index if not exists shares_user_idx on public.shares (user_id);
 
 alter table public.shares enable row level security;
