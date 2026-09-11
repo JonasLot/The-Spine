@@ -964,11 +964,11 @@ kbd.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:
     <a class="nav-item" data-view="outcomes">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5" opacity=".6"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>
       <span>Outcomes</span><span class="ct" data-count="outcomes">0</span></a>
-
-    <div class="nav-grp" data-grp="registers">Registers</div>
     <a class="nav-item" data-view="values">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v18"/><path d="M7 7h7a3 3 0 0 1 0 6H7"/><path d="M7 17h10"/></svg>
       <span>Value</span><span class="ct" data-count="values">0</span></a>
+
+    <div class="nav-grp" data-grp="registers">Registers</div>
     <a class="nav-item" data-view="radar">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 12l6-4"/></svg>
       <span>Environmental Radar</span><span class="ct" data-count="radar">0</span></a>
@@ -2463,7 +2463,9 @@ function byId(coll,id){ return (DB[coll]||[]).find(x=>x.id===id); }
 function render(){
   $("#crumb").textContent = t("nav."+view);
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active", n.dataset.view===view));
-  const isRegister = ["needs","radar","values","rights","diagnoses","insights","decisions","assumptions","signals"].includes(view);
+  // Styrer søkefelt og kolonnebredde — ikke hvilken nav-gruppe visningen
+  // står i. Behov og Verdi ligger under Retning, men er lange lister.
+  const isRegister = ["needs","values","radar","rights","diagnoses","insights","decisions","assumptions","signals"].includes(view);
   const showAdd = ["strategies","needs","radar","values","rights","diagnoses","insights","decisions","assumptions","signals","goals","outcomes","profile"].includes(view) && !currentStrategy;
   $("#addBtn").style.display = showAdd ? "inline-flex":"none";
   $("#searchField").style.display = isRegister ? "flex":"none";
