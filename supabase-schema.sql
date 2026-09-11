@@ -6,6 +6,7 @@
 --  One table per entity. Each row belongs to a user and stores the
 --  entity as JSONB (the app reads/writes whole objects). Row-Level
 --  Security guarantees a user only ever sees and edits their OWN rows.
+--  Version 10.0
 -- ════════════════════════════════════════════════════════════════
 
 create extension if not exists "pgcrypto";
