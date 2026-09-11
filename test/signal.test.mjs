@@ -79,6 +79,10 @@ const harness = [
   func("valuesOf"), func("outcomesWithoutValue"), func("valueGap"),
   func("valueWeak"), func("valueChain"), decl("VAL_SCOPE_RANK"),
   func("valuesOfGoal"), func("outcomesUnvaluedOfGoal"),
+  func("yamlStr"), func("mdInsight"), func("mdDecision"), func("mdAssumption"),
+  func("mdSignal"), func("mdValue"), func("mdForce"), func("mdRight"),
+  func("mdDiagnosis"), func("mdNeed"), decl("MD_FN"),
+  oneLine(/const mdT\s*=/), decl("MD_TITLE"), func("mdLink"),
   func("valuesOfStrategy"), func("outcomesUnvaluedFor"),
   func("rightHolder"), func("rightVetoHolder"), func("rightsDrift"),
   func("decisionsOfRight"), oneLine(/const RIGHT_STALE_DAYS\s*=/), func("rightUnexercised"),
@@ -128,6 +132,7 @@ const harness = [
   "OUT_CATS,outcomesOfGoal,goalsProductOnly,outcomesUncategorised,outcomeCatCounts," +
   "valuesOf,outcomesWithoutValue,valueGap,valueWeak,valueChain," +
   "valuesOfGoal,outcomesUnvaluedOfGoal,valuesOfStrategy,outcomesUnvaluedFor," +
+  "mdValue,MD_FN,MD_TITLE,mdLink,mdAssumption," +
   "rightHolder,rightVetoHolder,rightsDrift,decisionsOfRight,rightUnexercised," +
   "nameMatches,decisionMandate,rightsOrphans,rightsOutside,rightsDrifted,rightWeak," +
   "RIGHT_RANK,RIGHT_STALE_DAYS," +
@@ -158,6 +163,7 @@ const {
   OUT_CATS, outcomesOfGoal, goalsProductOnly, outcomesUncategorised, outcomeCatCounts,
   valuesOf, outcomesWithoutValue, valueGap, valueWeak, valueChain,
   valuesOfGoal, outcomesUnvaluedOfGoal, valuesOfStrategy, outcomesUnvaluedFor,
+  mdValue, MD_FN, MD_TITLE, mdLink, mdAssumption,
   rightHolder, rightVetoHolder, rightsDrift, decisionsOfRight, rightUnexercised,
   nameMatches, decisionMandate, rightsOrphans, rightsOutside, rightsDrifted, rightWeak,
   RIGHT_RANK, RIGHT_STALE_DAYS,
@@ -1535,6 +1541,85 @@ group("norsk overlay - alt eller ingenting per register");
      "notatet folger med der det finnes");
   ok(SEED.radar.every(r => !r.source || (SEED_NO[r.id] && SEED_NO[r.id].source)),
      "kilden er oversatt der den finnes");
+}
+
+group("md-eksport - hvert register med eksportknapp kan faktisk eksporteres");
+// exportRegister kastet en gang for values og radar fordi MD_FN manglet dem.
+// Knappene leses ut av kilden, sa et nytt register med knapp og uten format
+// feiler her framfor i hendene pa brukeren.
+{
+  const withBtn = [...new Set([...src.matchAll(/headWithExport\([^\n]*?,\s*"([a-z]+)"\s*\)/g)].map(m => m[1]))];
+  ok(withBtn.length >= 6, "eksportknappene ble funnet i kilden (" + withBtn.length + ")");
+  const mangler = withBtn.filter(c => !MD_FN[c] || !MD_TITLE[c]);
+  ok(mangler.length === 0,
+     "hvert register med eksportknapp har bade MD_FN og MD_TITLE" +
+     (mangler.length ? ": " + mangler.join(", ") : ""));
+}
+fullDB();
+setDB({ ...SEED, reviews: [] });
+for (const coll of Object.keys(MD_FN)) {
+  const rows = SEED[coll] || [];
+  let feilet = null;
+  for (const x of rows) {
+    try { MD_FN[coll](x); MD_TITLE[coll](x); }
+    catch (err) { feilet = `${coll}/${x.id}: ${err.message}`; break; }
+  }
+  ok(!feilet, "md-eksport av hele " + coll + " kaster ikke" + (feilet ? " — " + feilet : ""));
+}
+// Tomme og halvt utfylte rader: eksporten er det stedet et manglende felt
+// oftest dukker opp, fordi den rorer alt pa en gang.
+for (const coll of Object.keys(MD_FN)) {
+  let feilet = null;
+  try { MD_FN[coll]({ id: "tom" }); } catch (err) { feilet = err.message; }
+  ok(!feilet, "md-eksport av en tom " + coll.replace(/s$/, "") + " kaster ikke" +
+     (feilet ? " — " + feilet : ""));
+}
+
+group("md-eksport - backlinken matcher notatets tittel");
+// Tittelen ble kuttet pa 46 tegn, backlinken pa 40. Alt over 40 pekte i
+// tomme luften i Obsidian. Na bygges begge av MD_TITLE, og regelen som
+// holder det sant er at ingen md-funksjon skriver en [[...]] selv.
+{
+  const hand = [...src.matchAll(/function (md[A-Z]\w*)\(([\s\S]*?)\n\}/g)]
+    .filter(m => m[1] !== "mdLink" && /\[\[/.test(m[0]))
+    .map(m => m[1]);
+  ok(hand.length === 0,
+     "ingen md-funksjon skriver en backlink for hand" + (hand.length ? ": " + hand.join(", ") : ""));
+}
+{
+  const langSig = { id:"sL",
+    signal:"Et signal med en tekst som er godt over seksogforti tegn lang, sa kuttet slar inn" };
+  setDB({ ...SEED, signals:[langSig] });
+  const md = mdAssumption({ id:"aL", statement:"x", watchedBy:"sL" });
+  ok(md.includes("[[" + MD_TITLE.signals(langSig) + "]]"),
+     "backlinken er tegn for tegn lik notattittelen, ogsa nar tittelen kuttes");
+  ok(!md.includes("sa kuttet slar inn"), "og den er faktisk kuttet, ikke bare tilfeldigvis kort");
+  ok(mdLink("signals", null) === "", "en lenke til ingenting blir tom, ikke [[undefined]]");
+}
+setDB({ ...SEED, reviews: [] });
+
+group("md-eksport - verdinotatet baerer hele kjeden");
+setDB({ ...SEED, reviews: [] });
+{
+  const v1 = SEED.values.find(v => v.id === "v1");     // o4 -> g3 -> s4, tjent av st3
+  const md = mdValue(v1);
+  ok(md.includes("[[Outcome —"), "utfallet star som backlink");
+  ok(md.includes("[[Goal —"), "malet over utfallet star som backlink");
+  ok(md.includes("[[Signal —"), "signalet som maler utfallet star som backlink");
+  ok(md.includes("[[Strategy — On-Demand Transit Planning]]"),
+     "strategien som kjoper gevinsten star som backlink - kjeden gar begge veier");
+  ok(md.includes("## What we actually saw"),
+     "«hva vi faktisk sa» er med, ellers mangler notatet verdien av gjennomgangen");
+  ok(md.includes("type: value") && md.includes("tags: [value]"),
+     "frontmatteret er uendret, sa eksisterende vault-sporringer fortsatt treffer");
+  const lost = mdValue({ id: "vX", claim: "løs påstand" });
+  ok(lost.includes("no outcome linked"),
+     "en verdi uten utfall sier det i klartekst framfor a utelate kjeden");
+  ok(lost.includes("Cannot be tested yet"),
+     "og notatet bærer advarselen valueWeak() allerede gir i appen");
+  const v5 = mdValue(SEED.values.find(v => v.id === "v5"));
+  ok(!v5.includes("Cannot be tested yet"),
+     "en fullt utfylt verdi far ingen advarsel");
 }
 
 group("bakoverkompatibilitet");

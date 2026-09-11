@@ -3097,7 +3097,7 @@ function miniList(title,rows,mapper){
 }
 function exportStrategy(s){
   const md=`---\ntype: strategy\nstrategy: ${yamlStr(s.name)}\nframework: ${s.framework}\nstatus: ${s.status}\nowner: ${yamlStr(s.owner)}\nreview: ${s.review||""}\nversion: ${s.version||1}\ncanonical: true\ntags: [strategy]\n---\n\n# ${s.name}\n**Version:** ${s.version||1} · **Owner:** ${s.owner||"—"} · **Review:** ${s.review||"—"}\n\n## 1 · The challenge\n${s.challenge||""}\n\n## 2 · Our approach\n${s.approach||""}\n\n## 3 · The big moves\n${(s.moves||[]).map((m,i)=>`${i+1}. ${m}`).join("\n")}\n\n## 4 · What we are NOT doing\n${(s.notDoing||[]).map(m=>`- ${m}`).join("\n")}\n\n## 5 · How we'll know it's working\n${(s.howKnow||[]).map(m=>`- ${m}`).join("\n")}\n`;
-  downloadFile(`Strategy — ${s.name}.md`, md + strategyValueMd(s));
+  downloadFile(`${MD_TITLE.strategies(s)}.md`, md + strategyValueMd(s));
 }
 // Utledet, og merket som utledet: leseren skal se at ingen har skrevet dette.
 function strategyValueMd(s){
@@ -5026,45 +5026,68 @@ function mdInsight(x){
   return `---\ntype: insight\nclaim: ${yamlStr(x.claim)}\nevidence: ${yamlStr(x.evidence)}\nconfidence: ${x.confidence||"medium"}\ntheme: ${yamlStr(x.theme)}\ncaptured: ${x.captured||""}\nsource: ${yamlStr(x.source)}\ntags: [insight]\n---\n`;
 }
 function mdDecision(d){
-  const rests=(d.rests||[]).map(id=>{const a=byId("assumptions",id);return a?`\n- [[Assumption — ${a.statement.slice(0,40)}]]`:"";}).join("");
+  const rests=(d.rests||[]).map(id=>{const a=byId("assumptions",id);return a?`\n- ${mdLink("assumptions",a)}`:"";}).join("");
   return `---\ntype: decision\ntitle: ${yamlStr(d.title)}\ndecided: ${d.decided||""}\nowner: ${yamlStr(d.owner)}\ndoor: ${d.door||"two-way"}\narea: ${yamlStr(d.area)}\ntags: [decision]\n---\n\n## Decision\n${d.title||""}\n\n## Reasoning\n${d.reasoning||""}\n\n## Options rejected\n${d.rejected||""}\n\n## Assumptions it rests on${rests||"\n- —"}\n\n## Review trigger\n${d.trigger||""}\n`;
 }
 function mdAssumption(a){
   const sig=a.watchedBy?byId("signals",a.watchedBy):null;
-  return `---\ntype: assumption\nstrategy: ${yamlStr(a.strategy)}\nstatement: ${yamlStr(a.statement)}\nconfidence: ${a.confidence||"medium"}\nconsequence: ${a.consequence||"medium"}\ncommitment: ${a.commitment||""}\nkill_signal: ${yamlStr(a.kill_signal)}\nstate: ${a.state||"holding"}\ntags: [assumption]\n---\n\n${a.note||""}\n${sig?`\nWatches → [[Signal — ${sig.signal.slice(0,40)}]]\n`:""}`;
+  return `---\ntype: assumption\nstrategy: ${yamlStr(a.strategy)}\nstatement: ${yamlStr(a.statement)}\nconfidence: ${a.confidence||"medium"}\nconsequence: ${a.consequence||"medium"}\ncommitment: ${a.commitment||""}\nkill_signal: ${yamlStr(a.kill_signal)}\nstate: ${a.state||"holding"}\ntags: [assumption]\n---\n\n${a.note||""}\n${sig?`\nWatches → ${mdLink("signals",sig)}\n`:""}`;
 }
 function mdSignal(s){
   const a=s.watches?byId("assumptions",s.watches):null;
   const log=(s.log||[]).map(r=>`- ${r.d} — ${r.t}`).join("\n");
   return `---\ntype: signal\nstrategy: ${yamlStr(s.strategy)}\nsignal: ${yamlStr(s.signal)}\nwatches_assumption: ${yamlStr(a?a.statement:"")}\nexpected_shape: ${yamlStr(s.expected_shape)}\nowner: ${yamlStr(s.owner)}\nstate: ${s.state||"agreeing"}\nlast_reading: ${yamlStr(s.last_reading)}\ntags: [signal]\n---\n\n## Reading log\n${log||"- (no readings yet)"}\n`;
 }
+// Verdinotatet skal baere HELE kjeden ut av appen. Uten den er en gevinst
+// i et vault bare en pastand uten arsak - og kjeden er det eneste som
+// gjor den etterprovbar for noen som leser den et halvt ar senere.
 function mdValue(v){
-  const o=v.fromOutcome?byId("outcomes",v.fromOutcome):null;
-  return `---\ntype: value\nclaim: ${yamlStr(v.claim)}\nbeneficiary: ${yamlStr(v.beneficiary)}\ncurrency: ${v.currency||"time"}\nscope: ${v.scope||"direct"}\nstate: ${v.state||"claimed"}\nsize: ${yamlStr(v.size)}\nowner: ${yamlStr(v.owner)}\ntags: [value]\n---\n\n## …so that…\n${v.mechanism||"—"}\n\n## How we'd know it landed\n${v.evidence||"—"}\n${o?`\nFollows from → [[Outcome — ${String(o.statement).slice(0,40)}]]\n`:""}\n${v.note||""}\n`;
+  const ch=valueChain(v);
+  const chain=
+      (ch.outcome
+        ? `\n- Follows from → ${mdLink("outcomes",ch.outcome)} (${ch.outcome.state||"—"})`
+        : `\n- — no outcome linked; this claim has no stated cause`)
+    + (ch.goal   ? `\n- Under goal → ${mdLink("goals",ch.goal)}` : "")
+    + (ch.signal ? `\n- Outcome watched by → ${mdLink("signals",ch.signal)}` : "")
+    + (strategiesOfValue(v).map(st=>`\n- Bought by → ${mdLink("strategies",st)}`).join(""));
+  const weak=valueWeak(v);
+  return `---\ntype: value\nclaim: ${yamlStr(v.claim)}\nbeneficiary: ${yamlStr(v.beneficiary)}\ncurrency: ${v.currency||"time"}\nscope: ${v.scope||"direct"}\nstate: ${v.state||"claimed"}\nsize: ${yamlStr(v.size)}\nowner: ${yamlStr(v.owner)}\ntags: [value]\n---\n\n## …so that…\n${v.mechanism||"—"}\n\n## How we'd know it landed\n${v.evidence||"—"}\n\n## What we actually saw\n${v.observed||"— nobody has looked yet"}\n\n## The chain${chain}\n${weak.length?`\n> [!warning] Cannot be tested yet — ${weak.join(", ")}\n`:""}\n${v.note||""}\n`;
 }
 function mdForce(r){
-  const th=(r.threatens||[]).map(id=>{const a=byId("assumptions",id);return a?`\n- [[Assumption — ${a.statement.slice(0,40)}]]`:"";}).join("");
+  const th=(r.threatens||[]).map(id=>{const a=byId("assumptions",id);return a?`\n- ${mdLink("assumptions",a)}`:"";}).join("");
   return `---\ntype: force\nforce: ${yamlStr(r.force)}\ndomain: ${r.domain||""}\nhorizon: ${r.horizon||""}\nexposure: ${r.exposure||""}\nmovement: ${r.movement||""}\nchecked: ${r.checked||""}\nsource: ${yamlStr(r.source)}\ntags: [force, radar]\n---\n\n## Would break these bets${th||"\n- —"}\n\n${r.note||""}\n`;
 }
 function mdNeed(n){
-  const outs=outcomesOfNeed(n.id).map(o=>`\n- [[Outcome — ${String(o.statement).slice(0,40)}]]`).join("")||"\n- —";
+  const outs=outcomesOfNeed(n.id).map(o=>`\n- ${mdLink("outcomes",o)}`).join("")||"\n- —";
   return `---\ntype: need\nneed: ${yamlStr(n.need)}\nwho: ${yamlStr(n.who)}\nsource: ${n.source||""}\nlast_heard: ${n.lastHeard||""}\nowner: ${yamlStr(n.owner)}\ntags: [need]\n---\n\n## Where we heard it\n${n.evidence||"—"}\n\n## Outcomes serving it${outs}\n\n${n.note||""}\n`;
 }
 function mdDiagnosis(d){
-  const sts=strategiesOfDiagnosis(d.id).map(x=>`\n- [[Strategy — ${x.name}]]`).join("")||"\n- —";
-  const ins=(d.fromInsights||[]).map(id=>{const i=byId("insights",id);return i?`\n- [[Insight — ${String(i.claim).slice(0,40)}]]`:"";}).join("")||"\n- —";
+  const sts=strategiesOfDiagnosis(d.id).map(x=>`\n- ${mdLink("strategies",x)}`).join("")||"\n- —";
+  const ins=(d.fromInsights||[]).map(id=>{const i=byId("insights",id);return i?`\n- ${mdLink("insights",i)}`:"";}).join("")||"\n- —";
   return `---\ntype: diagnosis\nstatement: ${yamlStr(d.statement)}\narea: ${yamlStr(d.area)}\nstate: ${d.state||"holding"}\nowner: ${yamlStr(d.owner)}\ntags: [diagnosis]\n---\n\n## Why this is the difficulty\n${d.evidence||"—"}\n\n## Rests on insights${ins}\n\n## Answered by${sts}\n\n${d.note||""}\n`;
 }
 function mdRight(r){
   const li=a=>(a||[]).filter(x=>String(x||"").trim()).map(x=>`\n- ${x}`).join("")||"\n- —";
-  const taken=decisionsOfRight(r.id).map(d=>`\n- [[Decision — ${String(d.title).slice(0,40)}]]`).join("")||"\n- —";
+  const taken=decisionsOfRight(r.id).map(d=>`\n- ${mdLink("decisions",d)}`).join("")||"\n- —";
   return `---\ntype: decision-right\nclass: ${yamlStr(r.decision)}\napplies: ${yamlStr(r.applies)}\ndoor: ${r.door||"two-way"}\ndecides_on_paper: ${yamlStr(r.decides)}\ndecides_in_practice: ${yamlStr(r.decidesReal||r.decides)}\nveto_on_paper: ${yamlStr(r.veto)}\nveto_in_practice: ${yamlStr(r.vetoReal||r.veto)}\nstate: ${r.state||"aligned"}\nbasis: ${yamlStr(r.basis)}\nlast_exercised: ${r.lastUsed||""}\ntags: [decision-right, governance]\n---\n\n## Must be consulted${li(r.consulted)}\n\n## Informed after${li(r.informed)}\n\n## Decisions taken under this class${taken}\n\n${r.note||""}\n`;
 }
 const MD_FN={insights:mdInsight,decisions:mdDecision,assumptions:mdAssumption,signals:mdSignal,values:mdValue,radar:mdForce,rights:mdRight,diagnoses:mdDiagnosis,needs:mdNeed};
-const MD_TITLE={insights:x=>"Insight — "+x.claim.slice(0,46), decisions:d=>"Decision — "+d.title.slice(0,46), assumptions:a=>"Assumption — "+a.statement.slice(0,46), signals:s=>"Signal — "+s.signal.slice(0,46),
-  values:v=>"Value — "+String(v.claim||"").slice(0,46), radar:r=>"Force — "+String(r.force||"").slice(0,46), rights:r=>"Decision right — "+String(r.decision||"").slice(0,46),
-  diagnoses:d=>"Diagnosis — "+String(d.statement||"").slice(0,46),
-  needs:n=>"Need — "+String(n.need||"").slice(0,46)};
+const mdT=(p,v)=>p+" — "+String(v==null?"":v).slice(0,46);
+const MD_TITLE={
+  insights:x=>mdT("Insight",x.claim), decisions:d=>mdT("Decision",d.title),
+  assumptions:a=>mdT("Assumption",a.statement), signals:s=>mdT("Signal",s.signal),
+  values:v=>mdT("Value",v.claim), radar:r=>mdT("Force",r.force),
+  rights:r=>mdT("Decision right",r.decision), diagnoses:d=>mdT("Diagnosis",d.statement),
+  needs:n=>mdT("Need",n.need),
+  // Ikke egne eksportfiler, men lenkbare: kjeden gar gjennom dem.
+  goals:g=>mdT("Goal",g.title), outcomes:o=>mdT("Outcome",o.statement),
+  // Strategieksporten navngir filen med hele navnet, uten kutt.
+  strategies:st=>"Strategy — "+String(st.name==null?"":st.name),
+};
+// En backlink MA vaere identisk med notatets tittel, ellers peker den i
+// tomme luften. Derfor bygges begge her, av samme funksjon. Tidligere ble
+// tittelen kuttet pa 46 tegn og lenken pa 40 — alt over 40 var brutt.
+function mdLink(coll,o){ return o ? `[[${MD_TITLE[coll](o)}]]` : ""; }
 function exportRegister(coll){
   // insights carry no strategy field → always export all; others honour the strategy filter
   if(!MD_FN[coll] || !MD_TITLE[coll]){ alert(t("exp.nofmt")); return; }
