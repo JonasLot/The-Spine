@@ -103,7 +103,9 @@ try {
     ;return {ctx:{${VIEWS.join(",")}}, setLang:v=>{LANG=v}, setStrat:v=>{stratF=v},
              setDB:v=>{DB=v}, setCur:v=>{currentStrategy=v},
              vStrategyDetail:typeof vStrategyDetail==="function"?vStrategyDetail:null,
-             SEED, SYSTEMS, T};
+             SEED, SYSTEMS, T, FIELDS, FORM_TABS, buildForm, saveForm,
+             setEditing:v=>{editing=v}, getEditing:()=>editing,
+             drawerBody:()=>document.querySelector("#drawerB")};
   `)();
 } catch (err) {
   console.log("  ✗ app.html lastet ikke i det hele tatt");
@@ -152,6 +154,62 @@ if (app.vStrategyDetail) {
   runView("vStrategyDetail", () => app.vStrategyDetail("finnes-ikke"), "vStrategyDetail(ukjent id)");
 } else {
   failures.push("vStrategyDetail ble ikke funnet i app.html");
+}
+
+console.log("skjemaet bygger for hver kollesjon");
+// buildForm flyttet fra modal til skuff. Ingen visningstest rørte den, og
+// et skjema som kaster er usynlig til noen prøver å opprette noe.
+for (const lang of ["en","no"]) {
+  app.setLang(lang);
+  for (const coll of Object.keys(app.FIELDS)) {
+    const seed = (app.SEED[coll] || [])[0];
+    // nytt
+    try {
+      app.setEditing({coll, id:null, data:{}});
+      app.buildForm();
+      const body = app.drawerBody();
+      ok((body.deepText || body.children.length) ? true : false,
+         `buildForm(${coll}, nytt, ${lang}) rendret noe`);
+    } catch (err) {
+      failures.push(`buildForm(${coll}, nytt, ${lang}): kastet ${err.constructor.name} — ${err.message}`);
+    }
+    // redigering av en seed-rad
+    if (seed) {
+      try {
+        app.setEditing({coll, id:seed.id, data:structuredClone(seed)});
+        app.buildForm();
+        pass++;
+      } catch (err) {
+        failures.push(`buildForm(${coll}, rediger, ${lang}): kastet ${err.constructor.name} — ${err.message}`);
+      }
+    }
+  }
+  // hver fane i et faneskjema
+  for (const coll of Object.keys(app.FORM_TABS)) {
+    app.FORM_TABS[coll].forEach((tb, i) => {
+      try {
+        app.setEditing({coll, id:null, data:{}});
+        app.buildForm(i);
+        pass++;
+      } catch (err) {
+        failures.push(`buildForm(${coll}, fane ${tb.k}, ${lang}): kastet ${err.message}`);
+      }
+    });
+  }
+}
+app.setLang("en");
+{
+  // Hvert felt må ligge i nøyaktig én fane — ellers blir det usynlig eller dobbelt.
+  for (const coll of Object.keys(app.FORM_TABS)) {
+    const inTabs = app.FORM_TABS[coll].flatMap(tb => tb.keys);
+    const all = app.FIELDS[coll].map(f => f.k);
+    const missing = all.filter(k => !inTabs.includes(k));
+    const extra = inTabs.filter(k => !all.includes(k));
+    const dupes = inTabs.filter((k,i) => inTabs.indexOf(k) !== i);
+    ok(missing.length === 0, `${coll}: hvert felt ligger i en fane` + (missing.length ? ": mangler " + missing.join(", ") : ""));
+    ok(extra.length === 0, `${coll}: ingen fane peker på et felt som ikke finnes` + (extra.length ? ": " + extra.join(", ") : ""));
+    ok(dupes.length === 0, `${coll}: ingen felt i to faner` + (dupes.length ? ": " + dupes.join(", ") : ""));
+  }
 }
 
 console.log("stående systemer peker på visninger som finnes");

@@ -991,6 +991,24 @@ FIELDS.needs.forEach(f =>
 ok(FIELDS.outcomes.some(f => f.k === "servesNeed" && f.ref === "needs"),
    "utfallet kan peke på et behov");
 
+group("sletting etterlater ingen døde pekere");
+// Hver kobling et register legger til må også ryddes når målet slettes.
+// Ellers peker et utfall videre på et behov som ikke finnes.
+{
+  const src = readFileSync(join(root, "app.html"), "utf8");
+  const del = src.slice(src.indexOf("function delEntry"), src.indexOf("function delEntry")+2600);
+  const refs = [];
+  for (const coll of Object.keys(FIELDS)) {
+    for (const f of FIELDS[coll]) {
+      if (f.t === "ref" || f.t === "multiref") refs.push({coll, k:f.k});
+    }
+  }
+  const unclean = refs.filter(r => !del.includes("."+r.k));
+  ok(unclean.length === 0,
+     "delEntry rydder hver ref-kobling" +
+     (unclean.length ? ": " + unclean.map(r=>r.coll+"."+r.k).join(", ") : ""));
+}
+
 group("skjemaet snakker begge språk");
 // Denne finnes fordi nedtrekket for «tjener behov» viste rå ID-er, og fordi
 // segmentknappene sto på engelsk midt i en norsk modal. Begge slapp gjennom
@@ -1031,6 +1049,13 @@ ok(optL("category","user") === "Brukerutfall", "optL oversetter utfallskategorie
 ok(optL("commitment","heavy") === "Mye", "optL oversetter innsatsbåndet");
 ok(optL("finnesikke","xyz") === "xyz", "en ukjent nøkkel gir verdien tilbake, ikke tomt");
 setLang("en");
+// Faste nøkler som skjemaet, skuffen og hurtigtastene skriver ut direkte.
+// btn.cancel manglet i begge språk og viste seg som teksten «btn.cancel» på
+// knappen, fordi de gamle kallstedene hadde en ||"Cancel"-fallback som skjulte det.
+["btn.cancel","btn.edit","btn.delete","form.save","form.new","form.edit","form.none",
+ "form.savename","form.rel.add","form.rel.del","form.rel.none","form.rel.empty",
+ "form.delconfirm","form.oneperline","form.tab.card","form.tab.artifact","form.tab.links"
+].forEach(k => ok(T.en[k] !== undefined && T.no[k] !== undefined, k + " finnes i begge språk"));
 Object.keys(LABEL_F).forEach(c =>
   ok(COLLS.includes(c), "LABEL_F." + c + " er en kollesjon som finnes"));
 

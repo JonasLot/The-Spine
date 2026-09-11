@@ -205,6 +205,15 @@ a{color:inherit}
   display:flex;flex-direction:column;
 }
 .drawer.on{transform:none}
+/* Skjemaet trenger mer bredde enn en lesevisning. */
+.drawer.form{width:min(640px,96vw)}
+.drawer-h .fh-t{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:23px;margin-top:3px;line-height:1.15}
+.drawer.form .drawer-b{display:grid;gap:14px;align-content:start}
+.form-tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:2px}
+.form-tabs button{border:1px solid transparent;background:none;border-radius:8px;padding:6px 12px;
+  font-weight:600;font-size:12.5px;color:var(--ink-3);cursor:pointer}
+.form-tabs button:hover{color:var(--ink)}
+.form-tabs button.on{background:var(--accent-soft);border-color:var(--accent-soft);color:var(--accent-ink)}
 .drawer-h{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
 .drawer-h .x{margin-left:auto;border:1px solid var(--line);background:var(--panel);border-radius:8px;width:30px;height:30px;display:grid;place-items:center;color:var(--ink-2);flex:none}
 .drawer-h .x:hover{border-color:var(--ink-3)}
@@ -1507,7 +1516,7 @@ const T = {
     "th.what":"What","th.type":"Type","th.state":"State","th.reading":"Reading / kill-signal","th.strategy":"Strategy","th.status":"Status","th.flashing":"Flashing","th.reviewdue":"Review due",
     "th.claim":"Claim","th.theme":"Theme","th.confidence":"Confidence","th.captured":"Captured","th.feeds":"Feeds","th.decision":"Decision","th.door":"Door","th.rests":"Rests on","th.owner":"Owner","th.decided":"Decided","th.assumption":"Assumption","th.confcons":"Conf × Cons","th.killsignal":"Kill-signal","th.watchedby":"Watched by","th.signal":"Signal","th.watches":"Watches","th.trend":"Trend","th.latest":"Latest reading",
     "empty.insights.t":"No insights yet.","empty.insights.d":"Capture what you've learned — one claim, its evidence, a confidence level.","empty.decisions.t":"No decisions logged.","empty.decisions.d":"Log the next real choice — what was decided, and what you rejected.","empty.assumptions.t":"No assumptions yet.","empty.assumptions.d":"Harvest bets from your diagnosis and pre-mortem failure modes.","empty.signals.t":"No signals yet.","empty.signals.d":"Design 3–5 per strategy. Each watches one assumption.","empty.strat.t":"No strategies yet.","empty.strat.d":"Create one — name it, pick a framework, and write the one-page artifact.",
-    "btn.back.strat":"All strategies","btn.edit":"Edit","btn.expand":"Expand",
+    "btn.back.strat":"All strategies","btn.edit":"Edit","btn.expand":"Expand","btn.cancel":"Cancel",
     "strat.canon":"Canonical artifact","strat.owner":"owner","strat.derived":"derived from the","strat.cites":"Everything else cites this.","strat.unowned":"unowned",
     "op.1":"1 · The challenge","op.2":"2 · Our approach","op.3":"3 · The big moves","op.4":"4 · What we are NOT doing","op.5":"5 · How we'll know it's working",
     "vh.radar.t":"Environmental Radar","vh.radar.d":"What is moving out there that your diagnosis does not yet account for.",
@@ -1624,6 +1633,7 @@ const T = {
     "sug.why.signal":"the signal “{s}” is now {state}.",
     "form.new":"New","form.edit":"Edit","form.oneperline":"One per line",
     "form.save":"Save entry","form.none":"none","form.savename":"Save name",
+    "form.tab.card":"The card","form.tab.artifact":"The artifact","form.tab.links":"Links",
     "form.rel.del":"Remove relation","form.rel.none":"No declared relations yet.",
     "form.rel.add":"Add relation","form.rel.empty":"No other strategies to relate to yet.",
     "form.delconfirm":"Delete this {x}? This can't be undone.",
@@ -1837,7 +1847,7 @@ const T = {
     "th.what":"Hva","th.type":"Type","th.state":"Tilstand","th.reading":"Avlesning / kill-signal","th.strategy":"Strategi","th.status":"Status","th.flashing":"Blinker","th.reviewdue":"Gjennomgang",
     "th.claim":"Påstand","th.theme":"Tema","th.confidence":"Konfidens","th.captured":"Fanget","th.feeds":"Mater","th.decision":"Beslutning","th.door":"Dør","th.rests":"Hviler på","th.owner":"Eier","th.decided":"Besluttet","th.assumption":"Antakelse","th.confcons":"Konf × Kons","th.killsignal":"Kill-signal","th.watchedby":"Overvåket av","th.signal":"Signal","th.watches":"Overvåker","th.trend":"Trend","th.latest":"Siste avlesning",
     "empty.insights.t":"Ingen innsikter ennå.","empty.insights.d":"Fang det du har lært — én påstand, beviset, et konfidensnivå.","empty.decisions.t":"Ingen beslutninger loggført.","empty.decisions.d":"Loggfør neste reelle valg — hva som ble besluttet, og hva du forkastet.","empty.assumptions.t":"Ingen antakelser ennå.","empty.assumptions.d":"Høst bets fra diagnosen og pre-mortem-feilmodusene.","empty.signals.t":"Ingen signaler ennå.","empty.signals.d":"Design 3–5 per strategi. Hvert overvåker én antakelse.","empty.strat.t":"Ingen strategier ennå.","empty.strat.d":"Lag én — gi den navn, velg et rammeverk, og skriv énsides-artefaktet.",
-    "btn.back.strat":"Alle strategier","btn.edit":"Rediger","btn.expand":"Utvid",
+    "btn.back.strat":"Alle strategier","btn.edit":"Rediger","btn.expand":"Utvid","btn.cancel":"Avbryt",
     "strat.canon":"Kanonisk artefakt","strat.owner":"eier","strat.derived":"avledet fra","strat.cites":"Alt annet siterer denne.","strat.unowned":"ingen eier",
     "op.1":"1 · Utfordringen","op.2":"2 · Vår tilnærming","op.3":"3 · De store trekkene","op.4":"4 · Det vi IKKE gjør","op.5":"5 · Hvordan vi vet at det virker",
     "vh.radar.t":"Omgivelsesradar","vh.radar.d":"Hva som er i bevegelse der ute som diagnosen din ennå ikke tar høyde for.",
@@ -1954,6 +1964,7 @@ const T = {
     "sug.why.signal":"signalet «{s}» er nå {state}.",
     "form.new":"Ny","form.edit":"Rediger","form.oneperline":"Ett per linje",
     "form.save":"Lagre","form.none":"ingen","form.savename":"Lagre navn",
+    "form.tab.card":"Kortet","form.tab.artifact":"Artefaktet","form.tab.links":"Koblinger",
     "form.rel.del":"Fjern forhold","form.rel.none":"Ingen erklærte forhold ennå.",
     "form.rel.add":"Legg til forhold","form.rel.empty":"Ingen andre strategier å knytte til ennå.",
     "form.delconfirm":"Slette denne {x}? Dette kan ikke angres.",
@@ -5025,10 +5036,8 @@ function importEntities(coll){
 
 /* ---- Gjennomsyn-kø: gjenbruker buildForm/saveForm ---- */
 let IMPORT = null;               // {coll, queue, total, done, source}
-let _origSaveTxt=null, _origCancelTxt=null;
 
 function startImportReview(coll, queue, source){
-  if(_origSaveTxt==null){ _origSaveTxt=$("#mSave").textContent; _origCancelTxt=$("#mCancel").textContent; }
   IMPORT = { coll, queue, total: queue.length, done: 0, source };
   nextImport();
 }
@@ -5036,9 +5045,8 @@ function endImport(){
   const n = IMPORT ? IMPORT.done : 0;
   const coll = IMPORT ? IMPORT.coll : "strategies";
   IMPORT = null;
-  $("#mSave").textContent = _origSaveTxt; $("#mSave").onclick = saveForm;
-  $("#mCancel").textContent = _origCancelTxt; $("#mCancel").onclick = defaultCancel;
-  $("#modal").classList.remove("on"); editing = null;
+  $("#drawer").classList.remove("form");
+  closeDrawer(); $("#modal").classList.remove("on"); editing = null;
   render();
   if(n) alert(LANG==="no"
     ? "Importert "+n+" oppføring"+(n>1?"er":"")+"."
@@ -5051,24 +5059,24 @@ function nextImport(){
   editing = { coll: IMPORT.coll, id: null, data: step.clean };
   buildForm();
   // dekorér modalen for import-modus
-  $("#mTitle").textContent = "Gjennomgå import — "+idx+" av "+IMPORT.total;
+  $("#fTitle").textContent = "Gjennomgå import — "+idx+" av "+IMPORT.total;
   const banner = el("div","import-banner");
   banner.style.cssText = "margin-bottom:14px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg-2);font-size:12.5px;line-height:1.5";
   let html = `<b>Foreslått fra</b> <span class="mono">${esc(IMPORT.source)}</span>. Rett ved behov og lagre.`;
   if(step.warnings.length) html += "<ul style='margin:8px 0 0;padding-left:18px;color:var(--ink-2)'>"+step.warnings.map(w=>`<li>${esc(w)}</li>`).join("")+"</ul>";
   html += `<div style="margin-top:8px"><a href="#" id="importAbort" style="color:var(--ink-3)">Avbryt hele importen</a></div>`;
   banner.innerHTML = html;
-  const body = $("#mBody"); body.insertBefore(banner, body.firstChild);
+  const body = $("#drawerB"); body.insertBefore(banner, body.firstChild);
   $("#importAbort").onclick = (e)=>{ e.preventDefault(); IMPORT.queue = []; finalizeImport(); };
   const last = IMPORT.queue.length===0;
-  $("#mSave").textContent = last ? "Lagre & fullfør" : "Lagre & neste";
-  $("#mSave").onclick = ()=>{
+  $("#fSave").textContent = last ? "Lagre & fullfør" : "Lagre & neste";
+  $("#fSave").onclick = ()=>{
     saveForm();
-    if($("#modal").classList.contains("on")) return; // validering feilet — bli stående
+    if(formOpen()) return; // validering feilet — bli stående
     IMPORT.done++; nextImport();
   };
-  $("#mCancel").textContent = IMPORT.queue.length ? "Hopp over" : "Hopp over & fullfør";
-  $("#mCancel").onclick = ()=>{ editing=null; nextImport(); };
+  $("#fCancel").textContent = IMPORT.queue.length ? "Hopp over" : "Hopp over & fullfør";
+  $("#fCancel").onclick = ()=>{ editing=null; nextImport(); };
 }
 function finalizeImport(){ endImport(); }
 
@@ -6770,7 +6778,7 @@ function openRouter(){
   draw();
   $("#modal").classList.add("on");
 }
-function editEntry(coll,id){ closeDrawer(); editing={coll,id,data:structuredClone(byId(coll,id))}; buildForm(); }
+function editEntry(coll,id){ editing={coll,id,data:structuredClone(byId(coll,id))}; buildForm(); }
 /* ---- etiketter i skjemaet ----
    Hver kollesjon har ett felt som ER tittelen. Uten dette falt ref-nedtrekket
    tilbake til r.id, og brukeren fikk «ngy4o2» å velge mellom. */
@@ -6800,12 +6808,51 @@ function optL(fieldKey,opt){
   if(T.en["state."+opt]!==undefined) return t("state."+opt);
   return opt;
 }
-function buildForm(){
+/* Strategiskjemaet er det eneste som er for stort for én kolonne: fjorten
+   felt, tre av dem store tekstområder. Det deles i faner framfor å presse
+   skuffen bred nok for det verste tilfellet. Mangler en kollesjon her,
+   rendres den flatt som før. */
+const FORM_TABS = {
+  strategies:[
+    {k:"card",     keys:["name","framework","status","owner","review","version"]},
+    {k:"artifact", keys:["challenge","approach","moves","notDoing","howKnow"]},
+    {k:"links",    keys:["diagnosisId","serves","relations"]},
+  ],
+};
+let FORM_TAB = 0;
+/* Hvilken fane bor feltet i? Brukes av valideringen, som må kunne åpne
+   fanen den røde feilen ligger i. */
+function tabOfField(coll,key){
+  const tabs=FORM_TABS[coll]; if(!tabs) return 0;
+  const i=tabs.findIndex(tb=>tb.keys.includes(key));
+  return i<0?0:i;
+}
+function fieldsOfTab(coll,ix){
+  const tabs=FORM_TABS[coll];
+  if(!tabs) return FIELDS[coll];
+  const keys=tabs[ix].keys;
+  return FIELDS[coll].filter(f=>keys.includes(f.k));
+}
+function buildForm(tabIx){
   const {coll,id,data} = editing;
-  $("#mEy").textContent = singL(coll);
-  $("#mTitle").textContent = (id?t("form.edit"):t("form.new"))+" "+singL(coll).toLowerCase();
-  const body = $("#mBody"); body.innerHTML="";
-  FIELDS[coll].forEach(f=>{
+  FORM_TAB = tabIx||0;
+  const tabs = FORM_TABS[coll];
+  $("#drawer").classList.add("form");
+  $("#drawerH").innerHTML =
+    `<div><div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:600">${esc(singL(coll))}</div>`
+    + `<div class="fh-t" id="fTitle">${esc((id?t("form.edit"):t("form.new"))+" "+singL(coll).toLowerCase())}</div></div>`
+    + `<button class="x" onclick="cancelForm()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
+  const body = $("#drawerB"); body.innerHTML="";
+  if(tabs){
+    const bar=el("div","form-tabs");
+    tabs.forEach((tb,i)=>{
+      const b=el("button",i===FORM_TAB?"on":"",esc(t("form.tab."+tb.k)));
+      b.type="button"; b.onclick=()=>buildForm(i);
+      bar.appendChild(b);
+    });
+    body.appendChild(bar);
+  }
+  fieldsOfTab(coll,FORM_TAB).forEach(f=>{
     const fg = el("div","fg");
     fg.appendChild(el("label",null,esc(fldL(coll,f))+(f.req?' <span style="color:var(--bad)">*</span>':"")));
     let inp;
@@ -6876,20 +6923,34 @@ function buildForm(){
     inp.dataset.field=f.k;
     fg.appendChild(inp); body.appendChild(fg);
   });
-  $("#mSave").innerHTML=esc(t("form.save"))+' <kbd class="kbd">'+(navigator.platform&&/Mac/i.test(navigator.platform)?"⌘↵":"Ctrl↵")+"</kbd>";
-  $("#mCancel").textContent=t("btn.cancel");
-  $("#modal").classList.add("on");
+  const kbd=(navigator.platform&&/Mac/i.test(navigator.platform))?"⌘↵":"Ctrl↵";
+  $("#drawerF").innerHTML =
+    `<button class="btn" id="fCancel" onclick="cancelForm()">${esc(t("btn.cancel"))}</button>`
+    + `<button class="btn pri" id="fSave" onclick="saveForm()" style="margin-left:auto">${esc(t("form.save"))} <kbd class="kbd">${esc(kbd)}</kbd></button>`;
+  DRAWER_REF=null;
+  openDrawer();
   // Fokus i første felt, så tastaturet kan ta over med én gang.
   const first=body.querySelector("textarea,input,select"); if(first) setTimeout(()=>first.focus(),30);
 }
+function cancelForm(){ editing=null; cvClearSeed(); $("#drawer").classList.remove("form"); closeDrawer(); }
+function formOpen(){ return !!editing && $("#drawer").classList.contains("form"); }
+function closeForm(){ editing=null; $("#drawer").classList.remove("form"); closeDrawer(); }
 function saveForm(){
   const {coll,id,data} = editing;
-  const reqF = FIELDS[coll].find(f=>f.req);
-  if(reqF && !(data[reqF.k]||"").trim()){ const node=$("#mBody").querySelector(`[data-field="${reqF.k}"]`); node.focus(); node.style.borderColor="var(--bad)"; return; }
+  // Et påkrevd felt kan ligge i en fane som ikke er åpen. Da må vi dit først,
+  // ellers avviser skjemaet noe brukeren ikke kan se.
+  const reqF = FIELDS[coll].find(f=>f.req && !String(data[f.k]||"").trim());
+  if(reqF){
+    const want=tabOfField(coll,reqF.k);
+    if(want!==FORM_TAB){ buildForm(want); }
+    const node=$("#drawerB").querySelector(`[data-field="${reqF.k}"]`);
+    if(node){ node.focus(); node.style.borderColor="var(--bad)"; }
+    return;
+  }
   if(coll==="org"){
     data.id = uid("o");
     PROFILE.organizations.push({id:data.id, name:(data.name||"").trim(), role:(data.role||"").trim(), url:(data.url||"").trim()});
-    saveProfile(); $("#modal").classList.remove("on"); editing=null; render(); return;
+    saveProfile(); closeForm(); render(); return;
   }
   if(id){
     const i=DB[coll].findIndex(x=>x.id===id);
@@ -6906,7 +6967,7 @@ function saveForm(){
          cvApplySeed(coll, data);   // posisjon + kobling når skjemaet ble
                                     // åpnet fra lerretet (strategier via routeren)
          DB[coll].push(data); }
-  save(); $("#modal").classList.remove("on"); editing=null;
+  save(); closeForm();
   syncStrategyFilter(); render();
 }
 function delEntry(coll,id){
@@ -6919,6 +6980,15 @@ function delEntry(coll,id){
   DB.decisions.forEach(d=>{ if(d.rests) d.rests=d.rests.filter(r=>r!==id); });
   DB.strategies.forEach(s=>{ if(s.serves) s.serves=s.serves.filter(g=>g!==id); });
   DB.outcomes.forEach(o=>{ if(o.goalId===id) o.goalId=""; if(o.measuredBy===id) o.measuredBy=""; });
+  // Koblingene de nye registrene la til. Uten disse peker et utfall videre på
+  // et behov som ikke finnes, og nedtrekket viser en tom rad brukeren ikke
+  // kan fjerne.
+  (DB.outcomes||[]).forEach(o=>{ if(o.servesNeed===id) o.servesNeed=""; });
+  (DB.values||[]).forEach(v=>{ if(v.fromOutcome===id) v.fromOutcome=""; });
+  (DB.decisions||[]).forEach(d=>{ if(d.rightId===id) d.rightId=""; });
+  (DB.strategies||[]).forEach(st=>{ if(st.diagnosisId===id) st.diagnosisId=""; });
+  (DB.diagnoses||[]).forEach(d=>{ if(d.fromInsights) d.fromInsights=d.fromInsights.filter(x=>x!==id); });
+  (DB.radar||[]).forEach(r=>{ if(r.threatens) r.threatens=r.threatens.filter(x=>x!==id); });
   if(coll==="strategies"){
     currentStrategy=null;
     if(mapFocus===id) mapFocus=null;
@@ -6940,9 +7010,9 @@ $("#langSel").onchange = e=>{ setLang(e.target.value==="no"?"no":"en"); };
 $("#search").oninput = e=>{ q=e.target.value.trim().toLowerCase(); if(["insights","decisions","assumptions","signals"].includes(view)) render(); };
 $("#addBtn").onclick = newEntry;
 $("#scrim").onclick = closeDrawer;
+// Modalen er nå bare for veivisere. Entitetsskjemaet bor i skuffen.
 function defaultCancel(){ $("#modal").classList.remove("on"); editing=null; cvClearSeed(); }
 $("#mCancel").onclick = defaultCancel;
-$("#mSave").onclick = saveForm;
 $("#menuBtn").onclick = ()=> $("#side").classList.toggle("open");
 /* ---- hurtigtaster ----
    N ny · E rediger den åpne skuffen · Cmd/Ctrl+Enter lagre · Esc lukk.
@@ -6958,16 +7028,16 @@ function modalOpen(){ const m=$("#modal"); return !!(m && m.classList.contains("
 function drawerOpen(){ const d=$("#drawer"); return !!(d && d.classList.contains("on")); }
 
 document.addEventListener("keydown",e=>{
-  if(e.key==="Escape"){ if(IMPORT) finalizeImport(); closeDrawer(); $("#modal").classList.remove("on"); return; }
+  if(e.key==="Escape"){ if(IMPORT) finalizeImport(); if(formOpen()) cancelForm(); else closeDrawer(); $("#modal").classList.remove("on"); return; }
 
   // Lagre: virker med vilje også midt i et felt.
   if((e.metaKey||e.ctrlKey) && (e.key==="Enter"||e.key==="s")){
-    if(modalOpen()){ e.preventDefault(); saveForm(); }
+    if(modalOpen()||formOpen()){ e.preventDefault(); saveForm(); }
     return;
   }
   if(e.metaKey||e.ctrlKey||e.altKey) return;
   if(typingInField(e.target)) return;
-  if(modalOpen()) return;
+  if(modalOpen()||formOpen()) return;
 
   const k=e.key.toLowerCase();
   if(k==="n"){
