@@ -105,7 +105,8 @@ try {
              vStrategyDetail:typeof vStrategyDetail==="function"?vStrategyDetail:null,
              SEED, SYSTEMS, T, FIELDS, FORM_TABS, buildForm, saveForm,
              setEditing:v=>{editing=v}, getEditing:()=>editing,
-             drawerBody:()=>document.querySelector("#drawerB")};
+             drawerBody:()=>document.querySelector("#drawerB"),
+             CV_LINKS, CV_COLL, CV_KINDS, cvRelations};
   `)();
 } catch (err) {
   console.log("  ✗ app.html lastet ikke i det hele tatt");
@@ -210,6 +211,40 @@ app.setLang("en");
     ok(extra.length === 0, `${coll}: ingen fane peker på et felt som ikke finnes` + (extra.length ? ": " + extra.join(", ") : ""));
     ok(dupes.length === 0, `${coll}: ingen felt i to faner` + (dupes.length ? ": " + dupes.join(", ") : ""));
   }
+}
+
+console.log("hver koblingsregel tegner faktisk en kant");
+// CV_LINKS sier hvilke par som KAN kobles. cvRelations() tegner kantene.
+// De var to uavhengige lister, og seks regler — verdi→utfall blant dem —
+// fantes i den første og manglet i den andre: du kunne lage koblingen,
+// men den ble aldri synlig. Denne testen setter hver kobling gjennom
+// regelens egen set() og krever at cvRelations() finner den igjen.
+{
+  const mk = (kind, i) => {
+    const o = { id: `${kind}-${i}` };
+    if (kind === "strategy") o.name = `S${i}`;
+    return o;
+  };
+  for (const key of Object.keys(app.CV_LINKS)) {
+    const r = app.CV_LINKS[key];
+    const a = mk(r.from, 1), b = mk(r.to, 2);
+    const db = {};
+    for (const k of app.CV_KINDS) db[app.CV_COLL[k]] = [];
+    db[app.CV_COLL[r.from]].push(a);
+    if (r.from === r.to) db[app.CV_COLL[r.to]].push(b);
+    else db[app.CV_COLL[r.to]].push(b);
+    db.reviews = []; db.rights = db.rights || [];
+    app.setDB(db);
+    try {
+      r.set(a, b, "related");
+      const rels = app.cvRelations();
+      const hit = rels.some(e => e.rule === key);
+      ok(hit, `koblingsregelen «${key}» (${r.from} → ${r.to}) tegner en kant`);
+    } catch (err) {
+      failures.push(`koblingsregelen «${key}»: kastet ${err.message}`);
+    }
+  }
+  app.setDB(structuredClone(app.SEED));
 }
 
 console.log("stående systemer peker på visninger som finnes");

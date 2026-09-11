@@ -3839,6 +3839,27 @@ function cvRelations(){
     const rests=(d.rests||[]).filter(r=>byId("assumptions",r));
     if(rests.length) rests.forEach(r=>add(d.id,r,t("rel.rests"),"declared","","rests"));
     else { const sid=byName[d.strategy]; if(sid) add(d.id,sid,t("rel.rests"),"derived","","owns_d"); }
+    if(d.rightId) add(d.id,d.rightId,t("rel.governs"),"declared","","governs");
+  });
+  // Koblingene de nye registrene la til. Uten disse finnes reglene i
+  // CV_LINKS — du kan dra dem — men kanten tegnes aldri, så koblingen blir
+  // usynlig i det ene bildet som skal vise den.
+  (DB.values||[]).forEach(v=>{
+    if(v.fromOutcome) add(v.id,v.fromOutcome,t("rel.follows"),"declared",v.state,"follows");
+  });
+  (DB.outcomes||[]).forEach(o=>{
+    if(o.servesNeed) add(o.id,o.servesNeed,t("rel.servesneed"),"declared",o.state,"serves_need");
+  });
+  (DB.strategies||[]).forEach(st=>{
+    if(st.diagnosisId){ const d=byId("diagnoses",st.diagnosisId);
+      add(st.id,st.diagnosisId,t("rel.answers"),"declared",d?d.state:"","answers"); }
+  });
+  (DB.diagnoses||[]).forEach(d=>{
+    (d.fromInsights||[]).forEach(i=>add(i,d.id,t("rel.informs"),"declared",d.state,"informs"));
+  });
+  (DB.radar||[]).forEach(r=>{
+    (r.threatens||[]).forEach(a=>{ const ao=byId("assumptions",a);
+      add(r.id,a,t("rel.threatens"),"declared",ao?ao.state:"","threatens"); });
   });
   // to strategier som deler underlag — avledet, og derfor ikke noe du kan klippe
   const strats=DB.strategies.filter(s=>s.status!=="archived");
