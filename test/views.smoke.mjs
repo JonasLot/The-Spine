@@ -225,6 +225,75 @@ console.log("gevinstspørsmalet i gjennomgangen");
   app.setDB(structuredClone(app.SEED));
 }
 
+console.log("det delte artefaktet (s.html)");
+// s.html hadde ingen test. Den er det eneste eksterne oyet pa produktet -
+// kaster den, ser mottakeren «Kunne ikke laste» og ingen oppdager det.
+{
+  const shtml = readFileSync(join(root, "s.html"), "utf8");
+  const sblocks = [...shtml.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]);
+  const ssrc = sblocks.sort((a, b) => b.length - a.length)[0];
+  global.location = { hash: "" };
+  let sh;
+  try {
+    sh = new Function(ssrc + ";return {render, TX};")();
+    pass++;
+  } catch (err) {
+    failures.push(`s.html lastet ikke: ${err.message}`);
+  }
+  if (sh) {
+    const payload = lang => ({
+      v:1, lang, published:"2026-09-11T10:00:00Z",
+      strategy:{name:"TØFF Migration", version:1, owner:"Jonas", framework:"premortem",
+                challenge:"c", approach:"a", moves:["m"], notDoing:[], howKnow:[]},
+      goals:[{title:"O1", statement:"s", horizon:"2026"}],
+      bets:[{statement:"b", state:"holding", confidence:"low", consequence:"high", kill_signal:"k"}],
+      signals:[{signal:"sig", state:"agreeing", expected_shape:"e", last_reading:"r", watches:"b"}],
+      value:[{outcome:"Ingen målbart tjenesteavbrudd", outcomeState:"on-track",
+              claim:"Programmet frigjør driftsmidler", beneficiary:"Eierne",
+              currency:"cost", scope:"organisational", size:"~2,4 MNOK i året",
+              state:"not-materialised", mechanism:"migreringen fullfores",
+              observed:"lisensen løper fortsatt"}],
+    });
+    for (const lang of ["en", "no"]) {
+      try {
+        sh.render(payload(lang));
+        const out = document.getElementById("root").innerHTML || "";
+        ok(out.includes(sh.TX[lang].value), `s.html har verdiseksjonen (${lang})`);
+        ok(out.includes("Programmet frigj") && out.includes("Ingen m"),
+           `s.html viser gevinsten sammen med utfallet den folger av (${lang})`);
+        ok(out.includes(lang === "no" ? "Uteble" : "Did not materialise"),
+           `s.html oversetter verditilstanden (${lang})`);
+        ok(out.includes("2,4 MNOK") && out.includes("lisensen l"),
+           `s.html tar med storrelsen og det som faktisk ble sett (${lang})`);
+      } catch (err) {
+        failures.push(`s.html render (${lang}) kastet ${err.message}`);
+      }
+    }
+    // En gammel deling uten verdifeltet ma fortsatt tegne
+    try {
+      const old = payload("no"); delete old.value;
+      sh.render(old);
+      const out = document.getElementById("root").innerHTML || "";
+      ok(out.includes("TØFF") && !out.includes(sh.TX.no.value),
+         "deling publisert for verdikjeden fantes tegner fortsatt, uten seksjonen");
+    } catch (err) {
+      failures.push(`s.html uten verdifelt kastet ${err.message}`);
+    }
+  }
+}
+
+console.log("verdigapet pa dashbordet");
+{
+  for (const lang of ["en", "no"]) {
+    app.setLang(lang);
+    const d = app.ctx.vDashboard().deepText || "";
+    ok(d.includes(app.T[lang]["kpi.gap"]), `dashbordet har gap-kortet (${lang})`);
+    ok(d.includes("Programmet frigj\u00f8r driftsmidler"),
+       `gevinsten som ikke landet star i «krever oppmerksomhet» (${lang})`);
+  }
+  app.setLang("en");
+}
+
 console.log("skjemaet bygger for hver kollesjon");
 // buildForm flyttet fra modal til skuff. Ingen visningstest rørte den, og
 // et skjema som kaster er usynlig til noen prøver å opprette noe.

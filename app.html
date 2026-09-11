@@ -149,7 +149,7 @@ a{color:inherit}
 .grid{display:grid;gap:16px}
 
 /* KPI */
-.kpis{grid-template-columns:repeat(4,1fr)}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(172px,1fr))}
 .kpi{padding:18px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
 .kpi .lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
 .kpi .num{font-family:"Spline Sans Mono",monospace;font-size:38px;line-height:1;color:var(--ink);letter-spacing:-.02em}
@@ -1557,6 +1557,7 @@ const T = {
     "sect.radar":"Strategy review radar","sect.radar.h":"Who's due — overdue and committed first","sect.spine":"The spine","sect.spine.h":"What you do per strategy — flow, not loop","sect.attention":"Needs attention","sect.attention.h":"Agenda items for the next review — not footnotes",
     "empty.quiet.t":"All quiet.","empty.quiet.d":"No drifting signals or shaky bets in view. A signal that only ever confirms is decoration — keep designing sharper ones.",
     "th.what":"What","th.type":"Type","th.state":"State","th.reading":"Reading / kill-signal","th.strategy":"Strategy","th.status":"Status","th.flashing":"Flashing","th.reviewdue":"Review due",
+    "th.value":"Gain","kpi.gap":"Gains that did not land","kpi.gap.s":"the outcome is on track, the gain is not",
     "th.claim":"Claim","th.theme":"Theme","th.confidence":"Confidence","th.captured":"Captured","th.feeds":"Feeds","th.decision":"Decision","th.door":"Door","th.rests":"Rests on","th.owner":"Owner","th.decided":"Decided","th.assumption":"Assumption","th.confcons":"Conf × Cons","th.killsignal":"Kill-signal","th.watchedby":"Watched by","th.signal":"Signal","th.watches":"Watches","th.trend":"Trend","th.latest":"Latest reading",
     "empty.insights.t":"No insights yet.","empty.insights.d":"Capture what you've learned — one claim, its evidence, a confidence level.","empty.decisions.t":"No decisions logged.","empty.decisions.d":"Log the next real choice — what was decided, and what you rejected.","empty.assumptions.t":"No assumptions yet.","empty.assumptions.d":"Harvest bets from your diagnosis and pre-mortem failure modes.","empty.signals.t":"No signals yet.","empty.signals.d":"Design 3–5 per strategy. Each watches one assumption.","empty.strat.t":"No strategies yet.","empty.strat.d":"Create one — name it, pick a framework, and write the one-page artifact.",
     "btn.back.strat":"All strategies","btn.edit":"Edit","btn.expand":"Expand","btn.cancel":"Cancel",
@@ -1911,6 +1912,7 @@ const T = {
     "sect.radar":"Radar for strategigjennomgang","sect.radar.h":"Hvem står for tur — på overtid og vedtatt først","sect.spine":"Ryggraden","sect.spine.h":"Det du gjør per strategi — flyt, ikke løkke","sect.attention":"Trenger oppmerksomhet","sect.attention.h":"Agendapunkter til neste gjennomgang — ikke fotnoter",
     "empty.quiet.t":"Alt er rolig.","empty.quiet.d":"Ingen drivende signaler eller vaklende bets i visningen. Et signal som bare bekrefter er dekorasjon — fortsett å designe skarpere.",
     "th.what":"Hva","th.type":"Type","th.state":"Tilstand","th.reading":"Avlesning / kill-signal","th.strategy":"Strategi","th.status":"Status","th.flashing":"Blinker","th.reviewdue":"Gjennomgang",
+    "th.value":"Gevinst","kpi.gap":"Gevinster som ikke landet","kpi.gap.s":"utfallet er på sporet, gevinsten er ikke det",
     "th.claim":"Påstand","th.theme":"Tema","th.confidence":"Konfidens","th.captured":"Fanget","th.feeds":"Mater","th.decision":"Beslutning","th.door":"Dør","th.rests":"Hviler på","th.owner":"Eier","th.decided":"Besluttet","th.assumption":"Antakelse","th.confcons":"Konf × Kons","th.killsignal":"Kill-signal","th.watchedby":"Overvåket av","th.signal":"Signal","th.watches":"Overvåker","th.trend":"Trend","th.latest":"Siste avlesning",
     "empty.insights.t":"Ingen innsikter ennå.","empty.insights.d":"Fang det du har lært — én påstand, beviset, et konfidensnivå.","empty.decisions.t":"Ingen beslutninger loggført.","empty.decisions.d":"Loggfør neste reelle valg — hva som ble besluttet, og hva du forkastet.","empty.assumptions.t":"Ingen antakelser ennå.","empty.assumptions.d":"Høst bets fra diagnosen og pre-mortem-feilmodusene.","empty.signals.t":"Ingen signaler ennå.","empty.signals.d":"Design 3–5 per strategi. Hvert overvåker én antakelse.","empty.strat.t":"Ingen strategier ennå.","empty.strat.d":"Lag én — gi den navn, velg et rammeverk, og skriv énsides-artefaktet.",
     "btn.back.strat":"Alle strategier","btn.edit":"Rediger","btn.expand":"Utvid","btn.cancel":"Avbryt",
@@ -2580,11 +2582,15 @@ function vDashboard(){
   const riskyBets = DB.assumptions.filter(a=>a.state!=="retired" && a.confidence==="low" && a.consequence==="high" && matchStrat(a.strategy));
   const broken = DB.assumptions.filter(a=>a.state==="broken" && matchStrat(a.strategy));
   const disag = DB.signals.filter(s=>s.state==="disagreeing" && matchStrat(s.strategy));
+  const gaps = valueGapInView();
   const attention = [
     ...DB.signals.filter(s=>(s.state==="disagreeing"||s.state==="drifting"||suggestSignalState(s)) && matchStrat(s.strategy)).map(s=>({k:"signal",o:s})),
     ...DB.assumptions.filter(a=>(a.state==="broken"||a.state==="shaky"||assumptionFollowUp(a)) && matchStrat(a.strategy)).map(a=>({k:"assumption",o:a})),
+    // Gevinsten som ikke landet hoerer hjemme her: utfallet er pa sporet, sa
+    // ingenting annet pa dashbordet kommer til a rope om den.
+    ...gaps.map(v=>({k:"value",o:v})),
   ];
-  const order = {disagreeing:0,broken:1,drifting:2,shaky:3};
+  const order = {disagreeing:0,broken:1,"not-materialised":2,drifting:3,shaky:4,partial:5};
   // Et ubehandlet forslag går først: det er det eneste her du ikke har sett ennå.
   const rank = it => (it.k==="signal" ? suggestSignalState(it.o) : assumptionFollowUp(it.o)) ? -1 : (order[it.o.state]??9);
   attention.sort((x,y)=>rank(x)-rank(y));
@@ -2597,7 +2603,8 @@ function vDashboard(){
     ${kpiCard(t("kpi.active"), strategies.length, "k-acc", t("kpi.active.s"))}
     ${kpiCard(t("kpi.risky"), riskyBets.length, "k-warn", t("kpi.risky.s"))}
     ${kpiCard(t("kpi.disag"), disag.length, "k-bad", t("kpi.disag.s"))}
-    ${kpiCard(t("kpi.broken"), broken.length, broken.length?"k-bad":"k-good", t("kpi.broken.s"))}`;
+    ${kpiCard(t("kpi.broken"), broken.length, broken.length?"k-bad":"k-good", t("kpi.broken.s"))}
+    ${kpiCard(t("kpi.gap"), gaps.length, gaps.length?"k-warn":"k-good", t("kpi.gap.s"))}`;
   w.appendChild(kpis);
 
   // strategy review radar
@@ -2622,9 +2629,10 @@ function vDashboard(){
     attention.forEach(({k,o})=>{
       const tr = el("tr","row");
       const ov = trView(o);
-      const main = k==="signal"?ov.signal:ov.statement;
-      const sub  = k==="signal"?ov.last_reading:ov.kill_signal;
-      tr.innerHTML = `<td><div class="stmt">${esc(main)}</div><div class="strat">${esc(o.strategy)}</div></td>
+      const main = k==="signal"?ov.signal : k==="value"?ov.claim : ov.statement;
+      const sub  = k==="signal"?ov.last_reading : k==="value"?(ov.observed||ov.evidence) : ov.kill_signal;
+      const who  = k==="value" ? strategiesOfValue(o).map(x=>x.name).join(" · ") : o.strategy;
+      tr.innerHTML = `<td><div class="stmt">${esc(main)}</div><div class="strat">${esc(who||"")}</div></td>
         <td><span class="chip">${esc(t("th."+k))}</span></td>
         <td>${stateBadge(o.state)}${(()=>{
           const g=k==="signal"?suggestSignalState(o):null;
@@ -2633,7 +2641,7 @@ function vDashboard(){
           return f?` <span class="sug-chip">→ ${esc(t("state."+f.suggested))}?</span>`:"";
         })()}</td>
         <td><div class="meta" style="max-width:36ch">${esc(sub||"—")}</div></td>`;
-      clickable(tr, ()=> k==="signal"?openSignal(o.id):openAssumption(o.id), "Open "+(k==="signal"?o.signal:o.statement));
+      clickable(tr, ()=> k==="signal"?openSignal(o.id) : k==="value"?openValue(o.id) : openAssumption(o.id), "Open "+main);
       body.appendChild(tr);
     });
     tb.appendChild(body); panel.appendChild(tb);
@@ -6598,6 +6606,11 @@ function outcomesUnvaluedFor(st){
   if(!st) return [];
   return [...new Set(st.serves||[])].flatMap(gid=>outcomesUnvaluedOfGoal(gid));
 }
+// Verdigapet slik dashbordet ser det: samme alarm, men filtrert som alt
+// annet pa dashbordet. Et tall som ignorerer filteret lyver om utvalget.
+function valueGapInView(){
+  return valueGap().filter(v=>stratF==="*" || strategiesOfValue(v).some(st=>st.name===stratF));
+}
 // Hvilken strategi baerer gevinsten? Utledet samme vei som kjeden, brukt
 // av gjennomgangen til a folge strategifilteret.
 function strategiesOfValue(v){
@@ -6977,6 +6990,17 @@ function buildSharePayload(s, opts){
       signal:L(x,"signal"), state:x.state,
       expected_shape:L(x,"expected_shape")||"", last_reading:L(x,"last_reading")||"",
       watches:x.watches ? (L(byId("assumptions",x.watches)||{},"statement")||null) : null,
+    })),
+    // Verdikjeden, utledet som pa strategikortet. Uten den leser mottakeren
+    // en plan uten a se hva den skal vaere verdt - og tilstanden folger med,
+    // ogsa naar gevinsten uteble. Et delt artefakt som bare viser seier er
+    // markedsforing, ikke et styringsdokument.
+    value:valuesOfStrategy(s).map(r=>({
+      outcome:L(r.outcome,"statement"), outcomeState:r.outcome.state,
+      claim:L(r.value,"claim"), beneficiary:L(r.value,"beneficiary")||"",
+      currency:r.value.currency||"time", scope:r.value.scope||"direct",
+      size:L(r.value,"size")||"", state:r.value.state,
+      mechanism:L(r.value,"mechanism")||"", observed:L(r.value,"observed")||"",
     })),
   };
   // Beslutningsloggen inneholder forkastede alternativer og resonnement.

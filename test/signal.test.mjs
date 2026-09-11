@@ -94,7 +94,7 @@ const harness = [
   "let REVIEW_SESSION=null;", "let stratF='*';",
   func("reviewSessionStart"), func("reviewNoteSignal"), func("reviewNoteBet"),
   func("reviewChanged"), func("closeReview"), func("reviewNoteValue"),
-  func("strategiesOfValue"), func("valuesDue"),
+  func("strategiesOfValue"), func("valuesDue"), func("valueGapInView"),
   "function uid(p){return p+Math.random().toString(36).slice(2,8)}",
   "function save(){}",
   "let SHARES=[];", func("shareOf"), func("shareStale"),
@@ -111,7 +111,7 @@ const harness = [
   "lensFields,lensDerive,lensVal,artifactEmpty,routeLens,KEEP_KEYS,premortemCandidates," +
   "buildSharePayload,shareUrl,shareStale,setShares:v=>{SHARES=v}," +
   "reviewNoteSignal,reviewNoteBet,reviewChanged,closeReview,reviewNoteValue," +
-  "strategiesOfValue,valuesDue,setStratF:v=>{stratF=v}," +
+  "strategiesOfValue,valuesDue,valueGapInView,setStratF:v=>{stratF=v}," +
   "radarStatus,radarWeight,radarThreatening,RADAR_DUE," +
   "radarChart,RADAR_RINGS,RADAR_DOMS,parseRadarText,radarMapValue," +
   "LABEL_F,OPT_PREFIX,optL," +
@@ -141,7 +141,7 @@ const {
   lensFields, lensDerive, lensVal, artifactEmpty, routeLens, KEEP_KEYS, premortemCandidates,
   buildSharePayload, shareUrl, shareStale, setShares,
   reviewNoteSignal, reviewNoteBet, reviewChanged, closeReview, resetReview,
-  reviewNoteValue, strategiesOfValue, valuesDue, setStratF,
+  reviewNoteValue, strategiesOfValue, valuesDue, valueGapInView, setStratF,
   radarStatus, radarWeight, radarThreatening, RADAR_DUE,
   radarChart, RADAR_RINGS, RADAR_DOMS, parseRadarText, radarMapValue,
   LABEL_F, OPT_PREFIX, optL,
@@ -1437,6 +1437,46 @@ group("gevinsten i gjennomgangen - okten og arkivet");
   ok(closeReview("").gainsMissed === 0,
      "en gjennomgang uten gevinster rort gir null uteblitte, ikke undefined");
 }
+
+group("verdigapet pa dashbordet");
+fullDB(); setStratF("*");
+ok(valueGapInView().map(v => v.id).join() === "v5",
+   "dashbordet ser det ene gapet i seed");
+setStratF(SEED.strategies.find(s => s.id === "st2").name);
+ok(valueGapInView().map(v => v.id).join() === "v5",
+   "filtrert pa TOFF star gapet igjen - det er den strategien som baerer det");
+setStratF(SEED.strategies.find(s => s.id === "st3").name);
+ok(valueGapInView().length === 0,
+   "filtrert pa en strategi som ikke baerer det, teller dashbordet det ikke");
+setStratF("*");
+ok(valueGapInView().length <= valueGap().length,
+   "filteret kan aldri finne opp gap som ikke finnes i registeret");
+["kpi.gap","kpi.gap.s","th.value"].forEach(k =>
+  ok(T.en[k] !== undefined && T.no[k] !== undefined, k + " finnes i begge sprak"));
+
+group("delt artefakt - verdikjeden folger med");
+setDB({ signals:SEED.signals, assumptions:SEED.assumptions, goals:SEED.goals,
+        outcomes:SEED.outcomes, values:SEED.values, decisions:SEED.decisions,
+        strategies:SEED.strategies });
+{
+  const p1 = buildSharePayload(SEED.strategies.find(x => x.id === "st1"), {});
+  ok(Array.isArray(p1.value) && p1.value.length === 3,
+     "de tre gevinstene under st1 sine mal folger med");
+  ok(p1.value.every(r => r.outcome && r.outcomeState),
+     "hver gevinst kommer med utfallet den folger av - broen, ikke bare pastanden");
+  ok(p1.value.some(r => r.state === "not-materialised"),
+     "gevinsten som uteble deles ogsa - et artefakt som bare viser seier er markedsforing");
+  ok(p1.value.every(r => r.owner === undefined && r.note === undefined && r.evidence === undefined),
+     "eier, interne notater og den interne bevistesten folger ikke med");
+  const p3 = buildSharePayload(SEED.strategies.find(x => x.id === "st3"), {});
+  ok(p3.value.length === 2 && new Set(p3.value.map(r => r.outcome)).size === 1,
+     "st3 deler begge gevinstene fra det ene utfallet sitt");
+  const pX = buildSharePayload({name:"uten mal", serves:[]}, {});
+  ok(Array.isArray(pX.value) && pX.value.length === 0,
+     "strategi uten mal gir tom liste, ikke undefined");
+  ok(!JSON.stringify(p1).includes("user_id"), "fortsatt ingen bruker-id i payloaden");
+}
+fullDB();
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,
