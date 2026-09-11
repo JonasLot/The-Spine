@@ -645,6 +645,7 @@ a{color:inherit}
   font-size:12px;font-weight:600;color:var(--ink-3);display:inline-flex;align-items:center;gap:6px;
   cursor:pointer;white-space:nowrap;transition:background .13s,color .13s,border-color .13s}
 .cv-chip .cv-dot{width:8px;height:8px;border-radius:99px;background:var(--kc,var(--ink-3));opacity:.4}
+.cv-chip .cv-cn{margin-left:5px;font-size:10.5px;font-variant-numeric:tabular-nums;opacity:.55}
 .cv-chip[aria-pressed="true"]{color:var(--ink);background:var(--bg)}
 .cv-chip[aria-pressed="true"] .cv-dot{opacity:1}
 .cv-chip:hover{border-color:var(--line)}
@@ -3543,6 +3544,17 @@ const CV_GLYPH = {need:"N", goal:"M", outcome:"U", value:"V", diagnosis:"D", str
   insight:"I", assumption:"A", signal:"G", decision:"B", right:"R", force:"K"};
 const CV_W = {strategy:212, diagnosis:212, need:190, goal:190, outcome:190, value:190,
   insight:178, assumption:178, signal:178, decision:178, right:190, force:190};
+/* Fargetokenet per nodetype. Lå tidligere som en andre, håndholdt liste inne
+   i lagbaren og gikk ut av takt hver gang en type kom til. */
+const CV_TOKEN = {need:"--need", goal:"--goal", outcome:"--outcome", value:"--val",
+  diagnosis:"--diag", strategy:"--accent", insight:"--sense", assumption:"--align",
+  signal:"--feed", decision:"--mem", right:"--right", force:"--force"};
+/* Lagbaren følger navigasjonens egen inndeling, så de to leser likt. */
+const CV_GROUPS = [
+  {lbl:"grp.direction", kinds:["need","goal","outcome","value"]},
+  {lbl:"",              kinds:["strategy"]},
+  {lbl:"grp.registers", kinds:["force","right","insight","diagnosis","decision","assumption","signal"]},
+];
 
 /* ---- ett oppslag over alt som kan ligge på lerretet ---- */
 function cvEntity(id){
@@ -4377,14 +4389,14 @@ function renderCanvas(host, opts={}){
   layerEl=el("div","cv-layers");
   function paintLayers(){
     layerEl.innerHTML="";
-    [[t("grp.direction"),["goal","outcome"]],["",["strategy"]],[t("grp.registers"),["insight","assumption","signal","decision"]]]
-    .forEach(([lbl,kinds])=>{
+    CV_GROUPS.forEach(({lbl,kinds})=>{
       const g=el("div","cv-lgrp");
-      if(lbl) g.appendChild(el("span","cv-llbl",esc(lbl)));
+      if(lbl) g.appendChild(el("span","cv-llbl",esc(t(lbl))));
       kinds.forEach(k=>{
-        const b=el("button","cv-chip",`<span class="cv-dot"></span>${esc(t("cv.k."+k))}`);
+        const n=(DB[CV_COLL[k]]||[]).length;
+        const b=el("button","cv-chip",`<span class="cv-dot"></span>${esc(t("cv.k."+k))}${n?`<span class="cv-cn">${n}</span>`:""}`);
         b.type="button"; b.setAttribute("aria-pressed",String(!!layers[k]));
-        b.style.setProperty("--kc",`var(${({goal:"--goal",outcome:"--outcome",strategy:"--accent",insight:"--sense",assumption:"--align",signal:"--feed",decision:"--mem"})[k]})`);
+        b.style.setProperty("--kc",`var(${CV_TOKEN[k]})`);
         b.onclick=()=>{ layers[k]=!layers[k]; cvSaveLayers(); paint(); };
         g.appendChild(b);
       });

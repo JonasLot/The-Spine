@@ -69,6 +69,7 @@ const harness = [
   func("needsAssumedButLoadBearing"), func("needStale"), func("needsStale"),
   func("needWeak"), func("needSrcCounts"),
   decl("CV_KINDS"), decl("CV_COLL"), decl("CV_GLYPH"), decl("CV_W"), decl("COLLS"),
+  decl("CV_TOKEN"), decl("CV_GROUPS"),
   decl("COMMIT"), decl("COMMIT_W"), oneLine(/const COMMIT_STALE_REVIEWS\s*=/),
   func("liveBets"), func("betsUnfunded"), func("betsFundedBroken"), func("betMovedIn"),
   func("recentReviews"), func("betFundedStuck"), func("betsFundedStuck"),
@@ -115,7 +116,7 @@ const harness = [
   "strategiesOnVoidDiagnosis,diagnosisWeak," +
   "NEED_SRC,NEED_RANK,NEED_STALE_DAYS,outcomesOfNeed,needOf,outcomesWithoutNeed," +
   "needsUnserved,needsAssumedButLoadBearing,needStale,needsStale,needWeak,needSrcCounts," +
-  "CV_KINDS,CV_COLL,CV_GLYPH,CV_W,COLLS," +
+  "CV_KINDS,CV_COLL,CV_GLYPH,CV_W,COLLS,CV_TOKEN,CV_GROUPS," +
   "COMMIT,COMMIT_STALE_REVIEWS,liveBets,betsUnfunded,betsFundedBroken,betMovedIn," +
   "recentReviews,betFundedStuck,betsFundedStuck,nothingStarved,commitCounts," +
   "OUT_CATS,outcomesOfGoal,goalsProductOnly,outcomesUncategorised,outcomeCatCounts," +
@@ -143,7 +144,7 @@ const {
   strategiesOnVoidDiagnosis, diagnosisWeak,
   NEED_SRC, NEED_RANK, NEED_STALE_DAYS, outcomesOfNeed, needOf, outcomesWithoutNeed,
   needsUnserved, needsAssumedButLoadBearing, needStale, needsStale, needWeak, needSrcCounts,
-  CV_KINDS, CV_COLL, CV_GLYPH, CV_W, COLLS,
+  CV_KINDS, CV_COLL, CV_GLYPH, CV_W, COLLS, CV_TOKEN, CV_GROUPS,
   COMMIT, COMMIT_STALE_REVIEWS, liveBets, betsUnfunded, betsFundedBroken, betMovedIn,
   recentReviews, betFundedStuck, betsFundedStuck, nothingStarved, commitCounts,
   OUT_CATS, outcomesOfGoal, goalsProductOnly, outcomesUncategorised, outcomeCatCounts,
@@ -1075,6 +1076,26 @@ group("strategikartet — nodetypene henger sammen");
   ok(new Set(glyphs).size === glyphs.length, "hver nodetype har sin egen bokstav: " + glyphs.join(""));
   const colls = CV_KINDS.map(k => CV_COLL[k]);
   ok(new Set(colls).size === colls.length, "to nodetyper deler ikke kollesjon");
+
+  // Lagbaren og ryddefunksjonen var to håndholdte lister. Begge gikk ut av
+  // takt hver gang en nodetype kom til — lagbaren viste sju av tolv.
+  const inGroups = CV_GROUPS.flatMap(g => g.kinds);
+  const ugroup = CV_KINDS.filter(k => !inGroups.includes(k));
+  const ghost = inGroups.filter(k => !CV_KINDS.includes(k));
+  const twice = inGroups.filter((k,i) => inGroups.indexOf(k) !== i);
+  ok(ugroup.length === 0, "hver nodetype har en chip i lagbaren" + (ugroup.length ? ": mangler " + ugroup.join(", ") : ""));
+  ok(ghost.length === 0, "lagbaren viser ingen type som ikke finnes" + (ghost.length ? ": " + ghost.join(", ") : ""));
+  ok(twice.length === 0, "ingen type står i to grupper" + (twice.length ? ": " + twice.join(", ") : ""));
+  CV_KINDS.forEach(k => ok(CV_TOKEN[k] !== undefined, "CV_TOKEN dekker " + k));
+
+  const src = readFileSync(join(root, "app.html"), "utf8");
+  const rows = /const rows=\[([\s\S]*?)\];/.exec(src);
+  ok(!!rows, "ryddefunksjonens rader ble funnet");
+  if (rows) {
+    const inRows = [...rows[1].matchAll(/"(\w+)"/g)].map(m => m[1]);
+    const urow = CV_KINDS.filter(k => !inRows.includes(k));
+    ok(urow.length === 0, "«rydd opp» plasserer hver nodetype" + (urow.length ? ": mangler " + urow.join(", ") : ""));
+  }
 }
 
 group("ressursallokering — båndet, ikke timene");
