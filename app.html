@@ -160,7 +160,7 @@ a{color:inherit}
 .kpi.k-good .num{color:var(--good)} .kpi.k-good .rail{background:var(--good)}
 .kpi.k-acc .num{color:var(--accent)} .kpi.k-acc .rail{background:var(--accent)}
 
-.sect-h{display:flex;align-items:baseline;gap:10px;margin:30px 0 14px}
+.sect-h{display:flex;align-items:baseline;gap:10px;margin:34px 0 16px}
 .sect-h h2{font-family:"Instrument Serif",serif;font-weight:400;font-size:24px}
 .sect-h .hint{font-size:12.5px;color:var(--ink-3)}
 .sect-h .spacer{flex:1}
@@ -180,7 +180,7 @@ a{color:inherit}
 .tbl{width:100%;border-collapse:separate;border-spacing:0}
 .tbl th{
   text-align:left;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--ink-3);font-weight:600;padding:0 16px 11px;border-bottom:1px solid var(--line)
+  color:var(--ink-3);font-weight:600;padding:16px 16px 11px;border-bottom:1px solid var(--line)
 }
 .tbl td{padding:18px 16px;border-bottom:1px solid var(--line-2);vertical-align:top}
 .tbl tr:last-child td{border-bottom:none}
@@ -1517,6 +1517,12 @@ const T = {
     "th.claim":"Claim","th.theme":"Theme","th.confidence":"Confidence","th.captured":"Captured","th.feeds":"Feeds","th.decision":"Decision","th.door":"Door","th.rests":"Rests on","th.owner":"Owner","th.decided":"Decided","th.assumption":"Assumption","th.confcons":"Conf × Cons","th.killsignal":"Kill-signal","th.watchedby":"Watched by","th.signal":"Signal","th.watches":"Watches","th.trend":"Trend","th.latest":"Latest reading",
     "empty.insights.t":"No insights yet.","empty.insights.d":"Capture what you've learned — one claim, its evidence, a confidence level.","empty.decisions.t":"No decisions logged.","empty.decisions.d":"Log the next real choice — what was decided, and what you rejected.","empty.assumptions.t":"No assumptions yet.","empty.assumptions.d":"Harvest bets from your diagnosis and pre-mortem failure modes.","empty.signals.t":"No signals yet.","empty.signals.d":"Design 3–5 per strategy. Each watches one assumption.","empty.strat.t":"No strategies yet.","empty.strat.d":"Create one — name it, pick a framework, and write the one-page artifact.",
     "btn.back.strat":"All strategies","btn.edit":"Edit","btn.expand":"Expand","btn.cancel":"Cancel",
+    "sect.recentdec":"Recent decisions","sect.recentdec.h":"The memory that ends the re-litigation",
+    "prof.orgs":"Organisations","prof.orgs.h":"The organisations this account is associated with",
+    "prof.name":"Display name","prof.noname":"Set your name","prof.orgrm":"Remove organisation",
+    "prof.signedin":"Signed in",
+    "exp.nofmt":"No markdown format defined for this register yet.","exp.empty":"Nothing to export in this view.",
+    "a11y.open":"Open","a11y.lang":"Language",
     "strat.canon":"Canonical artifact","strat.owner":"owner","strat.derived":"derived from the","strat.cites":"Everything else cites this.","strat.unowned":"unowned",
     "op.1":"1 · The challenge","op.2":"2 · Our approach","op.3":"3 · The big moves","op.4":"4 · What we are NOT doing","op.5":"5 · How we'll know it's working",
     "vh.radar.t":"Environmental Radar","vh.radar.d":"What is moving out there that your diagnosis does not yet account for.",
@@ -1848,6 +1854,12 @@ const T = {
     "th.claim":"Påstand","th.theme":"Tema","th.confidence":"Konfidens","th.captured":"Fanget","th.feeds":"Mater","th.decision":"Beslutning","th.door":"Dør","th.rests":"Hviler på","th.owner":"Eier","th.decided":"Besluttet","th.assumption":"Antakelse","th.confcons":"Konf × Kons","th.killsignal":"Kill-signal","th.watchedby":"Overvåket av","th.signal":"Signal","th.watches":"Overvåker","th.trend":"Trend","th.latest":"Siste avlesning",
     "empty.insights.t":"Ingen innsikter ennå.","empty.insights.d":"Fang det du har lært — én påstand, beviset, et konfidensnivå.","empty.decisions.t":"Ingen beslutninger loggført.","empty.decisions.d":"Loggfør neste reelle valg — hva som ble besluttet, og hva du forkastet.","empty.assumptions.t":"Ingen antakelser ennå.","empty.assumptions.d":"Høst bets fra diagnosen og pre-mortem-feilmodusene.","empty.signals.t":"Ingen signaler ennå.","empty.signals.d":"Design 3–5 per strategi. Hvert overvåker én antakelse.","empty.strat.t":"Ingen strategier ennå.","empty.strat.d":"Lag én — gi den navn, velg et rammeverk, og skriv énsides-artefaktet.",
     "btn.back.strat":"Alle strategier","btn.edit":"Rediger","btn.expand":"Utvid","btn.cancel":"Avbryt",
+    "sect.recentdec":"Siste beslutninger","sect.recentdec.h":"Hukommelsen som avslutter re-litigeringen",
+    "prof.orgs":"Organisasjoner","prof.orgs.h":"Organisasjonene denne kontoen er knyttet til",
+    "prof.name":"Visningsnavn","prof.noname":"Sett navnet ditt","prof.orgrm":"Fjern organisasjon",
+    "prof.signedin":"Innlogget",
+    "exp.nofmt":"Ingen markdown-format er definert for dette registeret ennå.","exp.empty":"Ingenting å eksportere i denne visningen.",
+    "a11y.open":"Åpne","a11y.lang":"Språk",
     "strat.canon":"Kanonisk artefakt","strat.owner":"eier","strat.derived":"avledet fra","strat.cites":"Alt annet siterer denne.","strat.unowned":"ingen eier",
     "op.1":"1 · Utfordringen","op.2":"2 · Vår tilnærming","op.3":"3 · De store trekkene","op.4":"4 · Det vi IKKE gjør","op.5":"5 · Hvordan vi vet at det virker",
     "vh.radar.t":"Omgivelsesradar","vh.radar.d":"Hva som er i bevegelse der ute som diagnosen din ennå ikke tar høyde for.",
@@ -2039,7 +2051,7 @@ function applyChrome(){
   const ey=document.querySelector('.brand .ey'); if(ey) ey.textContent=t('brand.ey');
   const tag=document.querySelector('.foot .tag'); if(tag) tag.innerHTML=t('brand.tag');
   const srch=$('#search'); if(srch) srch.setAttribute('placeholder',t('search.ph'));
-  const langSel=$('#langSel'); if(langSel) langSel.value=LANG;
+  const langSel=$('#langSel'); if(langSel){ langSel.value=LANG; langSel.setAttribute('aria-label',t('a11y.lang')); }
   syncStrategyFilter();
 }
 function setLang(l){
@@ -2552,7 +2564,7 @@ function vDashboard(){
   w.appendChild(panel);
 
   // recent decisions
-  const dh = el("div","sect-h",`<h2>Recent decisions</h2><span class="hint">The memory that ends the re-litigation</span>`);
+  const dh = el("div","sect-h",`<h2>${esc(t("sect.recentdec"))}</h2><span class="hint">${esc(t("sect.recentdec.h"))}</span>`);
   w.appendChild(dh);
   const dp = el("div","panel");
   const recent = DB.decisions.filter(d=>matchStrat(d.strategy)).slice().sort((a,b)=>(b.decided||"").localeCompare(a.decided||"")).slice(0,3);
@@ -2564,7 +2576,7 @@ function vDashboard(){
     tr.innerHTML = `<td><div class="stmt">${esc(d.title)}</div><div class="strat">${esc(d.strategy)} · ${esc(d.area||"")}</div></td>
       <td><span class="badge ${d.door==="one-way"?"b-bad":"b-acc"}"><span class="dot"></span>${esc(t("door."+d.door)||d.door)}</span></td>
       <td><span class="mono" style="font-size:12px;color:var(--ink-2)">${esc(d.decided||"")}</span></td>`;
-    clickable(tr,()=>openDecision(d.id),"Open decision: "+d.title);
+    clickable(tr,()=>openDecision(d.id),openLbl("decisions","")+": "+d.title);
     dbd.appendChild(tr);
   });
   dt.appendChild(dbd); dp.appendChild(dt); w.appendChild(dp);
@@ -2623,7 +2635,7 @@ function reviewRadarPanel(){
       <td><span class="badge ${st[0]}"><span class="dot"></span>${esc(statusL(s.status))}</span></td>
       <td>${k.flashing?`<span class="badge b-bad"><span class="dot"></span>${k.flashing} ${esc(t("state.flashing"))}</span>`:`<span class="badge b-good"><span class="dot"></span>${esc(t("state.clear"))}</span>`}</td>
       <td><span class="badge ${rev.cls}"><span class="dot"></span>${rev.txt}</span></td>`;
-    clickable(tr,()=>{ currentStrategy=s.id; view="strategies"; render(); },"Open strategy: "+s.name);
+    clickable(tr,()=>{ currentStrategy=s.id; view="strategies"; render(); },openLbl("strategies","")+": "+s.name);
     b.appendChild(tr);
   });
   tb.appendChild(b); panel.appendChild(tb); return panel;
@@ -2659,7 +2671,7 @@ function vStrategies(){
         <span title="${esc(t("nav.decisions"))}"><b>${k.decs}</b> ${esc(t("kpi.decisions"))}</span>
         ${k.flashing?`<span class="flash"><b>${k.flashing}</b> ${esc(t("state.flashing"))}</span>`:`<span class="ok">${esc(t("kpi.ontrack"))}</span>`}
       </div>`;
-    clickable(card,()=>{ currentStrategy=s.id; render(); },"Open strategy: "+s.name);
+    clickable(card,()=>{ currentStrategy=s.id; render(); },openLbl("strategies","")+": "+s.name);
     grid.appendChild(card);
   });
   w.appendChild(grid);
@@ -2952,7 +2964,7 @@ function vGoals(){
       <td>${os.length?`<span class="meta" style="margin-right:6px">${os.length}</span>${stateBadge(roll)}`:'<span class="meta">—</span>'}</td>
       <td>${strs.length?`<span class="meta">${strs.length}</span>`:`<span class="badge b-warn"><span class="dot"></span>${esc(t("dr.uncovered"))}</span>`}</td>
       <td><span class="meta">${esc(g.owner||"")}</span></td>`;
-    clickable(tr,()=>openGoal(g.id),"Open goal: "+L(g,"title"));
+    clickable(tr,()=>openGoal(g.id),openLbl("goals","")+": "+L(g,"title"));
     b.appendChild(tr);
   });
   tb.appendChild(b); const panel=el("div","panel"); panel.appendChild(tb); w.appendChild(panel);
@@ -2991,7 +3003,7 @@ function vOutcomes(){
       <td><span class="matrix">${esc(L(o,"target")||"—")}</span></td>
       <td>${stateBadge(o.state)}</td>
       <td>${sig?`<span class="meta">${stateBadge(sig.state)}</span>`:`<span class="badge b-mute"><span class="dot"></span>${esc(t("dr.nomeasure"))}</span>`}</td>`;
-    clickable(tr,()=>openOutcome(o.id),"Open outcome");
+    clickable(tr,()=>openOutcome(o.id),openLbl("outcomes"));
     b.appendChild(tr);
   });
   tb.appendChild(b); const panel=el("div","panel"); panel.appendChild(tb); w.appendChild(panel);
@@ -3016,7 +3028,7 @@ function vInsights(){
       <td>${lvlChip(x.confidence)}</td>
       <td><span class="mono" style="font-size:12px;color:var(--ink-2)">${esc(x.captured||"")}</span></td>
       <td>${bet?`<span class="meta" style="max-width:18ch">→ ${esc(bet.statement.slice(0,46))}…</span>`:'<span class="meta">—</span>'}</td>`;
-    clickable(tr,()=>openInsight(x.id),"Open insight");
+    clickable(tr,()=>openInsight(x.id),openLbl("insights"));
     b.appendChild(tr);
   });
   tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
@@ -3040,7 +3052,7 @@ function vDecisions(){
       <td>${(d.rests||[]).map(id=>{const a=byId("assumptions",id);return a?`<span class="meta">${esc(a.statement.slice(0,30))}…</span>`:""}).join("<br>")||'<span class="meta">—</span>'}</td>
       <td><span class="meta">${esc(d.owner||"")}</span></td>
       <td><span class="mono" style="font-size:12px;color:var(--ink-2)">${esc(d.decided||"")}</span></td>`;
-    clickable(tr,()=>openDecision(d.id),"Open decision: "+d.title);
+    clickable(tr,()=>openDecision(d.id),openLbl("decisions","")+": "+d.title);
     b.appendChild(tr);
   });
   tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
@@ -3089,7 +3101,7 @@ function vAssumptions(){
       <td>${stateBadge(a.state)}</td>
       <td><div class="meta" style="max-width:30ch">${esc(a.kill_signal||"—")}</div></td>
       <td>${sig?`<span class="meta">${stateBadge(sig.state)}</span>`:`<span class="badge b-mute"><span class="dot"></span>${esc(t("state.unwatched"))}</span>`}</td>`;
-    clickable(tr,()=>openAssumption(a.id),"Open assumption: "+a.statement);
+    clickable(tr,()=>openAssumption(a.id),openLbl("assumptions","")+": "+a.statement);
     b.appendChild(tr);
   });
   tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
@@ -3117,7 +3129,7 @@ function vSignals(){
       <td>${sparkBlock(s)||`<span class="spark-empty">—</span>`}</td>
       <td><div class="meta" style="max-width:28ch">${esc(s.last_reading||"—")}</div></td>
       <td><span class="meta">${esc(s.owner||"")}</span></td>`;
-    clickable(tr,()=>openSignal(s.id),"Open signal: "+s.signal);
+    clickable(tr,()=>openSignal(s.id),openLbl("signals","")+": "+s.signal);
     b.appendChild(tr);
   });
   tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
@@ -3161,7 +3173,7 @@ function matrixPanel(rows){
         const m=STATE_MAP[a.state]||["b-mute"];
         const colr=m[0]==="b-bad"?"var(--bad)":m[0]==="b-warn"?"var(--warn)":m[0]==="b-good"?"var(--good)":"var(--mute)";
         const d=el("span","m-dot",`<span class="dot" style="background:${colr}"></span>${esc(L(a,"statement").slice(0,22))}…`);
-        d.title=L(a,"statement"); clickable(d,()=>openAssumption(a.id),"Open assumption: "+L(a,"statement"));
+        d.title=L(a,"statement"); clickable(d,()=>openAssumption(a.id),openLbl("assumptions","")+": "+L(a,"statement"));
         cl.appendChild(d);
       });
       grid.appendChild(cl);
@@ -4756,11 +4768,11 @@ const MD_TITLE={insights:x=>"Insight — "+x.claim.slice(0,46), decisions:d=>"De
   needs:n=>"Need — "+String(n.need||"").slice(0,46)};
 function exportRegister(coll){
   // insights carry no strategy field → always export all; others honour the strategy filter
-  if(!MD_FN[coll] || !MD_TITLE[coll]){ alert("No markdown format defined for this register yet."); return; }
+  if(!MD_FN[coll] || !MD_TITLE[coll]){ alert(t("exp.nofmt")); return; }
   // Registre uten strategi-felt (insights, values, radar, rights) filtreres ikke på strategi.
   const scoped = ["insights","values","radar","rights","diagnoses","needs"].includes(coll);
   const list = scoped ? (DB[coll]||[]).slice() : DB[coll].filter(x=>matchStrat(x.strategy));
-  if(!list.length){ alert("Nothing to export in this view."); return; }
+  if(!list.length){ alert(t("exp.empty")); return; }
   const parts=list.map(x=>`> ${MD_TITLE[coll](x)}\n\n${MD_FN[coll](x)}`);
   const doc=`# ${coll[0].toUpperCase()+coll.slice(1)} — exported from Spine OS\n_Each block below is a ready-to-drop Obsidian note. Split into one file per entry, named by its title line._\n\n${parts.join("\n\n———\n\n")}`;
   downloadFile(`Spine — ${coll}.md`, doc);
@@ -5233,7 +5245,7 @@ function vValues(){
       <td>${o?`<div class="meta" style="max-width:26ch">${esc(trunc(L(o,"statement"),44))}</div>${stateBadge(o.state)}`
              :`<span class="val-weak">${esc(t("val.nooutcome"))}</span>`}</td>
       <td>${stateBadge(v.state)}${inGap?` <span class="sug-chip">${esc(t("val.gap.chip"))}</span>`:""}</td>`;
-    clickable(tr,()=>openValue(v.id),"Open value: "+L(v,"claim"));
+    clickable(tr,()=>openValue(v.id),openLbl("values","")+": "+L(v,"claim"));
     b.appendChild(tr);
   });
   tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
@@ -5246,7 +5258,7 @@ function vValues(){
     orphan.forEach(o=>{
       const r=el("div","orph-row");
       r.innerHTML=`<div class="s">${esc(L(o,"statement"))}</div>${stateBadge(o.state)}`;
-      clickable(r,()=>openOutcome(o.id),"Open outcome");
+      clickable(r,()=>openOutcome(o.id),openLbl("outcomes"));
       op.appendChild(r);
     });
     w.appendChild(op);
@@ -5314,7 +5326,7 @@ function vDiagnoses(){
       <td>${sts.length?sts.map(x=>`<div class="meta">${esc(trunc(x.name,28))}</div>`).join("")
              :`<span class="val-weak">${esc(t("dg.unanswered"))}</span>`}</td>
       <td>${(d.fromInsights||[]).length?`<span class="meta">${(d.fromInsights||[]).length} ${esc(t("dg.insights"))}</span>`:`<span class="meta">—</span>`}</td>`;
-    clickable(tr,()=>openDiagnosis(d.id),"Open diagnosis");
+    clickable(tr,()=>openDiagnosis(d.id),openLbl("diagnoses"));
     b.appendChild(tr);
   });
   tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
@@ -5385,7 +5397,7 @@ function vNeeds(){
              :`<span class="meta">—</span>`}</td>
       <td>${outs.length?outs.map(o=>`<div class="meta">${esc(trunc(L(trView(o),"statement"),30))}</div>`).join("")
              :`<span class="val-weak">${esc(t("nd.nobody"))}</span>`}</td>`;
-    clickable(tr,()=>openNeed(n.id),"Open need");
+    clickable(tr,()=>openNeed(n.id),openLbl("needs"));
     b.appendChild(tr);
   });
   tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
@@ -5397,7 +5409,7 @@ function vNeeds(){
     noNeed.forEach(o0=>{ const o=trView(o0);
       const row=el("div","orph-row");
       row.innerHTML=`<div class="s">${esc(L(o,"statement"))}</div>${catChip(o.category)}`;
-      clickable(row,()=>openOutcome(o.id),"Open outcome");
+      clickable(row,()=>openOutcome(o.id),openLbl("outcomes"));
       p2.appendChild(row);
     });
     w.appendChild(p2);
@@ -5510,7 +5522,7 @@ function vRights(){
       <td>${rtPair(L(r,"veto"),L(r,"vetoReal"),dr.includes("veto"))}</td>
       <td><div class="rt-list">${rtLines(L(r,"consulted"))}</div></td>
       <td>${stateBadge(r.state)}${unused?` <span class="sug-chip">${esc(t("rt.unused"))}</span>`:""}</td>`;
-    clickable(tr,()=>openRight(r.id),"Open decision class: "+L(r,"decision"));
+    clickable(tr,()=>openRight(r.id),openLbl("rights","")+": "+L(r,"decision"));
     bd.appendChild(tr);
   });
   tb.appendChild(bd); panel.appendChild(tb); w.appendChild(panel);
@@ -5526,7 +5538,7 @@ function vRights(){
       row.innerHTML=`<div><div class="s">${esc(trunc(L(d,"title"),86))}</div>
         <div class="m">${esc(t("rt.outside.line").replace("{a}",d.owner||"—").replace("{b}",rightHolderL(m.right)||"—"))}</div></div>
         <span class="badge b-warn"><span class="dot"></span>${esc(t("rt.outside.chip"))}</span>`;
-      clickable(row,()=>openDecision(d.id),"Open decision");
+      clickable(row,()=>openDecision(d.id),openLbl("decisions"));
       op.appendChild(row);
     });
     w.appendChild(op);
@@ -5541,7 +5553,7 @@ function vRights(){
       const row=el("div","orph-row");
       row.innerHTML=`<div class="s">${esc(trunc(L(d,"title"),86))}</div>
         <span class="badge ${d.door==="one-way"?"b-bad":"b-mute"}"><span class="dot"></span>${esc(t("door."+d.door)||d.door)}</span>`;
-      clickable(row,()=>openDecision(d.id),"Open decision");
+      clickable(row,()=>openDecision(d.id),openLbl("decisions"));
       op.appendChild(row);
     });
     w.appendChild(op);
@@ -5637,7 +5649,7 @@ function vRadar(){
       <td><span class="badge ${r.horizon==="already"?"b-bad":r.horizon==="<1y"?"b-warn":"b-mute"}"><span class="dot"></span>${esc(t("radar.hz."+(r.horizon||">3y")))}</span></td>
       <td>${th.length?`<span class="meta" style="max-width:24ch">${esc(trunc(L(th[0],"statement"),40))}${th.length>1?` +${th.length-1}`:""}</span>`:`<span class="meta">—</span>`}</td>
       <td><span class="badge ${st.cls}"><span class="dot"></span>${esc(t(st.key).replace("{d}",st.days))}</span></td>`;
-    clickable(tr,()=>openRadar(r.id),"Open force: "+L(r,"force"));
+    clickable(tr,()=>openRadar(r.id),openLbl("radar","")+": "+L(r,"force"));
     b.appendChild(tr);
   });
   tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
@@ -5703,7 +5715,7 @@ function vShares(){
       try{ await navigator.clipboard.writeText(shareUrl(sh.token)); }catch(x){}
       cp.textContent=t("share.copied"); setTimeout(()=>cp.textContent=t("share.copy"),1400); };
     td.appendChild(cp); tr.appendChild(td);
-    clickable(tr,()=>{ currentStrategy=s.id; view="strategies"; render(); },"Open strategy: "+s.name);
+    clickable(tr,()=>{ currentStrategy=s.id; view="strategies"; render(); },openLbl("strategies","")+": "+s.name);
     b.appendChild(tr);
   });
   tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
@@ -5816,15 +5828,15 @@ function vProfile(){
   const info = el("div","profile-info");
   const nameRow = el("div","profile-edit-row");
   const nameInp = el("input"); nameInp.type="text"; nameInp.value=PROFILE.full_name; nameInp.placeholder="Your display name";
-  nameInp.setAttribute("aria-label","Display name");
+  nameInp.setAttribute("aria-label",t("prof.name"));
   nameInp.oninput=()=>{ PROFILE.full_name=nameInp.value; av.textContent=initials(PROFILE.full_name,USER?.email||""); };
   nameInp.onblur=()=>saveProfile();
   const emailDiv = el("div","email"); emailDiv.textContent = USER?.email||""; emailDiv.className="email"; emailDiv.style.cssText="font-size:13px;color:var(--ink-3);margin-top:2px";
-  info.appendChild(el("div","profile-info",`<div class="name serif">${esc(PROFILE.full_name||"Set your name")}</div>`));
-  info.innerHTML = `<div class="name serif" style="font-family:'Instrument Serif',serif;font-size:28px;line-height:1.1">${esc(PROFILE.full_name||"Set your name")}</div><div style="font-size:13px;color:var(--ink-3);margin-top:2px">${esc(USER?.email||"")}</div>`;
+  info.appendChild(el("div","profile-info",`<div class="name serif">${esc(PROFILE.full_name||t("prof.noname"))}</div>`));
+  info.innerHTML = `<div class="name serif" style="font-family:'Instrument Serif',serif;font-size:28px;line-height:1.1">${esc(PROFILE.full_name||t("prof.noname"))}</div><div style="font-size:13px;color:var(--ink-3);margin-top:2px">${esc(USER?.email||"")}</div>`;
   nameRow.appendChild(nameInp);
   const saveBtn = el("button","btn"); saveBtn.textContent=t("form.savename"); saveBtn.type="button";
-  saveBtn.onclick=()=>{ PROFILE.full_name=nameInp.value; info.querySelector("div").textContent=PROFILE.full_name||"Set your name"; av.textContent=initials(PROFILE.full_name,USER?.email||""); saveProfile(); };
+  saveBtn.onclick=()=>{ PROFILE.full_name=nameInp.value; info.querySelector("div").textContent=PROFILE.full_name||t("prof.noname"); av.textContent=initials(PROFILE.full_name,USER?.email||""); saveProfile(); };
   nameRow.appendChild(saveBtn);
   info.appendChild(nameRow);
   grid.appendChild(info);
@@ -5833,7 +5845,7 @@ function vProfile(){
 
   /* organisations */
   const oh = el("div","sect-h");
-  oh.innerHTML=`<h2>Organisations</h2><span class="hint">The organisations this account is associated with</span>`;
+  oh.innerHTML=`<h2>${esc(t("prof.orgs"))}</h2><span class="hint">${esc(t("prof.orgs.h"))}</span>`;
   w.appendChild(oh);
 
   const orgPanel = el("div","panel");
@@ -5843,7 +5855,7 @@ function vProfile(){
     PROFILE.organizations.forEach(org=>{
       const row = el("div","org-row");
       row.innerHTML=`<div class="org-name">${esc(org.name)}</div>${org.role?`<span class="org-role">${esc(org.role)}</span>`:""}`;
-      const rm = el("button","org-remove"); rm.type="button"; rm.title="Remove organisation";
+      const rm = el("button","org-remove"); rm.type="button"; rm.title=t("prof.orgrm");
       rm.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>`;
       rm.onclick=()=>removeOrg(org.id);
       row.appendChild(rm);
@@ -6006,6 +6018,11 @@ const FIELDS = {
     {k:"note",l:"Note",t:"textarea"},
     {k:"watchedBy",l:"Watched by signal",t:"ref",ref:"signals"},
   ],
+  org:[
+    {k:"name",l:"Organisation name",t:"text",req:1,ph:"e.g. Tet Digital"},
+    {k:"role",l:"Your role",t:"text",ph:"e.g. Product Manager"},
+    {k:"url",l:"Website",t:"text",ph:"https://…"},
+  ],
   needs:[
     {k:"need",l:"The need",t:"textarea",req:1,ph:"What they are trying to get done, and what is in the way. Not a feature."},
     {k:"who",l:"Who has it",t:"text",req:1,ph:"A named group of people — «foresatte», «saksbehandlere» — not «brukerne»"},
@@ -6102,6 +6119,8 @@ const SING_NO = {values:"Verdi",radar:"Kraft",rights:"Beslutningsklasse",diagnos
 // Norsk overlay for redigeringsskjemaet: [etikett, plassholder].
 // FIELDS er kilden for engelsk — mangler en nøkkel her, faller den tilbake dit.
 const FLD_NO = {
+  org:{ name:["Organisasjonsnavn","f.eks. Tet Digital"], role:["Din rolle","f.eks. produktleder"],
+        url:["Nettsted","https://…"] },
   needs:{
     need:["Behovet","Hva de prøver å få til, og hva som står i veien. Ikke en funksjon."],
     who:["Hvem har det","En navngitt gruppe mennesker — «foresatte», «saksbehandlere» — ikke «brukerne»"],
@@ -6211,12 +6230,6 @@ function fldTr(coll,k){ return LANG==="no" && FLD_NO[coll] ? FLD_NO[coll][k] : n
 function fldL(coll,f){ const e=fldTr(coll,f.k); return (e&&e[0])||f.l; }
 function fldPh(coll,f){ const e=fldTr(coll,f.k); return (e&&e[1])||f.ph||""; }
 function singL(coll){ return (LANG==="no" && SING_NO[coll]) || SING[coll]; }
-FIELDS.org = [
-  {k:"name",l:"Organisation name",t:"text",req:1,ph:"e.g. Tet Digital"},
-  {k:"role",l:"Your role",t:"text",ph:"e.g. Product Manager"},
-  {k:"url",l:"Website",t:"text",ph:"https://…"},
-];
-
 function newEntry(){
   if(view==="profile"){ editing={coll:"org",id:null,data:{}}; buildForm(); return; }
   if(!FIELDS[view]) return;
@@ -6789,6 +6802,7 @@ const LABEL_F = {
   needs:"need", diagnoses:"statement", insights:"claim", decisions:"title",
   assumptions:"statement", signals:"signal", radar:"force", rights:"decision",
 };
+function openLbl(coll,txt){ return t("a11y.open")+" "+singL(coll).toLowerCase()+(txt?": "+txt:""); }
 function entityLabel(coll,o){
   if(!o) return "";
   const k=LABEL_F[coll];
@@ -7064,7 +7078,7 @@ function configReady(){
 }
 function setAccount(){
   const n=$("#account"); if(!n||!USER) return;
-  n.innerHTML = `<div class="acct-email" title="${esc(USER.email||"")}">${esc(USER.email||"Signed in")}</div>
+  n.innerHTML = `<div class="acct-email" title="${esc(USER.email||"")}">${esc(USER.email||t("prof.signedin"))}</div>
     <button class="acct-out" id="signOutBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>${esc(t("signout"))}</button>`;
   $("#signOutBtn").onclick=signOut;
 }
