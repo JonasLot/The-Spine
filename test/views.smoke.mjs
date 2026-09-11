@@ -106,7 +106,7 @@ try {
              SEED, SYSTEMS, T, FIELDS, FORM_TABS, buildForm, saveForm,
              setEditing:v=>{editing=v}, getEditing:()=>editing,
              drawerBody:()=>document.querySelector("#drawerB"),
-             CV_LINKS, CV_COLL, CV_KINDS, cvRelations};
+             CV_LINKS, CV_COLL, CV_KINDS, cvRelations, openGoal, openValue};
   `)();
 } catch (err) {
   console.log("  ✗ app.html lastet ikke i det hele tatt");
@@ -180,6 +180,48 @@ console.log("verdikjeden pa strategikortet");
   const tx = txt("stX");
   ok(tx.includes(app.T.en["sv.nogoal.t"]),
      "strategi uten mal far beskjed om at kjeden ikke har noe sted a begynne");
+  app.setDB(structuredClone(app.SEED));
+}
+
+console.log("verdikjeden pa malkortet");
+{
+  for (const lang of ["en", "no"]) {
+    app.setLang(lang);
+    app.openGoal("g3");                       // g3 -> o4 -> v1, v2
+    const d = app.drawerBody().deepText || "";
+    ok(d.includes("Foresatte bruker mindre tid") && d.includes("Saksbehandlerne f"),
+       `malskuffen viser begge gevinstene som er lovet under g3 (${lang})`);
+    ok(d.includes(app.T[lang]["gv.head"]),
+       `malskuffen har overskriften for verdien som er lovet (${lang})`);
+  }
+  app.setLang("en");
+  // et mal ingen har verdsatt skal si det, ikke vise en tom liste
+  const db = structuredClone(app.SEED);
+  db.values = [];
+  app.setDB(db);
+  app.openGoal("g3");
+  ok((app.drawerBody().deepText || "").includes(app.T.en["gv.none"]),
+     "mal uten en eneste verdipastand far beskjed om at ingenting er lovet");
+  app.setDB(structuredClone(app.SEED));
+}
+
+console.log("gevinstspørsmalet i gjennomgangen");
+{
+  for (const lang of ["en", "no"]) {
+    app.setLang(lang);
+    const r = app.ctx.vReview().deepText || "";
+    ok(r.includes(app.T[lang]["rev.v"]), `gjennomgangen har gevinststeget (${lang})`);
+    ok(r.includes("Programmet frigj\u00f8r driftsmidler"),
+       `gevinsten som henger pa et utfall pa sporet star som kort (${lang})`);
+  }
+  app.setLang("en");
+  // ingen gevinst pa et utfall pa sporet: steget skal si det, ikke forsvinne
+  const db = structuredClone(app.SEED);
+  db.values = [];
+  app.setDB(db);
+  const r2 = app.ctx.vReview().deepText || "";
+  ok(r2.includes(app.T.en["rev.v"]) && r2.includes(app.T.en["rev.empty.val.t"]),
+     "steget blir staende med tom tilstand nar ingen gevinst skal sjekkes");
   app.setDB(structuredClone(app.SEED));
 }
 

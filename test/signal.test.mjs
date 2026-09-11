@@ -78,6 +78,7 @@ const harness = [
   func("outcomesUncategorised"), func("outcomeCatCounts"),
   func("valuesOf"), func("outcomesWithoutValue"), func("valueGap"),
   func("valueWeak"), func("valueChain"), decl("VAL_SCOPE_RANK"),
+  func("valuesOfGoal"), func("outcomesUnvaluedOfGoal"),
   func("valuesOfStrategy"), func("outcomesUnvaluedFor"),
   func("rightHolder"), func("rightVetoHolder"), func("rightsDrift"),
   func("decisionsOfRight"), oneLine(/const RIGHT_STALE_DAYS\s*=/), func("rightUnexercised"),
@@ -92,7 +93,8 @@ const harness = [
   func("buildSharePayload"), func("shareUrl"),
   "let REVIEW_SESSION=null;", "let stratF='*';",
   func("reviewSessionStart"), func("reviewNoteSignal"), func("reviewNoteBet"),
-  func("reviewChanged"), func("closeReview"),
+  func("reviewChanged"), func("closeReview"), func("reviewNoteValue"),
+  func("strategiesOfValue"), func("valuesDue"),
   "function uid(p){return p+Math.random().toString(36).slice(2,8)}",
   "function save(){}",
   "let SHARES=[];", func("shareOf"), func("shareStale"),
@@ -108,7 +110,8 @@ const harness = [
   "STRAT_FW,LENSES,LENSES_NO,lensWhen,lensAnatomy,lensSmells,smellsFlagged," +
   "lensFields,lensDerive,lensVal,artifactEmpty,routeLens,KEEP_KEYS,premortemCandidates," +
   "buildSharePayload,shareUrl,shareStale,setShares:v=>{SHARES=v}," +
-  "reviewNoteSignal,reviewNoteBet,reviewChanged,closeReview," +
+  "reviewNoteSignal,reviewNoteBet,reviewChanged,closeReview,reviewNoteValue," +
+  "strategiesOfValue,valuesDue,setStratF:v=>{stratF=v}," +
   "radarStatus,radarWeight,radarThreatening,RADAR_DUE," +
   "radarChart,RADAR_RINGS,RADAR_DOMS,parseRadarText,radarMapValue," +
   "LABEL_F,OPT_PREFIX,optL," +
@@ -122,7 +125,7 @@ const harness = [
   "recentReviews,betFundedStuck,betsFundedStuck,nothingStarved,commitCounts," +
   "OUT_CATS,outcomesOfGoal,goalsProductOnly,outcomesUncategorised,outcomeCatCounts," +
   "valuesOf,outcomesWithoutValue,valueGap,valueWeak,valueChain," +
-  "valuesOfStrategy,outcomesUnvaluedFor," +
+  "valuesOfGoal,outcomesUnvaluedOfGoal,valuesOfStrategy,outcomesUnvaluedFor," +
   "rightHolder,rightVetoHolder,rightsDrift,decisionsOfRight,rightUnexercised," +
   "nameMatches,decisionMandate,rightsOrphans,rightsOutside,rightsDrifted,rightWeak," +
   "RIGHT_RANK,RIGHT_STALE_DAYS," +
@@ -138,6 +141,7 @@ const {
   lensFields, lensDerive, lensVal, artifactEmpty, routeLens, KEEP_KEYS, premortemCandidates,
   buildSharePayload, shareUrl, shareStale, setShares,
   reviewNoteSignal, reviewNoteBet, reviewChanged, closeReview, resetReview,
+  reviewNoteValue, strategiesOfValue, valuesDue, setStratF,
   radarStatus, radarWeight, radarThreatening, RADAR_DUE,
   radarChart, RADAR_RINGS, RADAR_DOMS, parseRadarText, radarMapValue,
   LABEL_F, OPT_PREFIX, optL,
@@ -151,7 +155,7 @@ const {
   recentReviews, betFundedStuck, betsFundedStuck, nothingStarved, commitCounts,
   OUT_CATS, outcomesOfGoal, goalsProductOnly, outcomesUncategorised, outcomeCatCounts,
   valuesOf, outcomesWithoutValue, valueGap, valueWeak, valueChain,
-  valuesOfStrategy, outcomesUnvaluedFor,
+  valuesOfGoal, outcomesUnvaluedOfGoal, valuesOfStrategy, outcomesUnvaluedFor,
   rightHolder, rightVetoHolder, rightsDrift, decisionsOfRight, rightUnexercised,
   nameMatches, decisionMandate, rightsOrphans, rightsOutside, rightsDrifted, rightWeak,
   RIGHT_RANK, RIGHT_STALE_DAYS,
@@ -1352,6 +1356,87 @@ ok(outcomesUnvaluedFor(null).length === 0, "ingen strategi gir ingen flagg");
 ["sv.head","sv.hint","sv.count.one","sv.count.many","sv.nogoal.t","sv.nogoal.d",
  "sv.none.t","sv.none.d","sv.unval.one","sv.unval.many"].forEach(k =>
   ok(T.en[k] !== undefined && T.no[k] !== undefined, k + " finnes i begge sprak"));
+
+group("verdikjede pa malkortet - samme kjede, ett ledd hoyere");
+fullDB();
+ok(valuesOfGoal("g2").map(r => r.value.id).sort().join(",") === "v3,v4",
+   "g2 baerer gevinstene som folger av utfallene sine");
+ok(valuesOfGoal("g3").map(r => r.value.id).sort().join(",") === "v1,v2",
+   "g3 baerer begge gevinstene fra det ene utfallet sitt");
+ok(valuesOfGoal("g2").every(r => r.goal.id === "g2" && r.outcome.goalId === "g2"),
+   "hver rad horer til malet den ble lest fra");
+ok(valuesOfGoal("finnes-ikke").length === 0, "ukjent mal gir ingen kjede");
+ok(outcomesUnvaluedOfGoal("finnes-ikke").length === 0, "ukjent mal gir ingen flagg");
+// Malkortet og strategikortet ma lese SAMME kjede - ellers driver de fra hverandre.
+{
+  const st1 = SEED.strategies.find(s => s.id === "st1");
+  const fraMal = (st1.serves || []).flatMap(g => valuesOfGoal(g).map(r => r.value.id)).sort().join(",");
+  ok(fraMal === valuesOfStrategy(st1).map(r => r.value.id).sort().join(","),
+     "strategien arver nøyaktig malenes kjede - ingen egen utledning");
+}
+setDB({ goals:[{id:"gA"}], strategies:[], signals:[], values:[{id:"vA", fromOutcome:"oA"}],
+        outcomes:[{id:"oA", goalId:"gA"}, {id:"oB", goalId:"gA"}] });
+ok(outcomesUnvaluedOfGoal("gA").map(o => o.id).join() === "oB",
+   "utfallet ingen har verdsatt flagges pa malet det horer til");
+["gv.head","gv.via","gv.none","gv.unval.one","gv.unval.many"].forEach(k =>
+  ok(T.en[k] !== undefined && T.no[k] !== undefined, k + " finnes i begge sprak"));
+
+group("gevinsten i gjennomgangen - hvilke sporsmal som stilles");
+fullDB(); setStratF("*");
+// Seed: bare o3 er pa sporet, og v5 henger pa den og har ikke landet.
+ok(valuesDue().map(v => v.id).join() === "v5",
+   "gjennomgangen spor om driftsbesparelsen - den ene gevinsten som skulle vist seg");
+setDB({ goals:[], signals:[], strategies:[],
+        outcomes:[{id:"oA", state:"on-track"}],
+        values:[{id:"vA", fromOutcome:"oA", state:"realised"}] });
+ok(valuesDue().length === 0, "en gevinst som allerede er realisert spores ikke igjen");
+setDB({ goals:[], signals:[], strategies:[],
+        outcomes:[{id:"oA", state:"off-track"}],
+        values:[{id:"vA", fromOutcome:"oA", state:"claimed"}] });
+ok(valuesDue().length === 0,
+   "utfallet er ikke naadd - da er det for tidlig a spore om gevinsten kom");
+setDB({ goals:[], signals:[], strategies:[], outcomes:[],
+        values:[{id:"vA", state:"claimed"}] });
+ok(valuesDue().length === 0, "gevinst uten utfall har ingen bro a spore over");
+// Sporsmalet folger strategifilteret, akkurat som signalene og bettene.
+fullDB();
+setStratF(SEED.strategies.find(s => s.id === "st2").name);   // tjener g1 -> o3 -> v5
+ok(valuesDue().map(v => v.id).join() === "v5", "filtrert pa TOFF star gevinsten igjen");
+setStratF(SEED.strategies.find(s => s.id === "st3").name);   // tjener g3, ikke o3
+ok(valuesDue().length === 0, "filtrert pa en annen strategi faller den bort");
+setStratF("*");
+ok(strategiesOfValue(SEED.values.find(v => v.id === "v5")).map(s => s.id).sort().join(",") === "st1,st2",
+   "v5 baeres av begge strategiene som tjener g1");
+ok(strategiesOfValue({}).length === 0, "verdi uten utfall baeres av ingen strategi");
+["rev.v","rev.v.h","rev.v.saw","rev.v.log","rev.b.val","rev.b.vals",
+ "rev.empty.val.t","rev.empty.val.d","rev.arch.missed","val.obs","val.noobs"].forEach(k =>
+  ok(T.en[k] !== undefined && T.no[k] !== undefined, k + " finnes i begge sprak"));
+ok(FIELDS.values.some(f => f.k === "observed") && FLD_NO.values.observed !== undefined,
+   "«hva vi faktisk sa» finnes i skjemaet pa begge sprak");
+
+group("gevinsten i gjennomgangen - okten og arkivet");
+{
+  const fresh = () => { setDB({ signals:[], assumptions:[], goals:[], decisions:[],
+    values:[], strategies:SEED.strategies, reviews:[] }); resetReview(); };
+  fresh();
+  reviewNoteValue({ id:"vA", claim:"gevinst", state:"claimed" }, "claimed", "");
+  ok(reviewChanged() === 0, "gevinst lagret uten endring og uten observasjon teller ikke");
+  reviewNoteValue({ id:"vB", claim:"b", state:"not-materialised" }, "claimed", "");
+  ok(reviewChanged() === 1, "gevinst som flyttet tilstand teller");
+  reviewNoteValue({ id:"vC", claim:"c", state:"claimed" }, "claimed", "lisensen loper fortsatt");
+  ok(reviewChanged() === 2, "observasjon teller selv uten tilstandsendring");
+  reviewNoteValue({ id:"vC", claim:"c", state:"partial" }, "claimed", "");
+  ok(reviewChanged() === 2, "samme gevinst igjen oppdaterer, dobbelttelles ikke");
+  const rec = closeReview("");
+  ok((rec.values || []).length === 3, "arkivet husker alle tre gevinstene okten ror ved");
+  ok(rec.gainsMissed === 1, "arkivet teller gevinsten som uteble");
+  ok(rec.values.find(v => v.id === "vC").to === "partial",
+     "siste tilstand vinner, ikke den forste");
+  fresh();
+  reviewNoteSignal({ id:"s1", signal:"x", state:"disagreeing" }, "drifting", "12");
+  ok(closeReview("").gainsMissed === 0,
+     "en gjennomgang uten gevinster rort gir null uteblitte, ikke undefined");
+}
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,

@@ -488,6 +488,17 @@ a{color:inherit}
 .ch-step.miss .v{color:var(--warn);font-style:italic}
 .ch-arr{display:flex;align-items:center;padding:0 9px;font-size:10.5px;font-style:italic;
   color:var(--ink-3);background:var(--panel);border-left:1px solid var(--line);border-right:1px solid var(--line);white-space:nowrap}
+.gv-list{display:flex;flex-direction:column;gap:1px;background:var(--line-2);
+  border:1px solid var(--line-2);border-radius:var(--r-sm);overflow:hidden;margin-top:7px}
+.gv-row{background:var(--panel);padding:10px 12px;display:flex;gap:10px;
+  align-items:flex-start;justify-content:space-between;cursor:pointer}
+.gv-row:hover{background:var(--bg-2)}
+.gv-row .c{font-size:12.5px;line-height:1.4;text-wrap:pretty;min-width:0}
+.gv-row .via{font-size:11px;color:var(--ink-3);margin-top:3px;line-height:1.4}
+.gv-row.gap{background:var(--warn-bg)}
+.gv-row.gap .c{color:var(--warn);font-weight:600}
+.gv-empty{font-size:12.5px;color:var(--ink-3);font-style:italic;margin-top:6px}
+.gv-warn{font-size:12px;color:var(--warn);margin-top:8px;line-height:1.5}
 .sv-sum{padding:14px 18px;border-bottom:1px solid var(--line-2);font-size:13px;color:var(--ink-2);line-height:1.5}
 .sv-sum b{color:var(--ink)}
 .sv-sum .gap{display:block;margin-top:5px;color:var(--warn);font-weight:600}
@@ -1525,7 +1536,7 @@ const T = {
     "kpi.coverage":"Goal coverage", "kpi.coverage.s":"goals served by ≥1 strategy",
     "vh.dashboard":`<h1>Am I moving toward the goal?</h1><p>One read of the whole apparatus. The bets the strategy rests on, the signals watching them, and what disagrees with you right now.</p>`,
     "vh.strategies":`<div><h1>Strategies</h1><p>The canonical artifacts — the single authoritative statement of each strategy that everything else points to. Each one carries a one-page kernel and owns its bets, signals and decisions. This is what the registers orbit.</p></div>`,
-    "vh.review":`<h1>Operating Rhythm</h1><p>The heartbeat. Read the signals, re-rate the bets, and end in a decision — otherwise the review is theatre. Everything you change here is logged.</p>`,
+    "vh.review":`<h1>Operating Rhythm</h1><p>The heartbeat. Read the signals, re-rate the bets, ask whether the gain landed, and end in a decision — otherwise the review is theatre. Everything you change here is logged.</p>`,
     "vh.flywheel":`<h1>The Flywheel</h1><p>The spine is flow — done once per strategy. The standing systems are reservoirs and loops: they accumulate and feed back, so the organisation gets smarter on every pass instead of starting cold.</p>`,
     "vh.systems":`<h1>Standing Systems</h1><p>The ten systems that make strategy repeatable. All ten are now instrumented — every card below opens the register that carries it, and each one names what dies without it. Three registers sit outside the ten, because the framework never named them: Needs (who we serve, and whether we heard it or assumed it), Diagnoses (the difficulty each strategy answers) and Value (why an outcome was worth reaching).</p>`,
     "vh.profile":`<h1>Profile</h1><p>Your account details and the organisations you belong to.</p>`,
@@ -1598,6 +1609,10 @@ const T = {
     "sv.none.t":"No gain derived","sv.none.d":"The outcomes under this strategy's goals carry no value claim. You are measuring a change without saying what it is worth.",
     "sv.unval.one":"outcome under this strategy carries no value claim:",
     "sv.unval.many":"outcomes under this strategy carry no value claim:",
+    "gv.head":"The value promised under it","gv.via":"through",
+    "gv.none":"No gain is promised under this goal yet - you are steering towards it without saying what it is worth.",
+    "gv.unval.one":"outcome under this goal carries no value claim.",
+    "gv.unval.many":"outcomes under this goal carry no value claim.",
     "vh.rights.t":"Decision Rights","vh.rights.d":"Who can say yes, who can say no, and who must be heard first — set against who actually decided.",
     "nav.rights":"Decision Rights","dr.eye.right":"Decision class",
     "th.class":"Decision class","th.saysyes":"Says yes","th.saysno":"Can say no","th.consulted":"Consulted",
@@ -1691,6 +1706,12 @@ const T = {
     "rev.b.note":"A disagreeing signal must change something. Close the review by logging the decision it produced.",
     "rev.empty.sig.t":"Nothing drifting.","rev.empty.sig.d":"No signal is disagreeing in this view. Keep the readings flowing on the rhythm anyway.",
     "rev.empty.asm.t":"All bets steady.","rev.empty.asm.d":"No shaky or broken assumptions in this view.",
+    "rev.v":"Ask whether the gain landed","rev.v.h":"The outcome is on track — so is anyone better off yet?",
+    "rev.v.saw":"What you actually saw, e.g. licence cost still running…","rev.v.log":"Log what landed",
+    "rev.b.val":"gain to check","rev.b.vals":"gains to check",
+    "rev.empty.val.t":"Nothing to check.","rev.empty.val.d":"No gain is riding on an outcome that is on track in this view. The question returns the moment one is.",
+    "rev.arch.missed":"did not land",
+    "val.obs":"What we actually saw","val.noobs":"Nobody has looked yet — the claim is still only a claim.",
     "rev.3.body":"Capture the call this review produced — a HOLD, a re-scope, a resource move, a kill. It lands in the <b style='color:var(--ink)'>Decision Log</b> with the bets it rests on.",
     "rev.3.btn":"Log the decision",
     "org.empty.t":"No organisations yet.","org.empty.d":"Click “Add organisation” to link one.",
@@ -1869,7 +1890,7 @@ const T = {
     "kpi.coverage":"Måldekning", "kpi.coverage.s":"mål tjent av ≥1 strategi",
     "vh.dashboard":`<h1>Beveger jeg meg mot målet?</h1><p>Ett blikk på hele apparatet. Bettene strategien hviler på, signalene som overvåker dem, og hva som er uenig med deg akkurat nå.</p>`,
     "vh.strategies":`<div><h1>Strategier</h1><p>De kanoniske artefaktene — den ene autoritative formuleringen av hver strategi som alt annet peker mot. Hver bærer en énsides kjerne og eier sine bets, signaler og beslutninger. Det er dette registrene kretser rundt.</p></div>`,
-    "vh.review":`<h1>Driftsrytme</h1><p>Hjerteslaget. Les signalene, revurder bettene, og avslutt med en beslutning — ellers er gjennomgangen teater. Alt du endrer her blir logget.</p>`,
+    "vh.review":`<h1>Driftsrytme</h1><p>Hjerteslaget. Les signalene, revurder bettene, spør om gevinsten landet, og avslutt med en beslutning — ellers er gjennomgangen teater. Alt du endrer her blir logget.</p>`,
     "vh.flywheel":`<h1>Svinghjulet</h1><p>Ryggraden er flyt — gjøres én gang per strategi. De stående systemene er reservoarer og løkker: de akkumulerer og gir tilbakekobling, så organisasjonen blir smartere for hver runde i stedet for å starte kaldt.</p>`,
     "vh.systems":`<h1>Stående systemer</h1><p>De ti systemene som gjør strategi repeterbar. Alle ti er nå instrumentert — hvert kort under åpner registeret som bærer det, og navngir hva som dør uten det. Tre registre står utenfor de ti, fordi rammeverket aldri navnga dem: Behov (hvem vi tjener, og om vi hørte det eller antok det), Diagnoser (vanskeligheten hver strategi svarer på) og Verdi (hvorfor utfallet var verdt å nå).</p>`,
     "vh.profile":`<h1>Profil</h1><p>Kontodetaljene dine og organisasjonene du tilhører.</p>`,
@@ -1942,6 +1963,10 @@ const T = {
     "sv.none.t":"Ingen gevinst utledet","sv.none.d":"Utfallene under målene denne strategien tjener bærer ingen verdipåstand. Dere måler en endring uten å si hva den er verdt.",
     "sv.unval.one":"utfall under denne strategien bærer ingen verdipåstand:",
     "sv.unval.many":"utfall under denne strategien bærer ingen verdipåstand:",
+    "gv.head":"Verdien som er lovet under det","gv.via":"gjennom",
+    "gv.none":"Ingen gevinst er lovet under dette målet ennå — dere styrer mot det uten å ha sagt hva det er verdt.",
+    "gv.unval.one":"utfall under dette målet bærer ingen verdipåstand.",
+    "gv.unval.many":"utfall under dette målet bærer ingen verdipåstand.",
     "vh.rights.t":"Beslutningsrettigheter","vh.rights.d":"Hvem som kan si ja, hvem som kan si nei, og hvem som må høres først — holdt opp mot hvem som faktisk bestemte.",
     "nav.rights":"Beslutningsrettigheter","dr.eye.right":"Beslutningsklasse",
     "th.class":"Beslutningsklasse","th.saysyes":"Sier ja","th.saysno":"Kan si nei","th.consulted":"Konsulteres",
@@ -2035,6 +2060,12 @@ const T = {
     "rev.b.note":"Et uenig signal må endre noe. Avslutt gjennomgangen med å loggføre beslutningen den ga.",
     "rev.empty.sig.t":"Ingenting driver.","rev.empty.sig.d":"Ingen signaler er uenige i denne visningen. Hold avlesningene i gang på rytmen likevel.",
     "rev.empty.asm.t":"Alle bets står støtt.","rev.empty.asm.d":"Ingen vaklende eller brutte antakelser i denne visningen.",
+    "rev.v":"Spør om gevinsten landet","rev.v.h":"Utfallet er på sporet — har noen fått det bedre ennå?",
+    "rev.v.saw":"Hva dere faktisk så, f.eks. lisenskostnaden løper fortsatt…","rev.v.log":"Loggfør det som landet",
+    "rev.b.val":"gevinst å sjekke","rev.b.vals":"gevinster å sjekke",
+    "rev.empty.val.t":"Ingenting å sjekke.","rev.empty.val.d":"Ingen gevinst hviler på et utfall som er på sporet i denne visningen. Spørsmålet kommer tilbake i det øyeblikket en gjør det.",
+    "rev.arch.missed":"uteble",
+    "val.obs":"Hva vi faktisk så","val.noobs":"Ingen har sett etter ennå — påstanden er fortsatt bare en påstand.",
     "rev.3.body":"Fang beslutningen denne gjennomgangen ga — en HOLD, en omfangsendring, en ressursflytting, en avslutning. Den havner i <b style='color:var(--ink)'>Beslutningsloggen</b> med bettene den hviler på.",
     "rev.3.btn":"Loggfør beslutningen",
     "org.empty.t":"Ingen organisasjoner ennå.","org.empty.d":"Klikk «Legg til organisasjon» for å koble en.",
@@ -3316,7 +3347,7 @@ function matrixPanel(rows){
 // gjør Operating Rhythm til et register og Learning Loop til noe synlig.
 let REVIEW_SESSION = null;
 function reviewSessionStart(){
-  if(!REVIEW_SESSION) REVIEW_SESSION={started:new Date().toISOString(), strategy:stratF, signals:[], bets:[]};
+  if(!REVIEW_SESSION) REVIEW_SESSION={started:new Date().toISOString(), strategy:stratF, signals:[], bets:[], values:[]};
   return REVIEW_SESSION;
 }
 function reviewNoteSignal(s, from, reading){
@@ -3332,20 +3363,28 @@ function reviewNoteBet(a, fromState, fromConf){
   r.bets.push({id:a.id, statement:L(a,"statement"), from:fromState, to:a.state,
                confFrom:fromConf, confTo:a.confidence});
 }
+function reviewNoteValue(v, fromState, observed){
+  const r=reviewSessionStart();
+  const prev=(r.values=r.values||[]).find(x=>x.id===v.id);
+  if(prev){ prev.to=v.state; if(observed) prev.observed=observed; return; }
+  r.values.push({id:v.id, claim:L(v,"claim"), from:fromState, to:v.state, observed:observed||""});
+}
 // Endret noe seg? "Hvis ingenting endret seg, var det teater."
 function reviewChanged(){
   const r=REVIEW_SESSION; if(!r) return 0;
   return r.signals.filter(x=>x.from!==x.to||x.reading).length
-       + r.bets.filter(x=>x.from!==x.to||x.confFrom!==x.confTo).length;
+       + r.bets.filter(x=>x.from!==x.to||x.confFrom!==x.confTo).length
+       + (r.values||[]).filter(x=>x.from!==x.to||x.observed).length;
 }
 function closeReview(decisionId){
   const r=REVIEW_SESSION; if(!r) return null;
   const rec={
     id:uid("rv"), date:new Date().toISOString().slice(0,10),
     strategy:r.strategy==="*"?"":r.strategy,
-    signals:r.signals, bets:r.bets,
+    signals:r.signals, bets:r.bets, values:r.values||[],
     decision:decisionId||"",
     betsBroken:r.bets.filter(b=>b.to==="broken"&&b.from!=="broken").length,
+    gainsMissed:(r.values||[]).filter(v=>v.to==="not-materialised"&&v.from!=="not-materialised").length,
   };
   (DB.reviews=DB.reviews||[]).push(rec);
   REVIEW_SESSION=null;
@@ -3363,12 +3402,13 @@ function vReview(){
   // NB: må stå etter både sigs og asmp. Leste asmp før deklarasjonen én gang —
   // temporal dead zone, og hele visningen kastet og rendret tomt.
   // test/views.smoke.mjs fanger den klassen nå.
+  const vals=valuesDue();
   const sugCount=sigs.filter(s=>suggestSignalState(s)).length
                 + asmp.filter(a=>assumptionFollowUp(a)).length;
 
   const banner=el("div","rev-banner");
   banner.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-    <div><b>${sigs.length}</b> ${esc(t(sigs.length===1?"rev.b.sig":"rev.b.sigs"))} · <b>${asmp.length}</b> ${esc(t(asmp.length===1?"rev.b.bet":"rev.b.bets"))}${sugCount?` · <b>${sugCount}</b> ${esc(t("rev.b.sug"))}`:""}${stratF!=="*"?` · ${esc(t("rev.b.in"))} <b>${esc(stratF)}</b>`:""}.
+    <div><b>${sigs.length}</b> ${esc(t(sigs.length===1?"rev.b.sig":"rev.b.sigs"))} · <b>${asmp.length}</b> ${esc(t(asmp.length===1?"rev.b.bet":"rev.b.bets"))}${vals.length?` · <b>${vals.length}</b> ${esc(t(vals.length===1?"rev.b.val":"rev.b.vals"))}`:""}${sugCount?` · <b>${sugCount}</b> ${esc(t("rev.b.sug"))}`:""}${stratF!=="*"?` · ${esc(t("rev.b.in"))} <b>${esc(stratF)}</b>`:""}.
     <div style="font-size:12.5px;color:var(--accent-ink);margin-top:3px">${esc(t("rev.b.note"))}</div></div>`;
   w.appendChild(banner);
 
@@ -3387,8 +3427,15 @@ function vReview(){
       .forEach(a=>ap.appendChild(reviewAssumptionCard(a)));
   w.appendChild(ap);
 
-  // Step 3 — end in a decision
-  w.appendChild(el("div","rev-step",`<span class="num">3</span><h2>${esc(t("rev.3"))}</h2><span class="hint">${esc(t("rev.3.h"))}</span>`));
+  // Step 3 — did the gain land? Utfallet er broen; her spørres den andre enden.
+  w.appendChild(el("div","rev-step",`<span class="num">3</span><h2>${esc(t("rev.v"))}</h2><span class="hint">${esc(t("rev.v.h"))}</span>`));
+  const vpn=el("div","grid"); vpn.style.gap="12px";
+  if(!vals.length){ vpn.appendChild(el("div","panel",`<div class="empty"><span class="serif">${esc(t("rev.empty.val.t"))}</span>${esc(t("rev.empty.val.d"))}</div>`)); }
+  vals.forEach(v=>vpn.appendChild(reviewValueCard(v)));
+  w.appendChild(vpn);
+
+  // Step 4 — end in a decision
+  w.appendChild(el("div","rev-step",`<span class="num">4</span><h2>${esc(t("rev.3"))}</h2><span class="hint">${esc(t("rev.3.h"))}</span>`));
   const dp=el("div","panel panel-pad");
   dp.style.display="flex"; dp.style.justifyContent="space-between"; dp.style.alignItems="center"; dp.style.gap="16px"; dp.style.flexWrap="wrap";
   const changed=reviewChanged();
@@ -3427,9 +3474,13 @@ function vReview(){
           ${moved.length?`<div class="mv">${moved.map(b=>
             `<span class="chg">${esc(trunc(b.statement,44))} <b>${esc(t("state."+b.from)||b.from)} → ${esc(t("state."+b.to)||b.to)}</b></span>`
           ).join("")}</div>`:""}
+          ${(()=>{ const mv=(r.values||[]).filter(v=>v.from!==v.to); return mv.length
+            ? `<div class="mv">${mv.map(v=>`<span class="chg">${esc(trunc(v.claim,44))} <b>${esc(t("state."+v.from)||v.from)} → ${esc(t("state."+v.to)||v.to)}</b></span>`).join("")}</div>`
+            : ""; })()}
           ${dec?`<div class="dec">${esc(t("rev.arch.dec"))}: ${esc(trunc(L(dec,"title"),60))}</div>`:""}
         </div>
-        ${r.betsBroken?`<span class="badge b-bad"><span class="dot"></span>${r.betsBroken} ${esc(t("rev.arch.broke"))}</span>`:""}`;
+        ${r.betsBroken?`<span class="badge b-bad"><span class="dot"></span>${r.betsBroken} ${esc(t("rev.arch.broke"))}</span>`:""}
+        ${r.gainsMissed?`<span class="badge b-warn"><span class="dot"></span>${r.gainsMissed} ${esc(t("rev.arch.missed"))}</span>`:""}`;
       ap2.appendChild(row);
     });
   }
@@ -3479,6 +3530,41 @@ function reviewSignalCard(s){
     saveData(); flash.classList.add("on"); setTimeout(()=>{ render(); },650);
   };
   ctrl.appendChild(inp); ctrl.appendChild(num); ctrl.appendChild(seg); ctrl.appendChild(save); ctrl.appendChild(flash);
+  c.appendChild(ctrl);
+  return c;
+}
+// Gevinstkortet. Det spor om ETT: kom den? Og det krever at du skriver hva
+// du sa - en tilstandsendring uten observasjon er akkurat det teateret
+// gjennomgangen finnes for a hindre.
+function reviewValueCard(raw){
+  const v=trView(raw);
+  const o=raw.fromOutcome?trView(byId("outcomes",raw.fromOutcome)):null;
+  const c=el("div","panel rev-card");
+  c.innerHTML=`<div class="rh"><div class="stmt">${esc(L(v,"claim"))}</div>${stateBadge(raw.state)}</div>
+    <div style="font-size:12.5px;color:var(--ink-2)">${o?`${esc(trunc(L(o,"statement"),64))} · ${esc(t("state."+o.state)||o.state)}`:esc(t("val.nooutcome"))}
+      ${L(v,"size")?` · ${esc(L(v,"size"))}`:""}</div>
+    <div style="font-size:12px;color:var(--ink-3)">${esc(t("val.ev"))}: ${esc(trunc(L(v,"evidence")||t("val.noev"),96))}</div>`;
+  const ctrl=el("div","ctrl");
+  const inp=el("input"); inp.placeholder=t("rev.v.saw");
+  const seg=el("div","seg");
+  ["claimed","partial","realised","not-materialised"].forEach(o2=>{
+    const b=el("button",o2===raw.state?"on":""); b.type="button"; b.textContent=t("state."+o2);
+    b.onclick=()=>{ seg.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); seg.dataset.val=o2; };
+    seg.appendChild(b);
+  });
+  seg.dataset.val=raw.state||"claimed";
+  const sv=el("button","btn pri",t("rev.v.log"));
+  const flash=el("span","saved-flash",t("rev.logged"));
+  sv.onclick=()=>{
+    const today=new Date().toISOString().slice(0,10);
+    const txt=inp.value.trim();
+    const was=raw.state;
+    raw.state=seg.dataset.val;
+    if(txt){ raw.observed=txt+" ("+today+")"; inp.value=""; }
+    reviewNoteValue(raw, was, txt);
+    saveData(); flash.classList.add("on"); setTimeout(()=>{ render(); },650);
+  };
+  ctrl.appendChild(inp); ctrl.appendChild(seg); ctrl.appendChild(sv); ctrl.appendChild(flash);
   c.appendChild(ctrl);
   return c;
 }
@@ -5475,6 +5561,8 @@ function openValue(id){
     <p class="note">${esc(L(v,"mechanism")||t("val.nomech"))}</p>
     <div class="lbl-mini">${esc(t("val.ev"))}</div>
     <p class="note">${esc(L(v,"evidence")||t("val.noev"))}</p>
+    <div class="lbl-mini">${esc(t("val.obs"))}</div>
+    <p class="note">${esc(L(v,"observed")||t("val.noobs"))}</p>
     ${ch.signal?`<div class="lbl-mini">${esc(t("val.measured"))}</div><div class="link-row"><a class="linkc" onclick="openSignal('${ch.signal.id}')"><span class="tk">${esc(t("state."+ch.signal.state)||ch.signal.state)}</span>${esc(trunc(L(ch.signal,"signal"),38))}</a></div>`:""}
     ${weak.length?`<div class="val-warn">${esc(t("val.weak.warn"))} ${weak.map(k=>esc(t("val.weak."+k))).join(" · ")}</div>`:""}
     ${L(v,"note")?`<div class="lbl-mini">${esc(t("th.note"))}</div><p class="note">${esc(L(v,"note"))}</p>`:""}`;
@@ -6141,8 +6229,27 @@ function openGoal(id){
     <div style="${KVH}">${esc(t("dr.outcomes"))}</div>
     <div class="link-row">${os.length?os.map(o=>`<a class="linkc" onclick="openOutcome('${o.id}')"><span class="tk">${esc(t("state."+o.state)||o.state)}</span>${esc(L(o,"statement").slice(0,40))}…</a>`).join(""):`<span class="badge b-mute"><span class="dot"></span>${esc(t("dr.nomeasure"))}</span>`}</div>
     <div style="${KVH};margin-top:14px">${esc(t("dr.served"))}</div>
-    <div class="link-row">${strs.length?strs.map(s=>`<a class="linkc" onclick="goToStrategy('${s.id}')"><span class="tk">${esc(t("tk.strategy"))}</span>${esc(s.name.slice(0,36))}</a>`).join(""):`<span class="badge b-warn"><span class="dot"></span>${esc(t("dr.uncovered"))}</span>`}</div>`;
+    <div class="link-row">${strs.length?strs.map(s=>`<a class="linkc" onclick="goToStrategy('${s.id}')"><span class="tk">${esc(t("tk.strategy"))}</span>${esc(s.name.slice(0,36))}</a>`).join(""):`<span class="badge b-warn"><span class="dot"></span>${esc(t("dr.uncovered"))}</span>`}</div>
+    ${goalValueBlock(id)}`;
   drawerFoot("goals",id); openDrawer();
+}
+// Verdien som er lovet under malet - utledet gjennom utfallene, ikke
+// erklaert pa malet. Samme kjede som pa strategikortet, lest ett ledd hoyere.
+function goalValueBlock(gid){
+  const rows=valuesOfGoal(gid), unval=outcomesUnvaluedOfGoal(gid);
+  if(!rows.length && !unval.length) return "";
+  const gapIds=new Set(valueGap().map(v=>v.id));
+  const list = rows.length
+    ? `<div class="gv-list">` + rows.map(r=>{
+        const vv=trView(r.value), ov=trView(r.outcome);
+        return `<div class="gv-row${gapIds.has(r.value.id)?" gap":""}" role="button" tabindex="0" onclick="openValue('${r.value.id}')">`
+          + `<div class="c">${esc(trunc(L(vv,"claim"),70))}`
+          + `<div class="via">${esc(t("gv.via"))} ${esc(trunc(L(ov,"statement"),44))} · ${esc(t("val.cur."+(vv.currency||"time")))}</div></div>`
+          + stateBadge(vv.state) + `</div>`;
+      }).join("") + `</div>`
+    : `<div class="gv-empty">${esc(t("gv.none"))}</div>`;
+  return `<div style="${KVH};margin-top:14px">${esc(t("gv.head"))}</div>${list}`
+    + (unval.length?`<div class="gv-warn"><b>${unval.length}</b> ${esc(t(unval.length===1?"gv.unval.one":"gv.unval.many"))}</div>`:"");
 }
 function openOutcome(id){
   const o = trView(byId("outcomes",id)); if(!o) return;
@@ -6256,6 +6363,7 @@ const FIELDS = {
     {k:"mechanism",l:"…so that…",t:"textarea",ph:"How the outcome turns into this gain. If you cannot write it, the link is a hope."},
     {k:"state",l:"State",t:"seg",opts:["claimed","partial","realised","not-materialised"]},
     {k:"evidence",l:"How we'd know it landed",t:"textarea",ph:"What you would see if the gain is real — not the outcome's number again"},
+    {k:"observed",l:"What we actually saw",t:"textarea",ph:"What came back when you looked — written in the review, not in advance"},
     {k:"size",l:"Rough size",t:"text",ph:"e.g. ~400 hours a year, ~1.2 MNOK, 3 fewer weeks"},
     {k:"owner",l:"Owner",t:"text"},
     {k:"note",l:"Note",t:"textarea"},
@@ -6350,6 +6458,7 @@ const FLD_NO = {
     mechanism:["…slik at…","Hvordan utfallet blir til denne gevinsten. Klarer du ikke skrive det, er koblingen et håp."],
     state:["Tilstand",""],
     evidence:["Hvordan vi vet at den landet","Hva du ville sett hvis gevinsten er ekte — ikke utfallets tall om igjen"],
+    observed:["Hva vi faktisk så","Det som kom tilbake da dere så etter — skrives i gjennomgangen, ikke på forhånd"],
     size:["Omtrentlig størrelse","f.eks. ~400 timer i året, ~1,2 MNOK, 3 uker kortere"],
     owner:["Eier",""], note:["Notat",""],
   },
@@ -6467,25 +6576,45 @@ function outcomesWithoutValue(){
 // kjeden kan LESES: strategien tjener mål, målene bærer utfall, utfallene
 // bærer verdikrav. Utledet hver gang, aldri lagret — derfor kan en strategi
 // ikke hevde en gevinst uten å si hva som endrer seg.
-function valuesOfStrategy(st){
+// Kjeden leses fra malet ut: malet baerer utfall, utfallene baerer verdi.
+// Strategien arver den gjennom malene den tjener - én utledning, to kort.
+function valuesOfGoal(gid){
+  const g=byId("goals",gid); if(!g) return [];
   const rows=[];
-  if(!st) return rows;
-  [...new Set(st.serves||[])].forEach(gid=>{
-    const g=byId("goals",gid); if(!g) return;
-    outcomesOfGoal(gid).forEach(o=>valuesOf(o.id).forEach(v=>rows.push({goal:g,outcome:o,value:v})));
-  });
+  outcomesOfGoal(gid).forEach(o=>valuesOf(o.id).forEach(v=>rows.push({goal:g,outcome:o,value:v})));
   return rows;
+}
+function outcomesUnvaluedOfGoal(gid){
+  if(!byId("goals",gid)) return [];
+  return outcomesOfGoal(gid).filter(o=>!valuesOf(o.id).length);
+}
+function valuesOfStrategy(st){
+  if(!st) return [];
+  return [...new Set(st.serves||[])].flatMap(gid=>valuesOfGoal(gid));
 }
 // Den andre enden av samme kjede: utfall strategien jobber mot som ingen har
 // verdsatt. Da måler dere en endring uten å ha sagt hva den er verdt.
 function outcomesUnvaluedFor(st){
-  const out=[];
-  if(!st) return out;
-  [...new Set(st.serves||[])].forEach(gid=>{
-    if(!byId("goals",gid)) return;
-    outcomesOfGoal(gid).forEach(o=>{ if(!valuesOf(o.id).length) out.push(o); });
+  if(!st) return [];
+  return [...new Set(st.serves||[])].flatMap(gid=>outcomesUnvaluedOfGoal(gid));
+}
+// Hvilken strategi baerer gevinsten? Utledet samme vei som kjeden, brukt
+// av gjennomgangen til a folge strategifilteret.
+function strategiesOfValue(v){
+  const o=v&&v.fromOutcome?byId("outcomes",v.fromOutcome):null;
+  if(!o||!o.goalId) return [];
+  return (DB.strategies||[]).filter(st=>(st.serves||[]).includes(o.goalId));
+}
+// Gjennomgangen skal spore om gevinsten landet naar utfallet har kommet dit
+// gevinsten skulle vise seg - og pastanden fortsatt bare er en pastand.
+// Uten dette spores gapet forst i ettertid, som er for sent til a gjore noe.
+function valuesDue(){
+  return (DB.values||[]).filter(v=>{
+    if(v.state==="realised") return false;
+    const o=v.fromOutcome ? byId("outcomes",v.fromOutcome) : null;
+    if(!o || o.state!=="on-track") return false;
+    return stratF==="*" || strategiesOfValue(v).some(st=>st.name===stratF);
   });
-  return out;
 }
 // Den viktige svikten: utfallet er nådd, men gevinsten uteble.
 // "Vi traff tallet og ingen fikk det bedre."
