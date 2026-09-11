@@ -716,6 +716,13 @@ a{color:inherit}
   padding:7px 10px;font-size:12.5px;background:var(--panel);color:var(--ink);font-family:inherit}
 .cv-dsearch:focus{outline:none;border-color:var(--accent)}
 .cv-dbody{overflow-y:auto;padding:6px 12px 24px;min-height:0}
+.cv-dtabs{display:flex;gap:4px;margin:10px 0 4px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.cv-dtabs button{flex:1;min-width:0;border:1px solid transparent;background:none;border-radius:8px;
+  padding:6px 8px;font-weight:600;font-size:11.5px;color:var(--ink-3);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;overflow:hidden}
+.cv-dtabs button:hover{color:var(--ink)}
+.cv-dtabs button.on{background:var(--accent-soft);border-color:var(--accent-soft);color:var(--accent-ink)}
+.cv-dtabs .cv-n{font-size:10px;opacity:.6;font-variant-numeric:tabular-nums}
 .cv-dgrp{margin-top:12px}
 .cv-dgrp h3{margin:0 0 7px;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
   color:var(--ink-3);font-weight:700;display:flex;align-items:center;gap:7px}
@@ -1523,7 +1530,7 @@ const T = {
     "prof.name":"Display name","prof.noname":"Set your name","prof.orgrm":"Remove organisation",
     "prof.signedin":"Signed in",
     "exp.nofmt":"No markdown format defined for this register yet.","exp.empty":"Nothing to export in this view.",
-    "a11y.open":"Open","a11y.lang":"Language",
+    "a11y.open":"Open","a11y.lang":"Language","cv.tabempty":"Everything here is already on the canvas.",
     "strat.canon":"Canonical artifact","strat.owner":"owner","strat.derived":"derived from the","strat.cites":"Everything else cites this.","strat.unowned":"unowned",
     "op.1":"1 · The challenge","op.2":"2 · Our approach","op.3":"3 · The big moves","op.4":"4 · What we are NOT doing","op.5":"5 · How we'll know it's working",
     "vh.radar.t":"Environmental Radar","vh.radar.d":"What is moving out there that your diagnosis does not yet account for.",
@@ -1860,7 +1867,7 @@ const T = {
     "prof.name":"Visningsnavn","prof.noname":"Sett navnet ditt","prof.orgrm":"Fjern organisasjon",
     "prof.signedin":"Innlogget",
     "exp.nofmt":"Ingen markdown-format er definert for dette registeret ennå.","exp.empty":"Ingenting å eksportere i denne visningen.",
-    "a11y.open":"Åpne","a11y.lang":"Språk",
+    "a11y.open":"Åpne","a11y.lang":"Språk","cv.tabempty":"Alt her ligger allerede på lerretet.",
     "strat.canon":"Kanonisk artefakt","strat.owner":"eier","strat.derived":"avledet fra","strat.cites":"Alt annet siterer denne.","strat.unowned":"ingen eier",
     "op.1":"1 · Utfordringen","op.2":"2 · Vår tilnærming","op.3":"3 · De store trekkene","op.4":"4 · Det vi IKKE gjør","op.5":"5 · Hvordan vi vet at det virker",
     "vh.radar.t":"Omgivelsesradar","vh.radar.d":"Hva som er i bevegelse der ute som diagnosen din ennå ikke tar høyde for.",
@@ -4435,12 +4442,21 @@ function renderCanvas(host, opts={}){
     }
     paint();
   }
+  /* Skuffen deles i faner som følger CV_GROUPS — samme inndeling som
+     lagbaren og navigasjonen. Med tolv nodetyper ble én rullende liste for
+     lang til å finne noe i.
+
+     To ting står utenfor fanene med vilje: forslagene, som går på tvers av
+     typer og er det eneste smarte i skuffen, og søket — søker du, vil du
+     lete i alt, ikke i den fanen du tilfeldigvis står i. */
+  let dTab = 0;
   function paintDrawer(){
     const placedIds=new Set(cvPlaced().map(n=>n.id));
     const pool=cvAll().filter(n=>!placedIds.has(n.id))
       .filter(n=>!dq || cvTitle(n.kind,n.o).toLowerCase().includes(dq) || t("cv.k."+n.kind).toLowerCase().includes(dq));
     const sug=pool.filter(n=>ties(n.id)>0).sort((a,b)=>ties(b.id)-ties(a.id));
     const sset=new Set(sug.map(n=>n.id));
+    const rest=pool.filter(n=>!sset.has(n.id));
     drawerEl.innerHTML="";
     const group=(lbl,list,isSug)=>{
       if(!list.length) return;
@@ -4449,9 +4465,25 @@ function renderCanvas(host, opts={}){
       drawerEl.appendChild(g);
     };
     group(t("cv.suggested"), sug.slice(0,10), true);
-    group(t("grp.direction"), pool.filter(n=>["goal","outcome"].includes(n.kind)&&!sset.has(n.id)), false);
-    group(t("nav.strategies"), pool.filter(n=>n.kind==="strategy"&&!sset.has(n.id)), false);
-    group(t("grp.registers"), pool.filter(n=>["insight","assumption","signal","decision"].includes(n.kind)&&!sset.has(n.id)), false);
+
+    const inTab=(g)=>rest.filter(n=>g.kinds.includes(n.kind));
+    if(dq){
+      // Søk går på tvers av fanene — ellers leter du i feil rom.
+      CV_GROUPS.forEach(g=>group(t(g.lbl||"nav.strategies"), inTab(g), false));
+    } else {
+      const bar=el("div","cv-dtabs");
+      CV_GROUPS.forEach((g,i)=>{
+        const n=inTab(g).length;
+        const b=el("button",i===dTab?"on":"",`${esc(t(g.lbl||"nav.strategies"))}<span class="cv-n">${n}</span>`);
+        b.type="button"; b.onclick=()=>{ dTab=i; paintDrawer(); };
+        bar.appendChild(b);
+      });
+      drawerEl.appendChild(bar);
+      const g=CV_GROUPS[dTab]||CV_GROUPS[0];
+      const list=inTab(g);
+      if(list.length) list.forEach(n=>drawerEl.appendChild(pill(n,false)));
+      else drawerEl.appendChild(el("div","cv-dempty",esc(t("cv.tabempty"))));
+    }
     if(!drawerEl.children.length) drawerEl.appendChild(el("div","cv-dempty",esc(dq?t("cv.nohits"):t("cv.allplaced"))));
   }
 
@@ -4464,8 +4496,9 @@ function renderCanvas(host, opts={}){
      Feltdefinisjonene hentes fra FIELDS, så etiketter og valg følger
      språket uten en egen kopi å holde synkron.
      ════════════════════════════════════════════════════════════════ */
-  const CV_TITLE_F = {goal:"title", outcome:"statement", strategy:"name",
-    insight:"claim", assumption:"statement", signal:"signal", decision:"title"};
+  /* Tittelfeltet bor allerede i LABEL_F, per kollesjon. Dette var en fjerde
+     kopi av den samme kunnskapen og manglet de fem nyeste typene. */
+  const CV_TITLE_F = Object.fromEntries(CV_KINDS.map(k=>[k, LABEL_F[CV_COLL[k]]]));
   const CV_QUICK = {
     goal:      ["type","horizon","owner"],
     outcome:   ["state","target","by","baseline"],
@@ -4474,6 +4507,11 @@ function renderCanvas(host, opts={}){
     assumption:["confidence","consequence","state"],
     signal:    ["state","owner","expected_shape"],
     decision:  ["door","owner","area","decided"],
+    need:      ["source","who","lastHeard","owner"],
+    value:     ["state","currency","scope","owner"],
+    diagnosis: ["state","area","owner"],
+    right:     ["state","door","basis","lastUsed"],
+    force:     ["horizon","exposure","movement","checked"],
   };
   /* segment-valgene har egne oversettelser rundt om i appen — bruk dem */
   function cvOptL(k,opt){

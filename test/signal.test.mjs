@@ -69,7 +69,7 @@ const harness = [
   func("needsAssumedButLoadBearing"), func("needStale"), func("needsStale"),
   func("needWeak"), func("needSrcCounts"),
   decl("CV_KINDS"), decl("CV_COLL"), decl("CV_GLYPH"), decl("CV_W"), decl("COLLS"),
-  decl("CV_TOKEN"), decl("CV_GROUPS"),
+  decl("CV_TOKEN"), decl("CV_GROUPS"), decl("CV_QUICK"),
   decl("COMMIT"), decl("COMMIT_W"), oneLine(/const COMMIT_STALE_REVIEWS\s*=/),
   func("liveBets"), func("betsUnfunded"), func("betsFundedBroken"), func("betMovedIn"),
   func("recentReviews"), func("betFundedStuck"), func("betsFundedStuck"),
@@ -116,7 +116,7 @@ const harness = [
   "strategiesOnVoidDiagnosis,diagnosisWeak," +
   "NEED_SRC,NEED_RANK,NEED_STALE_DAYS,outcomesOfNeed,needOf,outcomesWithoutNeed," +
   "needsUnserved,needsAssumedButLoadBearing,needStale,needsStale,needWeak,needSrcCounts," +
-  "CV_KINDS,CV_COLL,CV_GLYPH,CV_W,COLLS,CV_TOKEN,CV_GROUPS," +
+  "CV_KINDS,CV_COLL,CV_GLYPH,CV_W,COLLS,CV_TOKEN,CV_GROUPS,CV_QUICK," +
   "COMMIT,COMMIT_STALE_REVIEWS,liveBets,betsUnfunded,betsFundedBroken,betMovedIn," +
   "recentReviews,betFundedStuck,betsFundedStuck,nothingStarved,commitCounts," +
   "OUT_CATS,outcomesOfGoal,goalsProductOnly,outcomesUncategorised,outcomeCatCounts," +
@@ -144,7 +144,7 @@ const {
   strategiesOnVoidDiagnosis, diagnosisWeak,
   NEED_SRC, NEED_RANK, NEED_STALE_DAYS, outcomesOfNeed, needOf, outcomesWithoutNeed,
   needsUnserved, needsAssumedButLoadBearing, needStale, needsStale, needWeak, needSrcCounts,
-  CV_KINDS, CV_COLL, CV_GLYPH, CV_W, COLLS, CV_TOKEN, CV_GROUPS,
+  CV_KINDS, CV_COLL, CV_GLYPH, CV_W, COLLS, CV_TOKEN, CV_GROUPS, CV_QUICK,
   COMMIT, COMMIT_STALE_REVIEWS, liveBets, betsUnfunded, betsFundedBroken, betMovedIn,
   recentReviews, betFundedStuck, betsFundedStuck, nothingStarved, commitCounts,
   OUT_CATS, outcomesOfGoal, goalsProductOnly, outcomesUncategorised, outcomeCatCounts,
@@ -1087,6 +1087,16 @@ group("strategikartet — nodetypene henger sammen");
   ok(ghost.length === 0, "lagbaren viser ingen type som ikke finnes" + (ghost.length ? ": " + ghost.join(", ") : ""));
   ok(twice.length === 0, "ingen type står i to grupper" + (twice.length ? ": " + twice.join(", ") : ""));
   CV_KINDS.forEach(k => ok(CV_TOKEN[k] !== undefined, "CV_TOKEN dekker " + k));
+
+  // Skuffen grupperte etter en tredje håndholdt liste. Fem typer havnet i
+  // ingen gruppe og var dermed umulige å dra inn på lerretet i det hele tatt.
+  // Nå leser den CV_GROUPS, og denne testen holder den der.
+  CV_KINDS.forEach(k => {
+    ok(CV_QUICK[k] !== undefined, "inspektøren har hurtigfelt for " + k);
+    const bad = (CV_QUICK[k] || []).filter(fk => !(FIELDS[CV_COLL[k]] || []).some(f => f.k === fk));
+    ok(bad.length === 0, `CV_QUICK.${k} peker bare på felt som finnes` + (bad.length ? ": " + bad.join(", ") : ""));
+  });
+  ok(LABEL_F[CV_COLL["need"]] === "need", "skuffens tittelfelt utledes fra LABEL_F");
 
   const src = readFileSync(join(root, "app.html"), "utf8");
   const rows = /const rows=\[([\s\S]*?)\];/.exec(src);
