@@ -60,6 +60,7 @@ const harness = [
   decl("RADAR_DUE"), decl("RADAR_H"), decl("RADAR_E"),
   func("radarStatus"), func("radarWeight"), func("radarThreatening"),
   decl("RADAR_RINGS"), decl("RADAR_DOMS"), func("radarChart"), func("lvl"),
+  decl("LABEL_F"), decl("OPT_PREFIX"), func("optL"),
   decl("DIAG_RANK"), decl("DIAG_DEAD"), func("strategiesOfDiagnosis"), func("diagnosisOf"),
   func("liveStrategy"), func("strategiesWithoutDiagnosis"), func("diagnosesUnanswered"),
   func("diagnosesVoided"), func("strategiesOnVoidDiagnosis"), func("diagnosisWeak"),
@@ -108,6 +109,7 @@ const harness = [
   "reviewNoteSignal,reviewNoteBet,reviewChanged,closeReview," +
   "radarStatus,radarWeight,radarThreatening,RADAR_DUE," +
   "radarChart,RADAR_RINGS,RADAR_DOMS,parseRadarText,radarMapValue," +
+  "LABEL_F,OPT_PREFIX,optL," +
   "DIAG_RANK,DIAG_DEAD,strategiesOfDiagnosis,diagnosisOf,liveStrategy," +
   "strategiesWithoutDiagnosis,diagnosesUnanswered,diagnosesVoided," +
   "strategiesOnVoidDiagnosis,diagnosisWeak," +
@@ -135,6 +137,7 @@ const {
   reviewNoteSignal, reviewNoteBet, reviewChanged, closeReview, resetReview,
   radarStatus, radarWeight, radarThreatening, RADAR_DUE,
   radarChart, RADAR_RINGS, RADAR_DOMS, parseRadarText, radarMapValue,
+  LABEL_F, OPT_PREFIX, optL,
   DIAG_RANK, DIAG_DEAD, strategiesOfDiagnosis, diagnosisOf, liveStrategy,
   strategiesWithoutDiagnosis, diagnosesUnanswered, diagnosesVoided,
   strategiesOnVoidDiagnosis, diagnosisWeak,
@@ -987,6 +990,49 @@ FIELDS.needs.forEach(f =>
   ok(FLD_NO.needs[f.k] !== undefined, "FLD_NO.needs dekker " + f.k));
 ok(FIELDS.outcomes.some(f => f.k === "servesNeed" && f.ref === "needs"),
    "utfallet kan peke på et behov");
+
+group("skjemaet snakker begge språk");
+// Denne finnes fordi nedtrekket for «tjener behov» viste rå ID-er, og fordi
+// segmentknappene sto på engelsk midt i en norsk modal. Begge slapp gjennom
+// alt annet: de er data, ikke kode, og ingen visning kastet.
+{
+  const segMiss = [], refMiss = [], labelMiss = [];
+  for (const coll of Object.keys(FIELDS)) {
+    for (const f of FIELDS[coll]) {
+      if (f.t === "seg") {
+        const p = OPT_PREFIX[f.k];
+        if (!p) { segMiss.push(`${coll}.${f.k} (ingen prefiks)`); continue; }
+        for (const o of f.opts) {
+          if (T.en[p + o] === undefined || T.no[p + o] === undefined)
+            segMiss.push(`${coll}.${f.k}=${o}`);
+        }
+      }
+      if (f.t === "ref" || f.t === "multiref") {
+        if (!LABEL_F[f.ref]) { refMiss.push(`${coll}.${f.k} → ${f.ref}`); continue; }
+        const target = FIELDS[f.ref];
+        if (target && !target.some(x => x.k === LABEL_F[f.ref]))
+          labelMiss.push(`${f.ref}.${LABEL_F[f.ref]}`);
+      }
+    }
+  }
+  ok(segMiss.length === 0,
+     "hvert segmentvalg har en etikett på begge språk" + (segMiss.length ? ": " + segMiss.join(", ") : ""));
+  ok(refMiss.length === 0,
+     "hver ref-kollesjon har et tittelfelt, ellers viser nedtrekket rå ID-er" +
+     (refMiss.length ? ": " + refMiss.join(", ") : ""));
+  ok(labelMiss.length === 0,
+     "tittelfeltet finnes faktisk i målkollesjonen" + (labelMiss.length ? ": " + labelMiss.join(", ") : ""));
+}
+ok(optL("state","holding") !== "holding" || T.no["state.holding"] === "holding",
+   "optL slår opp tilstander");
+setLang("no");
+ok(optL("source","assumed") === "Antatt", "optL oversetter behovskilden");
+ok(optL("category","user") === "Brukerutfall", "optL oversetter utfallskategorien");
+ok(optL("commitment","heavy") === "Mye", "optL oversetter innsatsbåndet");
+ok(optL("finnesikke","xyz") === "xyz", "en ukjent nøkkel gir verdien tilbake, ikke tomt");
+setLang("en");
+Object.keys(LABEL_F).forEach(c =>
+  ok(COLLS.includes(c), "LABEL_F." + c + " er en kollesjon som finnes"));
 
 group("strategikartet — nodetypene henger sammen");
 {
