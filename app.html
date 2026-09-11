@@ -37,6 +37,8 @@
   --val:#6F7A2E;    --val-bg:#F0F2E2;
   --right:#8A4A8C;  --right-bg:#F3E8F4;
   --force:#55687A;  --force-bg:#EBEFF3;
+  --need:#4A57A0;   --need-bg:#EAECF7;
+  --diag:#94502E;   --diag-bg:#F6EAE2;
   --outcome:#1C7C8C; --outcome-bg:#E3F1F3;
 
   /* states */
@@ -391,6 +393,23 @@ a{color:inherit}
 .val-weak{font-size:11.5px;color:var(--warn);font-weight:600;margin-top:5px}
 .val-warn{margin-top:16px;padding:11px 13px;border-radius:var(--r-sm);background:var(--warn-bg);
   color:var(--warn);font-size:12.5px;line-height:1.5}
+.nd-banner{display:flex;gap:13px;align-items:flex-start;padding:15px 18px;border-radius:var(--r-md);
+  background:var(--sense-bg);border:1px solid transparent;margin-bottom:16px;color:var(--sense)}
+.nd-banner.hot{background:var(--warn-bg);color:var(--warn)}
+.nd-banner svg{width:19px;height:19px;flex:none;margin-top:1px}
+.nd-banner .sub{font-size:12.5px;color:var(--ink-2);margin-top:6px;max-width:78ch;line-height:1.5}
+/* Kilden er hele falsifiserbarheten: antatt er ikke feil, men det er ikke hørt. */
+.chip.ns-assumed{background:var(--warn-bg);color:var(--warn)}
+.chip.ns-heard{background:var(--sense-bg);color:var(--sense)}
+.chip.ns-verified{background:var(--good-bg);color:var(--good)}
+.chip.ns-unset{background:var(--mute-bg);color:var(--mute);font-style:italic}
+.dg-banner{display:flex;gap:13px;align-items:flex-start;padding:15px 18px;border-radius:var(--r-md);
+  background:var(--accent-soft);border:1px solid transparent;margin-bottom:16px;color:var(--accent-ink)}
+.dg-banner.hot{background:var(--bad-bg);color:var(--bad)}
+.dg-banner svg{width:19px;height:19px;flex:none;margin-top:1px}
+.dg-banner .sub{font-size:12.5px;color:var(--ink-2);margin-top:6px;max-width:78ch;line-height:1.5}
+.op-diag{margin-top:9px}
+.op-diag.none{font-size:12.5px;color:var(--warn);font-style:italic}
 .cm-banner{display:flex;gap:13px;align-items:flex-start;padding:15px 18px;border-radius:var(--r-md);
   background:var(--mem-bg);border:1px solid transparent;margin-bottom:16px;color:var(--mem)}
 .cm-banner svg{width:19px;height:19px;flex:none;margin-top:1px}
@@ -672,6 +691,8 @@ a{color:inherit}
 .cv-assumption{--kc:var(--align);--kbg:var(--align-bg);width:178px;border-left:3px solid var(--align)}
 .cv-signal{--kc:var(--feed);--kbg:var(--feed-bg);width:178px;border-left:3px solid var(--feed)}
 .cv-decision{--kc:var(--mem);--kbg:var(--mem-bg);width:178px;border-left:3px solid var(--mem)}
+.cv-need{--kc:var(--need);--kbg:var(--need-bg);width:190px;border-left:3px solid var(--need)}
+.cv-diagnosis{--kc:var(--diag);--kbg:var(--diag-bg);width:212px;border-left:3px solid var(--diag)}
 .cv-value{--kc:var(--val);--kbg:var(--val-bg);width:190px;border-left:3px solid var(--val)}
 .cv-right{--kc:var(--right);--kbg:var(--right-bg);width:190px;border-left:3px solid var(--right)}
 .cv-force{--kc:var(--force);--kbg:var(--force-bg);width:190px;border-left:3px solid var(--force)}
@@ -709,6 +730,8 @@ a{color:inherit}
 .cv-p-assumption{--kc:var(--align);--kbg:var(--align-bg)}
 .cv-p-signal{--kc:var(--feed);--kbg:var(--feed-bg)}
 .cv-p-decision{--kc:var(--mem);--kbg:var(--mem-bg)}
+.cv-p-need{--kc:var(--need);--kbg:var(--need-bg)}
+.cv-p-diagnosis{--kc:var(--diag);--kbg:var(--diag-bg)}
 .cv-p-value{--kc:var(--val);--kbg:var(--val-bg)}
 .cv-p-right{--kc:var(--right);--kbg:var(--right-bg)}
 .cv-p-force{--kc:var(--force);--kbg:var(--force-bg)}
@@ -919,6 +942,9 @@ line.cv-rubber{stroke:var(--accent);stroke-width:2.2;stroke-dasharray:6 5;stroke
       <span>Strategy Map</span></a>
 
     <div class="nav-grp" data-grp="direction">Direction</div>
+    <a class="nav-item" data-view="needs">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21s-7-4.4-7-9.5A4.5 4.5 0 0 1 12 8a4.5 4.5 0 0 1 7 3.5C19 16.6 12 21 12 21Z"/><circle cx="12" cy="4" r="1.6"/></svg>
+      <span>Needs</span><span class="ct" data-count="needs">0</span></a>
     <a class="nav-item" data-view="goals">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l2.5 5.3 5.8.8-4.2 4 1 5.7L12 21l-5.1 2.8 1-5.7-4.2-4 5.8-.8L12 3Z"/></svg>
       <span>Goals</span><span class="ct" data-count="goals">0</span></a>
@@ -939,6 +965,9 @@ line.cv-rubber{stroke:var(--accent);stroke-width:2.2;stroke-dasharray:6 5;stroke
     <a class="nav-item" data-view="insights">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.3 1 2.1h6c0-.8.4-1.5 1-2.1A6 6 0 0 0 12 3Z"/></svg>
       <span>Insights</span><span class="ct" data-count="insights">0</span></a>
+    <a class="nav-item" data-view="diagnoses">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/><path d="M11 8v3M11 14h.01"/></svg>
+      <span>Diagnoses</span><span class="ct" data-count="diagnoses">0</span></a>
     <a class="nav-item" data-view="decisions">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
       <span>Decisions</span><span class="ct" data-count="decisions">0</span></a>
@@ -1027,6 +1056,46 @@ line.cv-rubber{stroke:var(--accent);stroke-width:2.2;stroke-dasharray:6 5;stroke
 
 /* ---- seed data (English; adapted from a real worked example) ---- */
 const SEED = {
+  diagnoses: [
+    {id:"dg1", statement:"Legacy systems can neither automate casework nor isolate tenant data, so every municipality carries its own rule interpretation.",
+     area:"Platform", state:"holding", owner:"Jonas", fromInsights:["i1"],
+     evidence:"150+ municipalities on FSkyss/Voyager. Onboarding a tenant needs code, not configuration. No shared rule engine exists.",
+     note:"The difficulty the whole programme answers. Not «we want a modern platform» — the obstacle is that the old ones cannot hold the ambition."},
+    {id:"dg2", statement:"CMP is decommissioned on 31.12.2026 and the migration window is fixed, with no slack for a failed cutover.",
+     area:"Platform", state:"holding", owner:"Jonas", fromInsights:[],
+     evidence:"Decommission date is contractual. Statutory service must not break during the window.",
+     note:"A deadline is only a diagnosis when it removes options. This one does."},
+    {id:"dg3", statement:"School admins drop out during onboarding and fall back on support calls, so planning cannot scale without scaling the support team.",
+     area:"On-demand", state:"holding", owner:"Jonas", fromInsights:["i4"],
+     evidence:"62% self-serve by week 4 against a target of 80%. Support tickets per new admin stay above 2.",
+     note:""},
+    {id:"dg4", statement:"~90% of school-transport appeals are overturned — rule application fails systematically, not case by case.",
+     area:"School transport", state:"shaky", owner:"Jonas", fromInsights:["i2"],
+     evidence:"Appeal-overturn rate around 90%. Whether the cause is rule interpretation or application quality is the open M0 question.",
+     note:"Split out of the platform diagnosis, where it had been fused with it. Nothing answers this one directly — the programme assumes the platform fixes it. That assumption is a1, and a1 is shaky."},
+  ],
+  needs: [
+    {id:"nb1", need:"Foresatte trenger å vite om barnet får skyss, uten å måtte forstå regelverket for å finne det ut.",
+     who:"Foresatte", source:"verified", lastHeard:"2026-08-20", owner:"Jonas",
+     evidence:"Klageanalysen: de fleste klagene handler om at utfallet ikke var forstått, ikke om at det var galt. Bekreftet i seks intervjuer.",
+     note:""},
+    {id:"nb2", need:"Saksbehandlere trenger å kunne begrunne et vedtak så det holder i en klage, uten å lete i fire systemer.",
+     who:"Saksbehandlere i PTA-ene", source:"heard", lastHeard:"2026-06-04", owner:"",
+     evidence:"Sagt av tre saksbehandlere i workshop. Ikke målt hvor lang tid det faktisk tar.",
+     note:""},
+    {id:"nb3", need:"Skoleadministratorer trenger å komme i gang med planlegging uten å ringe support.",
+     who:"Skoleadministratorer", source:"assumed", lastHeard:"", owner:"Jonas",
+     evidence:"",
+     note:"Arvet fra On-Demand-piloten og aldri hørt direkte. Et helt utfall og et bet hviler på det."},
+    {id:"nb4", need:"Eleven trenger et forutsigbart skysstilbud fra første skoledag, også når systemene bak skifter.",
+     who:"Eleven og familien", source:"assumed", lastHeard:"", owner:"",
+     evidence:"",
+     note:"Selvsagt nok til at ingen har spurt. Det gjør det ikke til noe vi har hørt."},
+    {id:"nb5", need:"Foresatte med fortrolig adresse trenger å kunne søke uten at adressen eksponeres i saksflyten.",
+     who:"Foresatte med fortrolig adresse", source:"heard", lastHeard:"2025-03-18", owner:"",
+     evidence:"Meldt fra to kommuner. Det finnes et trekk om dette i strategien, men ingen utfall som måler det.",
+     note:"Det tydeligste tilfellet av et behov ingen jobber mot: trekket finnes, utfallet gjør ikke."},
+  ],
   reviews: [
     {id:"rv1", date:"2026-07-31", strategy:"TØFF Migration",
      signals:[{id:"s3", signal:"Statutory deadlines met during the migration window", from:"agreeing", to:"agreeing", reading:"0 breaches"}],
@@ -1139,20 +1208,20 @@ const SEED = {
   ],
 
   strategies: [
-    {id:"st1", name:"Tet Vedtak — Case Platform", framework:"kernel", status:"committed", owner:"Jonas", review:"2026-07-15", version:3, serves:["g1","g2"],
+    {id:"st1", name:"Tet Vedtak — Case Platform", framework:"kernel", status:"committed", owner:"Jonas", review:"2026-07-15", version:3, serves:["g1","g2"], diagnosisId:"dg1",
       challenge:"150+ municipalities run school transport on legacy systems (FSkyss/Voyager) that can neither automate nor isolate tenant data — and ~90% of appeals are overturned, signalling systemic rule-application errors rather than caseworker discretion.",
       approach:"Build one multi-tenant case platform with a transparent, traceable rule engine — so the same decision logic runs everywhere, automates the routine, and makes every outcome auditable.",
       moves:["Verify the rule engine against 30+ historical appeals (M1 checkpoint)","Clear the DPIA gate before any automated decision (Gate 1)","Per-tenant configuration, never per-tenant code","A separate processing flow for confidential addresses"],
       notDoing:["Extending FSkyss/Voyager","Buying off-the-shelf in this phase","Automating non-routine or discretionary cases"],
       howKnow:["Appeal-overturn rate falls as the pilot rolls out","≥60% of ordinary cases fully automated at quality","Zero statutory-deadline breaches"]},
-    {id:"st2", name:"TØFF Migration", framework:"premortem", status:"reviewed", owner:"Jonas", review:"2026-09-01", version:1, serves:["g1"],
+    {id:"st2", name:"TØFF Migration", framework:"premortem", status:"reviewed", owner:"Jonas", review:"2026-09-01", version:1, serves:["g1"], diagnosisId:"dg2",
       relations:[{to:"st1", type:"enables"}],
       challenge:"CMP is decommissioned on 31.12.2026; the TØFF migration must complete inside a fixed window with no break in statutory service delivery.",
       approach:"Sequence the migration into increment T2 with a clean rollback path, validating statutory flows in a shadow run before cutover.",
       moves:["Establish a pre-migration baseline","Stage the cutover with a tested rollback","Validate statutory deadlines in a shadow run"],
       notDoing:["Deferring to T3","A big-bang cutover with no fallback"],
       howKnow:["No measurable service interruption in the window","All statutory deadlines met during cutover"]},
-    {id:"st3", name:"On-Demand Transit Planning", framework:"one-pager", status:"draft", owner:"Jonas", review:"2026-08-10", version:1, serves:["g3"],
+    {id:"st3", name:"On-Demand Transit Planning", framework:"one-pager", status:"draft", owner:"Jonas", review:"2026-08-10", version:1, serves:["g3"], diagnosisId:"dg3",
       challenge:"School admins drop off during onboarding and lean on support calls, capping how fast on-demand planning can scale.",
       approach:"Make onboarding fully self-serve with guided setup, so a new admin reaches first value without a support call.",
       moves:["Guided first-run setup","In-product help at the known drop-off points"],
@@ -1213,10 +1282,10 @@ const SEED = {
       statement:"New school admins reach first value without a support call, so on-demand planning scales without scaling the support team.", note:""},
   ],
   outcomes: [
-    {id:"o1", goalId:"g2", category:"user", statement:"Appeal-overturn rate on school-transport decisions falls", baseline:"~90% overturned", target:"materially lower", by:"2027-Q2", measuredBy:"s1", state:"off-track", note:"Cause not yet understood (M0). The signal currently disagrees."},
-    {id:"o2", goalId:"g2", category:"product", statement:"≥60% of ordinary cases fully automated at quality", baseline:"0%", target:"60%", by:"2027-Q2", measuredBy:"", state:"not-measured", note:"The M3 ambition the business case rests on. No live signal yet — a1 is the underlying bet."},
+    {id:"o1", goalId:"g2", category:"user", servesNeed:"nb2", statement:"Appeal-overturn rate on school-transport decisions falls", baseline:"~90% overturned", target:"materially lower", by:"2027-Q2", measuredBy:"s1", state:"off-track", note:"Cause not yet understood (M0). The signal currently disagrees."},
+    {id:"o2", goalId:"g2", category:"product", servesNeed:"nb1", statement:"≥60% of ordinary cases fully automated at quality", baseline:"0%", target:"60%", by:"2027-Q2", measuredBy:"", state:"not-measured", note:"The M3 ambition the business case rests on. No live signal yet — a1 is the underlying bet."},
     {id:"o3", goalId:"g1", category:"business", statement:"No measurable service interruption during the TØFF migration window", baseline:"clean baseline", target:"0 interruptions", by:"2026-12-31", measuredBy:"s3", state:"on-track", note:"Migration not started; baseline clean."},
-    {id:"o4", goalId:"g3", category:"product", statement:"≥80% of admins self-onboard by week 4", baseline:"62% at week 4", target:"≥80%", by:"2026-Q3", measuredBy:"s4", state:"at-risk", note:"Drifting below target — the signal is watching a6."},
+    {id:"o4", goalId:"g3", category:"product", servesNeed:"nb3", statement:"≥80% of admins self-onboard by week 4", baseline:"62% at week 4", target:"≥80%", by:"2026-Q3", measuredBy:"s4", state:"at-risk", note:"Drifting below target — the signal is watching a6."},
   ]
 };
 
@@ -1335,6 +1404,7 @@ const T = {
     "rel.carries":"carries", "rel.feeds":"feeds", "rel.watches":"watches", "rel.rests":"rests on",
     "rel.shares":"shares {n}",
     "rel.follows":"follows from", "rel.threatens":"threatens", "rel.governs":"is governed by",
+    "rel.answers":"answers", "rel.informs":"informs", "rel.servesneed":"serves",
     "rel.depends-on":"depends on", "rel.enables":"enables", "rel.tension":"in tension with", "rel.related":"related to",
     "vh.goals.t":"Goals", "vh.goals.d":"The destinations the strategies ladder up to. Each goal names why the work exists; a goal no strategy serves is a gap, and a strategy that serves no goal has lost its north star.",
     "vh.outcomes.t":"Outcomes", "vh.outcomes.d":"The measurable change that tells you a goal is being reached. Each outcome carries a baseline, a target and — where one exists — the signal that measures it. This is what 'Am I moving toward the goal?' reads.",
@@ -1356,6 +1426,43 @@ const T = {
     "cm.banner.note":"Spine holds no hours, budget or capacity — that lives in your delivery tooling. What it holds is the claim about which bet the work is buying down, which no delivery tool knows. The claim is only worth something because it can be contradicted: by the distribution, and by the review archive.",
     "cm.chip.unfunded":"unfunded risk","cm.chip.stuck":"no movement","cm.chip.broken":"still funded",
     "cm.stuck.why":"Marked heavily funded, and unmoved across the last three reviews. Either the effort is not real, or it is not working — or you have stopped asking.",
+    "vh.needs.t":"Needs","vh.needs.d":"What the people you serve are trying to get done, and what is in the way. A need does not expire when you ship — it is the standing reason the work exists. The question is never whether it is true, but where you know it from.",
+    "nav.needs":"Needs","dr.eye.need":"Need","cv.k.need":"Need",
+    "th.need":"The need","nd.know":"How we know","nd.lastheard":"Last heard","nd.served":"Served by","nd.serves":"Serves need",
+    "nd.src.assumed":"Assumed","nd.src.heard":"Heard","nd.src.verified":"Verified","nd.src.unset":"not stated",
+    "nd.nobody":"nothing serves this","nd.nonefor":"no need stated","nd.never":"never",
+    "nd.ev":"Where we heard it","nd.noev":"Nothing stated. For an assumption that is honest; for anything else it is a gap.",
+    "nd.load.one":"need is assumed, and an outcome already rests on it.",
+    "nd.load.many":"needs are assumed, and outcomes already rest on them.",
+    "nd.load.chip":"assumed, load-bearing",
+    "nd.load.why":"{n} outcome(s) rest on a need nobody has heard from a real person. This is the cheapest thing to go and check, and the most expensive thing to be wrong about.",
+    "nd.unserved.one":"need has nothing working towards it.","nd.unserved.many":"needs have nothing working towards them.",
+    "nd.noneed.one":"outcome serves no stated need.","nd.noneed.many":"outcomes serve no stated need.",
+    "nd.stale.one":"need was last heard more than a year ago.","nd.stale.many":"needs were last heard more than a year ago.",
+    "nd.stale.why":"You heard this once, and it was a long time ago. The need does not expire — your knowledge of it does.",
+    "nd.banner.note":"A need is not falsified by being wrong; it is weakened by never having been heard. A register where most entries are assumed is a diagnosis of the organisation, not of the people it serves.",
+    "nd.noneed.head":"Outcomes serving no stated need","nd.noneed.hint":"You are changing something nobody has said they need changed",
+    "nd.weak":"Missing","nd.weak.who":"who has it","nd.weak.evidence":"where you heard it",
+    "nd.weak.warn":"This need cannot be traced back to anyone — missing:",
+    "empty.needs.t":"No need written yet.","empty.needs.d":"Start with the person, not the feature: what are they trying to get done, and what is in the way? Then be honest about the third field — whether you heard it, or assumed it.",
+    "vh.diagnoses.t":"Diagnoses","vh.diagnoses.d":"The critical difficulty each strategy answers. The most load-bearing object in the method — and the only one that, when wrong, voids everything resting on it.",
+    "nav.diagnoses":"Diagnoses","dr.eye.diagnosis":"Diagnosis","cv.k.diagnosis":"Diagnosis",
+    "th.difficulty":"The critical difficulty","th.area":"Where it bites",
+    "dg.answered":"Answered by","dg.unanswered":"nothing answers this","dg.rests":"Rests on","dg.insights":"insight(s)",
+    "dg.ev":"Why we believe this is the difficulty","dg.noev":"Nothing stated — then it is a view, not a diagnosis.",
+    "state.wrong":"Diagnosed wrong","state.resolved":"No longer the difficulty",
+    "dg.void.line":"live strategies rest on a diagnosis that is wrong or no longer the difficulty.",
+    "dg.void.chip":"strategies still resting on it",
+    "dg.void.why":"{n} live strategies still answer this diagnosis. Everything they carry — bets, decisions, signals — was argued from a difficulty that no longer holds. Re-read them before the next review, or archive them.",
+    "dg.unans.one":"difficulty has no strategy answering it.","dg.unans.many":"difficulties have no strategy answering them.",
+    "dg.nodiag.one":"live strategy has not said what it answers.","dg.nodiag.many":"live strategies have not said what they answer.",
+    "dg.banner.note":"A diagnosis names the obstacle, not the ambition. It is the one object whose failure invalidates everything above it — so it carries a state like any bet, and a strategy left standing on a broken one is the loudest thing this register can say.",
+    "dg.nodiag.head":"Strategies with no diagnosis","dg.nodiag.hint":"The challenge text is still there — lift it out and it becomes an object you can share and falsify",
+    "dg.promote":"Lift the diagnosis out","dg.nochallenge":"no challenge written",
+    "dg.op.none":"This challenge is not yet a diagnosis — it cannot be shared between strategies or shown to be wrong.",
+    "dg.weak":"Missing","dg.weak.evidence":"evidence","dg.weak.insights":"no insight behind it","dg.weak.area":"where it bites",
+    "dg.weak.warn":"This diagnosis cannot be checked yet — missing:",
+    "empty.diagnoses.t":"No diagnosis written yet.","empty.diagnoses.d":"Name the critical difficulty — the obstacle, not the goal. If your strategies already carry a challenge text, lift it out from the list below and it becomes an object the rest of the instrument can hold on to.",
     "out.cat.lbl":"Kind of outcome",
     "out.cat.user":"User outcome","out.cat.product":"Product outcome","out.cat.business":"Business outcome",
     "out.cat.none":"uncategorised",
@@ -1375,7 +1482,7 @@ const T = {
     "vh.strategies":`<div><h1>Strategies</h1><p>The canonical artifacts — the single authoritative statement of each strategy that everything else points to. Each one carries a one-page kernel and owns its bets, signals and decisions. This is what the registers orbit.</p></div>`,
     "vh.review":`<h1>Operating Rhythm</h1><p>The heartbeat. Read the signals, re-rate the bets, and end in a decision — otherwise the review is theatre. Everything you change here is logged.</p>`,
     "vh.flywheel":`<h1>The Flywheel</h1><p>The spine is flow — done once per strategy. The standing systems are reservoirs and loops: they accumulate and feed back, so the organisation gets smarter on every pass instead of starting cold.</p>`,
-    "vh.systems":`<h1>Standing Systems</h1><p>The ten systems that make strategy repeatable. All ten are now instrumented — every card below opens the register that carries it, and each one names what dies without it. Value is the eleventh: not one of the ten, but the register that says why an outcome was worth reaching.</p>`,
+    "vh.systems":`<h1>Standing Systems</h1><p>The ten systems that make strategy repeatable. All ten are now instrumented — every card below opens the register that carries it, and each one names what dies without it. Three registers sit outside the ten, because the framework never named them: Needs (who we serve, and whether we heard it or assumed it), Diagnoses (the difficulty each strategy answers) and Value (why an outcome was worth reaching).</p>`,
     "vh.profile":`<h1>Profile</h1><p>Your account details and the organisations you belong to.</p>`,
     "vh.insights.t":"Insights", "vh.insights.d":"The stock of what's true. Each claim carries its evidence and a confidence — so strategy rests on what's known, not on whoever shouted loudest. A falsified bet downgrades the insight it rested on.",
     "vh.decisions.t":"Decisions", "vh.decisions.d":"Append-only memory. Every decision records the options rejected and the assumptions it rests on — so nobody re-litigates, and a broken bet tells you which decision to revisit.",
@@ -1620,6 +1727,7 @@ const T = {
     "rel.carries":"bærer", "rel.feeds":"mater", "rel.watches":"overvåker", "rel.rests":"hviler på",
     "rel.shares":"deler {n}",
     "rel.follows":"følger av", "rel.threatens":"truer", "rel.governs":"styres av",
+    "rel.answers":"svarer på", "rel.informs":"informerer", "rel.servesneed":"tjener",
     "rel.depends-on":"avhenger av", "rel.enables":"muliggjør", "rel.tension":"i spenning med", "rel.related":"beslektet med",
     "vh.goals.t":"Mål", "vh.goals.d":"Destinasjonene strategiene ruller opp mot. Hvert mål navngir hvorfor arbeidet finnes; et mål ingen strategi tjener er et gap, og en strategi som ikke tjener noe mål har mistet ledestjernen.",
     "vh.outcomes.t":"Utfall", "vh.outcomes.d":"Den målbare endringen som forteller at et mål nås. Hvert utfall bærer en baseline, et mål-tall og — der det finnes — signalet som måler det. Det er dette «Beveger jeg meg mot målet?» leser.",
@@ -1641,6 +1749,43 @@ const T = {
     "cm.banner.note":"Spine holder verken timer, budsjett eller kapasitet — det bor i leveranseverktøyene dine. Det Spine holder er påstanden om hvilket bet arbeidet kjøper ned, og den kjenner ingen leveranseverktøy. Påstanden er bare verdt noe fordi den kan motsies: av fordelingen, og av gjennomgangsarkivet.",
     "cm.chip.unfunded":"ufinansiert risiko","cm.chip.stuck":"uten bevegelse","cm.chip.broken":"fortsatt finansiert",
     "cm.stuck.why":"Merket med tung innsats, og uten bevegelse på de tre siste gjennomgangene. Enten er innsatsen ikke ekte, eller så virker den ikke — eller du har sluttet å spørre.",
+    "vh.needs.t":"Behov","vh.needs.d":"Hva de du tjener prøver å få til, og hva som står i veien. Et behov utløper ikke når du lanserer — det er den stående grunnen til at arbeidet finnes. Spørsmålet er aldri om det er sant, men hvor du vet det fra.",
+    "nav.needs":"Behov","dr.eye.need":"Behov","cv.k.need":"Behov",
+    "th.need":"Behovet","nd.know":"Hvordan vi vet det","nd.lastheard":"Sist hørt","nd.served":"Tjent av","nd.serves":"Tjener behov",
+    "nd.src.assumed":"Antatt","nd.src.heard":"Hørt","nd.src.verified":"Verifisert","nd.src.unset":"ikke oppgitt",
+    "nd.nobody":"ingenting tjener dette","nd.nonefor":"ingen behov oppgitt","nd.never":"aldri",
+    "nd.ev":"Hvor vi hørte det","nd.noev":"Ingenting oppgitt. For en antakelse er det ærlig; for alt annet er det et hull.",
+    "nd.load.one":"behov er antatt, og et utfall hviler allerede på det.",
+    "nd.load.many":"behov er antatt, og utfall hviler allerede på dem.",
+    "nd.load.chip":"antatt, og bærende",
+    "nd.load.why":"{n} utfall hviler på et behov ingen har hørt fra et ekte menneske. Dette er det billigste å gå og sjekke, og det dyreste å ta feil om.",
+    "nd.unserved.one":"behov har ingenting som jobber mot seg.","nd.unserved.many":"behov har ingenting som jobber mot seg.",
+    "nd.noneed.one":"utfall tjener ikke noe oppgitt behov.","nd.noneed.many":"utfall tjener ikke noe oppgitt behov.",
+    "nd.stale.one":"behov ble sist hørt for over et år siden.","nd.stale.many":"behov ble sist hørt for over et år siden.",
+    "nd.stale.why":"Du hørte dette én gang, og det er lenge siden. Behovet utløper ikke — kunnskapen din om det gjør det.",
+    "nd.banner.note":"Et behov motbevises ikke ved å være feil; det svekkes ved aldri å ha blitt hørt. Et register der flertallet står på antatt er en diagnose av organisasjonen, ikke av menneskene den tjener.",
+    "nd.noneed.head":"Utfall som ikke tjener noe oppgitt behov","nd.noneed.hint":"Du endrer noe ingen har sagt at de trenger endret",
+    "nd.weak":"Mangler","nd.weak.who":"hvem som har det","nd.weak.evidence":"hvor du hørte det",
+    "nd.weak.warn":"Dette behovet kan ikke spores tilbake til noen — mangler:",
+    "empty.needs.t":"Ingen behov skrevet ennå.","empty.needs.d":"Start med mennesket, ikke funksjonen: hva prøver de å få til, og hva står i veien? Vær så ærlig på det tredje feltet — om du hørte det, eller antok det.",
+    "vh.diagnoses.t":"Diagnoser","vh.diagnoses.d":"Den kritiske vanskeligheten hver strategi svarer på. Det mest bærende objektet i metoden — og det eneste som, når det er feil, ugyldiggjør alt som hviler på det.",
+    "nav.diagnoses":"Diagnoser","dr.eye.diagnosis":"Diagnose","cv.k.diagnosis":"Diagnose",
+    "th.difficulty":"Den kritiske vanskeligheten","th.area":"Hvor den biter",
+    "dg.answered":"Svart på av","dg.unanswered":"ingenting svarer på denne","dg.rests":"Hviler på","dg.insights":"innsikt(er)",
+    "dg.ev":"Hvorfor vi tror dette er vanskeligheten","dg.noev":"Ingenting oppgitt — da er det en mening, ikke en diagnose.",
+    "state.wrong":"Feil diagnose","state.resolved":"Ikke lenger vanskeligheten",
+    "dg.void.line":"levende strategier hviler på en diagnose som er feil eller ikke lenger vanskeligheten.",
+    "dg.void.chip":"strategier hviler fortsatt på den",
+    "dg.void.why":"{n} levende strategier svarer fortsatt på denne diagnosen. Alt de bærer — bets, beslutninger, signaler — ble argumentert ut fra en vanskelighet som ikke lenger holder. Les dem om igjen før neste gjennomgang, eller arkiver dem.",
+    "dg.unans.one":"vanskelighet har ingen strategi som svarer på den.","dg.unans.many":"vanskeligheter har ingen strategi som svarer på dem.",
+    "dg.nodiag.one":"levende strategi har ikke sagt hva den svarer på.","dg.nodiag.many":"levende strategier har ikke sagt hva de svarer på.",
+    "dg.banner.note":"En diagnose navngir hindringen, ikke ambisjonen. Den er det ene objektet hvis svikt ugyldiggjør alt over det — derfor bærer den en tilstand som et hvilket som helst bet, og en strategi som blir stående på en brutt diagnose er det høyeste dette registeret kan si.",
+    "dg.nodiag.head":"Strategier uten diagnose","dg.nodiag.hint":"Utfordringsteksten står der fortsatt — løft den ut, så blir den et objekt du kan dele og motbevise",
+    "dg.promote":"Løft diagnosen ut","dg.nochallenge":"ingen utfordring skrevet",
+    "dg.op.none":"Denne utfordringen er ennå ikke en diagnose — den kan verken deles mellom strategier eller vises å være feil.",
+    "dg.weak":"Mangler","dg.weak.evidence":"evidens","dg.weak.insights":"ingen innsikt bak seg","dg.weak.area":"hvor den biter",
+    "dg.weak.warn":"Denne diagnosen kan ikke etterprøves ennå — mangler:",
+    "empty.diagnoses.t":"Ingen diagnose skrevet ennå.","empty.diagnoses.d":"Navngi den kritiske vanskeligheten — hindringen, ikke målet. Hvis strategiene dine allerede bærer en utfordringstekst, løft den ut fra listen under, så blir den et objekt resten av instrumentet kan holde fast i.",
     "out.cat.lbl":"Type utfall",
     "out.cat.user":"Brukerutfall","out.cat.product":"Produktutfall","out.cat.business":"Virksomhetsutfall",
     "out.cat.none":"ukategorisert",
@@ -1660,7 +1805,7 @@ const T = {
     "vh.strategies":`<div><h1>Strategier</h1><p>De kanoniske artefaktene — den ene autoritative formuleringen av hver strategi som alt annet peker mot. Hver bærer en énsides kjerne og eier sine bets, signaler og beslutninger. Det er dette registrene kretser rundt.</p></div>`,
     "vh.review":`<h1>Driftsrytme</h1><p>Hjerteslaget. Les signalene, revurder bettene, og avslutt med en beslutning — ellers er gjennomgangen teater. Alt du endrer her blir logget.</p>`,
     "vh.flywheel":`<h1>Svinghjulet</h1><p>Ryggraden er flyt — gjøres én gang per strategi. De stående systemene er reservoarer og løkker: de akkumulerer og gir tilbakekobling, så organisasjonen blir smartere for hver runde i stedet for å starte kaldt.</p>`,
-    "vh.systems":`<h1>Stående systemer</h1><p>De ti systemene som gjør strategi repeterbar. Alle ti er nå instrumentert — hvert kort under åpner registeret som bærer det, og navngir hva som dør uten det. Verdi er det ellevte: ikke ett av de ti, men registeret som sier hvorfor utfallet var verdt å nå.</p>`,
+    "vh.systems":`<h1>Stående systemer</h1><p>De ti systemene som gjør strategi repeterbar. Alle ti er nå instrumentert — hvert kort under åpner registeret som bærer det, og navngir hva som dør uten det. Tre registre står utenfor de ti, fordi rammeverket aldri navnga dem: Behov (hvem vi tjener, og om vi hørte det eller antok det), Diagnoser (vanskeligheten hver strategi svarer på) og Verdi (hvorfor utfallet var verdt å nå).</p>`,
     "vh.profile":`<h1>Profil</h1><p>Kontodetaljene dine og organisasjonene du tilhører.</p>`,
     "vh.insights.t":"Innsikter", "vh.insights.d":"Beholdningen av det som er sant. Hver påstand bærer sitt bevis og en konfidens — så strategien hviler på det som er kjent, ikke på den som ropte høyest. Et falsifisert bet nedgraderer innsikten det hvilte på.",
     "vh.decisions.t":"Beslutninger", "vh.decisions.d":"Append-only-hukommelse. Hver beslutning registrerer alternativene som ble forkastet og antakelsene den hviler på — så ingen re-litigerer, og et brutt bet forteller deg hvilken beslutning du bør se på igjen.",
@@ -1878,6 +2023,22 @@ function setLang(l){
    selected — but ONLY while a field is still the untouched seed text. Edit
    a strategy and your own wording is shown verbatim in both languages. */
 const SEED_NO = {
+  dg1:{statement:"Legacy-systemene kan verken automatisere saksbehandling eller isolere tenant-data, så hver kommune bærer sin egen regeltolkning.",
+    area:"Plattform",
+    evidence:"150+ kommuner på FSkyss/Voyager. Å onboarde en tenant krever kode, ikke konfigurasjon. Ingen felles regelmotor finnes.",
+    note:"Vanskeligheten hele programmet svarer på. Ikke «vi vil ha en moderne plattform» — hindringen er at de gamle ikke kan bære ambisjonen."},
+  dg2:{statement:"CMP legges ned 31.12.2026 og migreringsvinduet er fast, uten slakk for en mislykket cutover.",
+    area:"Plattform",
+    evidence:"Nedleggelsesdatoen er kontraktsfestet. Lovpålagt tjeneste må ikke brytes i vinduet.",
+    note:"En frist er først en diagnose når den fjerner valgmuligheter. Denne gjør det."},
+  dg3:{statement:"Skoleadministratorer faller fra under onboarding og lener seg på supporttelefoner, så planlegging kan ikke skaleres uten å skalere supportteamet.",
+    area:"On-demand",
+    evidence:"62 % selvbetjener innen uke 4, mot et mål på 80 %. Supporthenvendelser per ny administrator holder seg over 2.",
+    note:""},
+  dg4:{statement:"~90 % av skoleskyss-klagene omgjøres — regelanvendelsen svikter systematisk, ikke sak for sak.",
+    area:"Skoleskyss",
+    evidence:"Omgjøringsrate rundt 90 %. Om årsaken er regeltolkning eller behandlingskvalitet er det åpne M0-spørsmålet.",
+    note:"Splittet ut av plattformdiagnosen, der den lå smeltet sammen med den. Ingenting svarer direkte på denne — programmet antar at plattformen løser den. Den antakelsen er a1, og a1 er vaklende."},
   dr1:{decision:"Milepælsport — GO, HOLD eller betinget GO på en milepæl",
     applies:"Hver port i programplanen (M0–M4, T1–T3)",
     decides:"Partnerforum", decidesReal:"Jonas, bekreftet i etterkant",
@@ -2012,7 +2173,7 @@ function trView(o){
   return out;
 }
 
-const COLLS=["strategies","insights","decisions","assumptions","signals","goals","outcomes","values","reviews","radar","rights"];
+const COLLS=["strategies","insights","decisions","assumptions","signals","goals","outcomes","values","reviews","radar","rights","diagnoses","needs"];
 function stratNames(){ return DB.strategies.map(s=>s.name); }
 function stratByName(n){ return DB.strategies.find(s=>s.name===n); }
 const STRAT_FW={kernel:"Strategy Kernel",cascade:"Playing-to-Win Cascade",wardley:"Wardley Map",premortem:"Pre-mortem","one-pager":"One-Page Strategy"};
@@ -2214,7 +2375,7 @@ async function pushAll(){
   if(_pushAgain){ _pushAgain=false; pushAll(); }
 }
 async function loadAll(){
-  const out={strategies:[],insights:[],decisions:[],assumptions:[],signals:[],goals:[],outcomes:[],values:[],reviews:[],radar:[],rights:[]};
+  const out={strategies:[],insights:[],decisions:[],assumptions:[],signals:[],goals:[],outcomes:[],values:[],reviews:[],radar:[],rights:[],diagnoses:[],needs:[]};
   // Per-table isolation: a missing table degrades to an empty collection instead of killing the whole load.
   const failed=[];
   for(const coll of COLLS){
@@ -2255,7 +2416,9 @@ const STATE_MAP = {
   realised:["b-good","Realised"], partial:["b-warn","Partly realised"],
   claimed:["b-mute","Claimed"], "not-materialised":["b-bad","Did not materialise"],
   aligned:["b-good","Mandate holds"], drifted:["b-warn","Practice has drifted"],
-  unwritten:["b-mute","Unwritten"], contested:["b-bad","Contested"]
+  unwritten:["b-mute","Unwritten"], contested:["b-bad","Contested"],
+  wrong:["b-bad","Diagnosed wrong"], resolved:["b-mute","No longer the difficulty"],
+  assumed:["b-warn","Assumed"], heard:["b-good","Heard"], verified:["b-good","Verified"]
 };
 function stateBadge(s){ const m=STATE_MAP[s]||["b-mute",s]; const lab=T.en["state."+s]?t("state."+s):m[1]; return `<span class="badge ${m[0]}"><span class="dot"></span>${lab}</span>`; }
 function fwL(k){ return T.en["fw."+k]?t("fw."+k):(STRAT_FW[k]||k); }
@@ -2271,14 +2434,14 @@ function byId(coll,id){ return (DB[coll]||[]).find(x=>x.id===id); }
 function render(){
   $("#crumb").textContent = t("nav."+view);
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active", n.dataset.view===view));
-  const isRegister = ["radar","values","rights","insights","decisions","assumptions","signals"].includes(view);
-  const showAdd = ["strategies","radar","values","rights","insights","decisions","assumptions","signals","goals","outcomes","profile"].includes(view) && !currentStrategy;
+  const isRegister = ["needs","radar","values","rights","diagnoses","insights","decisions","assumptions","signals"].includes(view);
+  const showAdd = ["strategies","needs","radar","values","rights","diagnoses","insights","decisions","assumptions","signals","goals","outcomes","profile"].includes(view) && !currentStrategy;
   $("#addBtn").style.display = showAdd ? "inline-flex":"none";
   $("#searchField").style.display = isRegister ? "flex":"none";
   $("#addLabel").textContent = addLabelFor();
   updateCounts();
   const r = $("#root"); r.innerHTML="";
-  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,goals:vGoals,outcomes:vOutcomes,values:vValues,radar:vRadar,rights:vRights,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,shares:vShares,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
+  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,needs:vNeeds,goals:vGoals,outcomes:vOutcomes,values:vValues,radar:vRadar,rights:vRights,diagnoses:vDiagnoses,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,shares:vShares,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
 }
 function reviewDueCount(){
   return DB.signals.filter(s=>s.state==="disagreeing"||s.state==="drifting"||suggestSignalState(s)).length
@@ -2567,7 +2730,13 @@ function vStrategyDetail(id){
   // one-page artifact
   const op=el("div","panel onepage");
   op.innerHTML=`
-    ${opSection(t("op.1"),`<p>${esc(L(s,"challenge")||"—")}</p>`)}
+    ${opSection(t("op.1"),`<p>${esc(L(s,"challenge")||"—")}</p>`+(()=>{
+      const d=diagnosisOf(s);
+      if(d){ const dv=trView(d);
+        return `<div class="op-diag"><a class="linkc" onclick="openDiagnosis('${d.id}')"><span class="tk">${esc(t("cv.k.diagnosis"))} · ${esc(t("state."+dv.state)||dv.state)}</span>${esc(trunc(L(dv,"statement"),46))}</a></div>`; }
+      return String(L(s,"challenge")||"").trim()
+        ? `<div class="op-diag none">${esc(t("dg.op.none"))}</div>` : "";
+    })())}
     ${opSection(t("op.2"),`<p>${esc(L(s,"approach")||"—")}</p>`)}
     ${opSection(t("op.3"),opList(L(s,"moves"),"ol")+`<div class="op-edge">${esc(t("op.3.edge"))}</div>`)}
     ${opSection(t("op.4"),opList(L(s,"notDoing"),"ul"))}
@@ -3322,14 +3491,15 @@ function stratObjectSet(s){
        og ligger i localStorage.
    ════════════════════════════════════════════════════════════════ */
 
-const CV_KINDS = ["goal","outcome","value","strategy","insight","assumption","signal","decision","right","force"];
-const CV_COLL = {goal:"goals", outcome:"outcomes", value:"values", strategy:"strategies",
+const CV_KINDS = ["need","goal","outcome","value","diagnosis","strategy","insight","assumption","signal","decision","right","force"];
+const CV_COLL = {need:"needs", goal:"goals", outcome:"outcomes", value:"values",
+  diagnosis:"diagnoses", strategy:"strategies",
   insight:"insights", assumption:"assumptions", signal:"signals", decision:"decisions",
   right:"rights", force:"radar"};
-const CV_GLYPH = {goal:"M", outcome:"U", value:"V", strategy:"S", insight:"I", assumption:"A",
-  signal:"G", decision:"B", right:"R", force:"K"};
-const CV_W = {strategy:212, goal:190, outcome:190, value:190, insight:178, assumption:178,
-  signal:178, decision:178, right:190, force:190};
+const CV_GLYPH = {need:"N", goal:"M", outcome:"U", value:"V", diagnosis:"D", strategy:"S",
+  insight:"I", assumption:"A", signal:"G", decision:"B", right:"R", force:"K"};
+const CV_W = {strategy:212, diagnosis:212, need:190, goal:190, outcome:190, value:190,
+  insight:178, assumption:178, signal:178, decision:178, right:190, force:190};
 
 /* ---- ett oppslag over alt som kan ligge på lerretet ---- */
 function cvEntity(id){
@@ -3345,7 +3515,8 @@ function cvTitle(k,o){
   return k==="goal"?L(o,"title") : k==="outcome"?L(o,"statement") : k==="strategy"?o.name
        : k==="insight"?L(o,"claim") : k==="assumption"?L(o,"statement")
        : k==="signal"?L(o,"signal") : k==="value"?L(o,"claim")
-       : k==="force"?L(o,"force") : k==="right"?L(o,"decision") : L(o,"title");
+       : k==="force"?L(o,"force") : k==="right"?L(o,"decision")
+       : k==="need"?L(o,"need") : k==="diagnosis"?L(o,"statement") : L(o,"title");
 }
 function cvSub(k,o){
   if(k==="goal")      return (o.horizon||"");
@@ -3358,6 +3529,8 @@ function cvSub(k,o){
   if(k==="value")     return L(o,"beneficiary")||t("val.cur."+(o.currency||"time"));
   if(k==="force")     return t("radar.dom."+(o.domain||"regulatory"));
   if(k==="right")     return rightHolderL(o)||t("rt.nobody");
+  if(k==="need")      return L(o,"who")||t("nd.src."+(o.source||"unset"));
+  if(k==="diagnosis") return L(o,"area")||"";
   return "";
 }
 /* hvilken strategi hører elementet til? brukes av det globale strategifilteret */
@@ -3373,6 +3546,8 @@ function cvStrat(k,o){
   if(k==="value"){ const oc=o.fromOutcome?byId("outcomes",o.fromOutcome):null; return oc?cvStrat("outcome",oc):""; }
   if(k==="force"){ const a=(o.threatens||[]).map(id=>byId("assumptions",id)).find(Boolean); return a?a.strategy||"":""; }
   if(k==="right"){ const d=(DB.decisions||[]).find(x=>x.rightId===o.id); return d?d.strategy||"":""; }
+  if(k==="diagnosis"){ const st=(DB.strategies||[]).find(x=>x.diagnosisId===o.id); return st?st.name:""; }
+  if(k==="need"){ const oc=(DB.outcomes||[]).find(x=>x.servesNeed===o.id); return oc?cvStrat("outcome",oc):""; }
   return "";
 }
 
@@ -3435,6 +3610,18 @@ const CV_LINKS = {
     has:(g,s)=>g.strategy===s.name,
     set:(g,s)=>{ const old=g.strategy||null; g.strategy=s.name; return old; },
     cut:(g)=>{ g.strategy=""; } },
+  answers:{ from:"strategy", to:"diagnosis", rel:"rel.answers", one:true,
+    has:(st,d)=>st.diagnosisId===d.id,
+    set:(st,d)=>{ const old=st.diagnosisId?byId("diagnoses",st.diagnosisId):null; st.diagnosisId=d.id; return old?cvTitle("diagnosis",old):null; },
+    cut:(st)=>{ st.diagnosisId=""; } },
+  informs:{ from:"insight", to:"diagnosis", rel:"rel.informs",
+    has:(i,d)=>(d.fromInsights||[]).includes(i.id),
+    set:(i,d)=>{ (d.fromInsights=d.fromInsights||[]).push(i.id); return null; },
+    cut:(i,d)=>{ d.fromInsights=(d.fromInsights||[]).filter(x=>x!==i.id); } },
+  serves_need:{ from:"outcome", to:"need", rel:"rel.servesneed", one:true,
+    has:(o,n)=>o.servesNeed===n.id,
+    set:(o,n)=>{ const old=o.servesNeed?byId("needs",o.servesNeed):null; o.servesNeed=n.id; return old?cvTitle("need",old):null; },
+    cut:(o)=>{ o.servesNeed=""; } },
   follows:{ from:"value", to:"outcome", rel:"rel.follows", one:true,
     has:(v,o)=>v.fromOutcome===o.id,
     set:(v,o)=>{ const old=v.fromOutcome?byId("outcomes",v.fromOutcome):null; v.fromOutcome=o.id; return old?cvTitle("outcome",old):null; },
@@ -4352,7 +4539,7 @@ function renderCanvas(host, opts={}){
 
   /* ---- Rydd opp: lag på lag, sortert etter naboen, brekt og sentrert ---- */
   function tidy(){
-    const rows=[["goal"],["outcome"],["value"],["strategy"],["assumption"],
+    const rows=[["need"],["goal"],["outcome"],["value"],["diagnosis"],["strategy"],["assumption"],
                 ["insight","signal","decision","right"],["force"]];
     const GAPX=40, GAPY=68, MAXW=1560;
     let y=40;
@@ -4517,19 +4704,30 @@ function mdForce(r){
   const th=(r.threatens||[]).map(id=>{const a=byId("assumptions",id);return a?`\n- [[Assumption — ${a.statement.slice(0,40)}]]`:"";}).join("");
   return `---\ntype: force\nforce: ${yamlStr(r.force)}\ndomain: ${r.domain||""}\nhorizon: ${r.horizon||""}\nexposure: ${r.exposure||""}\nmovement: ${r.movement||""}\nchecked: ${r.checked||""}\nsource: ${yamlStr(r.source)}\ntags: [force, radar]\n---\n\n## Would break these bets${th||"\n- —"}\n\n${r.note||""}\n`;
 }
+function mdNeed(n){
+  const outs=outcomesOfNeed(n.id).map(o=>`\n- [[Outcome — ${String(o.statement).slice(0,40)}]]`).join("")||"\n- —";
+  return `---\ntype: need\nneed: ${yamlStr(n.need)}\nwho: ${yamlStr(n.who)}\nsource: ${n.source||""}\nlast_heard: ${n.lastHeard||""}\nowner: ${yamlStr(n.owner)}\ntags: [need]\n---\n\n## Where we heard it\n${n.evidence||"—"}\n\n## Outcomes serving it${outs}\n\n${n.note||""}\n`;
+}
+function mdDiagnosis(d){
+  const sts=strategiesOfDiagnosis(d.id).map(x=>`\n- [[Strategy — ${x.name}]]`).join("")||"\n- —";
+  const ins=(d.fromInsights||[]).map(id=>{const i=byId("insights",id);return i?`\n- [[Insight — ${String(i.claim).slice(0,40)}]]`:"";}).join("")||"\n- —";
+  return `---\ntype: diagnosis\nstatement: ${yamlStr(d.statement)}\narea: ${yamlStr(d.area)}\nstate: ${d.state||"holding"}\nowner: ${yamlStr(d.owner)}\ntags: [diagnosis]\n---\n\n## Why this is the difficulty\n${d.evidence||"—"}\n\n## Rests on insights${ins}\n\n## Answered by${sts}\n\n${d.note||""}\n`;
+}
 function mdRight(r){
   const li=a=>(a||[]).filter(x=>String(x||"").trim()).map(x=>`\n- ${x}`).join("")||"\n- —";
   const taken=decisionsOfRight(r.id).map(d=>`\n- [[Decision — ${String(d.title).slice(0,40)}]]`).join("")||"\n- —";
   return `---\ntype: decision-right\nclass: ${yamlStr(r.decision)}\napplies: ${yamlStr(r.applies)}\ndoor: ${r.door||"two-way"}\ndecides_on_paper: ${yamlStr(r.decides)}\ndecides_in_practice: ${yamlStr(r.decidesReal||r.decides)}\nveto_on_paper: ${yamlStr(r.veto)}\nveto_in_practice: ${yamlStr(r.vetoReal||r.veto)}\nstate: ${r.state||"aligned"}\nbasis: ${yamlStr(r.basis)}\nlast_exercised: ${r.lastUsed||""}\ntags: [decision-right, governance]\n---\n\n## Must be consulted${li(r.consulted)}\n\n## Informed after${li(r.informed)}\n\n## Decisions taken under this class${taken}\n\n${r.note||""}\n`;
 }
-const MD_FN={insights:mdInsight,decisions:mdDecision,assumptions:mdAssumption,signals:mdSignal,values:mdValue,radar:mdForce,rights:mdRight};
+const MD_FN={insights:mdInsight,decisions:mdDecision,assumptions:mdAssumption,signals:mdSignal,values:mdValue,radar:mdForce,rights:mdRight,diagnoses:mdDiagnosis,needs:mdNeed};
 const MD_TITLE={insights:x=>"Insight — "+x.claim.slice(0,46), decisions:d=>"Decision — "+d.title.slice(0,46), assumptions:a=>"Assumption — "+a.statement.slice(0,46), signals:s=>"Signal — "+s.signal.slice(0,46),
-  values:v=>"Value — "+String(v.claim||"").slice(0,46), radar:r=>"Force — "+String(r.force||"").slice(0,46), rights:r=>"Decision right — "+String(r.decision||"").slice(0,46)};
+  values:v=>"Value — "+String(v.claim||"").slice(0,46), radar:r=>"Force — "+String(r.force||"").slice(0,46), rights:r=>"Decision right — "+String(r.decision||"").slice(0,46),
+  diagnoses:d=>"Diagnosis — "+String(d.statement||"").slice(0,46),
+  needs:n=>"Need — "+String(n.need||"").slice(0,46)};
 function exportRegister(coll){
   // insights carry no strategy field → always export all; others honour the strategy filter
   if(!MD_FN[coll] || !MD_TITLE[coll]){ alert("No markdown format defined for this register yet."); return; }
   // Registre uten strategi-felt (insights, values, radar, rights) filtreres ikke på strategi.
-  const scoped = ["insights","values","radar","rights"].includes(coll);
+  const scoped = ["insights","values","radar","rights","diagnoses","needs"].includes(coll);
   const list = scoped ? (DB[coll]||[]).slice() : DB[coll].filter(x=>matchStrat(x.strategy));
   if(!list.length){ alert("Nothing to export in this view."); return; }
   const parts=list.map(x=>`> ${MD_TITLE[coll](x)}\n\n${MD_FN[coll](x)}`);
@@ -5051,6 +5249,186 @@ function openValue(id){
     ${L(v,"note")?`<div class="lbl-mini">${esc(t("th.note"))}</div><p class="note">${esc(L(v,"note"))}</p>`:""}`;
   drawerFoot("values",id); openDrawer();
 }
+function vDiagnoses(){
+  const w=el("div","view");
+  w.appendChild(headWithExport(t("vh.diagnoses.t"),t("vh.diagnoses.d"),"diagnoses"));
+  const all=(DB.diagnoses||[]).filter(x=>matchQ((x.statement||"")+(x.area||"")+(x.evidence||"")));
+  const voided=diagnosesVoided(), unans=diagnosesUnanswered(), noDiag=strategiesWithoutDiagnosis();
+
+  if(voided.length||unans.length||noDiag.length){
+    const bn=el("div","dg-banner"+(voided.length?" hot":""));
+    bn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 2 21h20L12 3Z"/><path d="M12 10v5M12 18h.01"/></svg>
+      <div>${voided.length?`<div><b>${strategiesOnVoidDiagnosis().length}</b> ${esc(t("dg.void.line"))}</div>`:""}
+      ${unans.length?`<div><b>${unans.length}</b> ${esc(t(unans.length===1?"dg.unans.one":"dg.unans.many"))}</div>`:""}
+      ${noDiag.length?`<div><b>${noDiag.length}</b> ${esc(t(noDiag.length===1?"dg.nodiag.one":"dg.nodiag.many"))}</div>`:""}
+      <div class="sub">${esc(t("dg.banner.note"))}</div></div>`;
+    w.appendChild(bn);
+  }
+
+  const panel=el("div","panel");
+  if(!all.length) return emptyInto(w,panel,t("empty.diagnoses.t"),t("empty.diagnoses.d"));
+  const rows=all.slice().sort((a,b)=>{
+    const ra=DIAG_RANK[a.state]??9, rb=DIAG_RANK[b.state]??9;
+    if(ra!==rb) return ra-rb;
+    return diagnosisWeak(b).length-diagnosisWeak(a).length;
+  });
+  const tb=el("table","tbl");
+  tb.innerHTML=`<thead><tr><th>${esc(t("th.difficulty"))}</th><th>${esc(t("th.area"))}</th><th>${esc(t("th.state"))}</th><th>${esc(t("dg.answered"))}</th><th>${esc(t("dg.rests"))}</th></tr></thead>`;
+  const b=el("tbody");
+  rows.forEach(d=>{ d=trView(d);
+    const sts=strategiesOfDiagnosis(d.id), weak=diagnosisWeak(d);
+    const void_=voided.some(x=>x.id===d.id);
+    const tr=el("tr","row");
+    tr.innerHTML=`<td><div class="stmt">${esc(L(d,"statement"))}</div>
+        ${weak.length?`<div class="val-weak">${esc(t("dg.weak"))}: ${weak.map(k=>esc(t("dg.weak."+k))).join(" · ")}</div>`:""}</td>
+      <td><span class="chip">${esc(L(d,"area")||"—")}</span></td>
+      <td>${stateBadge(d.state)}${void_?` <span class="sug-chip warn">${esc(t("dg.void.chip"))}</span>`:""}</td>
+      <td>${sts.length?sts.map(x=>`<div class="meta">${esc(trunc(x.name,28))}</div>`).join("")
+             :`<span class="val-weak">${esc(t("dg.unanswered"))}</span>`}</td>
+      <td>${(d.fromInsights||[]).length?`<span class="meta">${(d.fromInsights||[]).length} ${esc(t("dg.insights"))}</span>`:`<span class="meta">—</span>`}</td>`;
+    clickable(tr,()=>openDiagnosis(d.id),"Open diagnosis");
+    b.appendChild(tr);
+  });
+  tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
+
+  // Strategier som ikke har sagt hva de svarer på — med knappen som fikser det.
+  if(noDiag.length){
+    w.appendChild(el("div","sect-h",
+      `<h2>${esc(t("dg.nodiag.head"))}</h2><span class="hint">${esc(t("dg.nodiag.hint"))}</span>`));
+    const p2=el("div","panel");
+    noDiag.forEach(st=>{
+      const row=el("div","orph-row");
+      const has=String(L(st,"challenge")||"").trim();
+      row.innerHTML=`<div class="s">${esc(st.name)}
+        ${has?`<div class="meta" style="max-width:70ch;margin-top:4px">${esc(trunc(L(st,"challenge"),120))}</div>`:""}</div>`;
+      const btn=el("button","btn"+(has?" pri":""),esc(has?t("dg.promote"):t("dg.nochallenge")));
+      btn.style.flex="none";
+      if(has) btn.onclick=(e)=>{ e.stopPropagation(); promoteChallenge(st.id); render(); };
+      else btn.disabled=true;
+      row.appendChild(btn);
+      p2.appendChild(row);
+    });
+    w.appendChild(p2);
+  }
+  return w;
+}
+function srcChip(x){
+  const k=NEED_SRC.includes(x)?x:"unset";
+  return `<span class="chip ns-${k}">${esc(t("nd.src."+k))}</span>`;
+}
+function vNeeds(){
+  const w=el("div","view");
+  w.appendChild(headWithExport(t("vh.needs.t"),t("vh.needs.d"),"needs"));
+  const all=(DB.needs||[]).filter(x=>matchQ((x.need||"")+(x.who||"")+(x.evidence||"")));
+  const load=needsAssumedButLoadBearing(), unserved=needsUnserved(),
+        noNeed=outcomesWithoutNeed(), stale=needsStale();
+
+  if(load.length||unserved.length||noNeed.length||stale.length){
+    const bn=el("div","nd-banner"+(load.length?" hot":""));
+    bn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.4-7-9.5A4.5 4.5 0 0 1 12 8a4.5 4.5 0 0 1 7 3.5C19 16.6 12 21 12 21Z"/></svg>
+      <div>${load.length?`<div><b>${load.length}</b> ${esc(t(load.length===1?"nd.load.one":"nd.load.many"))}</div>`:""}
+      ${unserved.length?`<div><b>${unserved.length}</b> ${esc(t(unserved.length===1?"nd.unserved.one":"nd.unserved.many"))}</div>`:""}
+      ${noNeed.length?`<div><b>${noNeed.length}</b> ${esc(t(noNeed.length===1?"nd.noneed.one":"nd.noneed.many"))}</div>`:""}
+      ${stale.length?`<div><b>${stale.length}</b> ${esc(t(stale.length===1?"nd.stale.one":"nd.stale.many"))}</div>`:""}
+      <div class="sub">${esc(t("nd.banner.note"))}</div></div>`;
+    w.appendChild(bn);
+  }
+
+  const panel=el("div","panel");
+  if(!all.length) return emptyInto(w,panel,t("empty.needs.t"),t("empty.needs.d"));
+  // Antatt først — det er de som bærer mest og er minst sjekket.
+  const rows=all.slice().sort((a,b)=>{
+    const la=load.some(x=>x.id===a.id)?0:1, lb=load.some(x=>x.id===b.id)?0:1;
+    if(la!==lb) return la-lb;
+    return (NEED_RANK[a.source]??-1)-(NEED_RANK[b.source]??-1);
+  });
+  const tb=el("table","tbl");
+  tb.innerHTML=`<thead><tr><th>${esc(t("th.need"))}</th><th>${esc(t("th.who"))}</th><th>${esc(t("nd.know"))}</th><th>${esc(t("nd.lastheard"))}</th><th>${esc(t("nd.served"))}</th></tr></thead>`;
+  const b=el("tbody");
+  rows.forEach(n=>{ n=trView(n);
+    const outs=outcomesOfNeed(n.id), weak=needWeak(n);
+    const isLoad=load.some(x=>x.id===n.id), isStale=needStale(n);
+    const tr=el("tr","row");
+    tr.innerHTML=`<td><div class="stmt">${esc(L(n,"need"))}</div>
+        ${weak.length?`<div class="val-weak">${esc(t("nd.weak"))}: ${weak.map(k=>esc(t("nd.weak."+k))).join(" · ")}</div>`:""}</td>
+      <td><div class="meta" style="max-width:22ch">${esc(L(n,"who")||"—")}</div></td>
+      <td>${srcChip(n.source)}${isLoad?` <span class="sug-chip warn">${esc(t("nd.load.chip"))}</span>`:""}</td>
+      <td>${n.lastHeard?`<span class="mono" style="font-size:12px;color:${isStale?"var(--warn)":"var(--ink-2)"}">${esc(n.lastHeard)}</span>`
+             :`<span class="meta">—</span>`}</td>
+      <td>${outs.length?outs.map(o=>`<div class="meta">${esc(trunc(L(trView(o),"statement"),30))}</div>`).join("")
+             :`<span class="val-weak">${esc(t("nd.nobody"))}</span>`}</td>`;
+    clickable(tr,()=>openNeed(n.id),"Open need");
+    b.appendChild(tr);
+  });
+  tb.appendChild(b); panel.appendChild(tb); w.appendChild(panel);
+
+  if(noNeed.length){
+    w.appendChild(el("div","sect-h",
+      `<h2>${esc(t("nd.noneed.head"))}</h2><span class="hint">${esc(t("nd.noneed.hint"))}</span>`));
+    const p2=el("div","panel");
+    noNeed.forEach(o0=>{ const o=trView(o0);
+      const row=el("div","orph-row");
+      row.innerHTML=`<div class="s">${esc(L(o,"statement"))}</div>${catChip(o.category)}`;
+      clickable(row,()=>openOutcome(o.id),"Open outcome");
+      p2.appendChild(row);
+    });
+    w.appendChild(p2);
+  }
+  return w;
+}
+function openNeed(id){
+  const raw=byId("needs",id); if(!raw) return;
+  const n=trView(raw);
+  const outs=outcomesOfNeed(id), weak=needWeak(n);
+  const isLoad=(!n.source||n.source==="assumed") && outs.length;
+  drawerShell(t("dr.eye.need"), `<div style="margin-top:6px">${srcChip(n.source)}</div>`);
+  $("#drawerB").innerHTML=`<h3>${esc(L(n,"need"))}</h3>
+    <dl class="kv">
+      <dt>${esc(t("th.who"))}</dt><dd>${esc(L(n,"who")||"—")}</dd>
+      <dt>${esc(t("nd.know"))}</dt><dd>${srcChip(n.source)}</dd>
+      <dt>${esc(t("nd.lastheard"))}</dt><dd class="mono">${esc(n.lastHeard||t("nd.never"))}</dd>
+      <dt>${esc(t("th.owner"))}</dt><dd>${esc(n.owner||"—")}</dd>
+    </dl>
+    ${isLoad?`<div class="val-warn">${esc(t("nd.load.why").replace("{n}",outs.length))}</div>`:""}
+    ${needStale(n)?`<div class="val-warn">${esc(t("nd.stale.why"))}</div>`:""}
+    <div class="lbl-mini">${esc(t("nd.ev"))}</div>
+    <p class="note">${esc(L(n,"evidence")||t("nd.noev"))}</p>
+    <div class="lbl-mini">${esc(t("nd.served"))}</div>
+    <div class="link-row">${outs.length?outs.map(o0=>{const o=trView(o0);
+      return `<a class="linkc" onclick="openOutcome('${o.id}')"><span class="tk">${esc(t("state."+o.state)||o.state)}</span>${esc(trunc(L(o,"statement"),36))}</a>`;}).join("")
+      :`<span class="badge b-warn"><span class="dot"></span>${esc(t("nd.nobody"))}</span>`}</div>
+    ${weak.length?`<div class="val-warn">${esc(t("nd.weak.warn"))} ${weak.map(k=>esc(t("nd.weak."+k))).join(" · ")}</div>`:""}
+    ${L(n,"note")?`<div class="lbl-mini">${esc(t("th.note"))}</div><p class="note">${esc(L(n,"note"))}</p>`:""}`;
+  drawerFoot("needs",id); openDrawer();
+}
+function gotoStrategy(sid){ closeDrawer(); currentStrategy=sid; view="strategies"; render(); }
+function openDiagnosis(id){
+  const raw=byId("diagnoses",id); if(!raw) return;
+  const d=trView(raw);
+  const sts=strategiesOfDiagnosis(id), weak=diagnosisWeak(d);
+  const ins=(d.fromInsights||[]).map(x=>byId("insights",x)).filter(Boolean);
+  const void_=DIAG_DEAD.includes(d.state) && sts.some(liveStrategy);
+  drawerShell(t("dr.eye.diagnosis"), `<div style="margin-top:6px">${stateBadge(d.state)}</div>`);
+  $("#drawerB").innerHTML=`<h3>${esc(L(d,"statement"))}</h3>
+    <dl class="kv">
+      <dt>${esc(t("th.area"))}</dt><dd>${esc(L(d,"area")||"—")}</dd>
+      <dt>${esc(t("th.owner"))}</dt><dd>${esc(d.owner||"—")}</dd>
+    </dl>
+    ${void_?`<div class="val-warn">${esc(t("dg.void.why").replace("{n}",sts.filter(liveStrategy).length))}</div>`:""}
+    <div class="lbl-mini">${esc(t("dg.ev"))}</div>
+    <p class="note">${esc(L(d,"evidence")||t("dg.noev"))}</p>
+    <div class="lbl-mini">${esc(t("dg.rests"))}</div>
+    <div class="link-row">${ins.length?ins.map(i=>{const iv=trView(i);
+      return `<a class="linkc" onclick="openInsight('${i.id}')"><span class="tk">${esc(lvl(i.confidence||"medium"))}</span>${esc(trunc(L(iv,"claim"),36))}</a>`;}).join("")
+      :`<span class="badge b-mute"><span class="dot"></span>${esc(t("dg.weak.insights"))}</span>`}</div>
+    <div class="lbl-mini">${esc(t("dg.answered"))}</div>
+    <div class="link-row">${sts.length?sts.map(st=>
+      `<a class="linkc" onclick="gotoStrategy('${st.id}')"><span class="tk">${esc(statusL(st.status))}</span>${esc(trunc(st.name,32))}</a>`).join("")
+      :`<span class="badge b-warn"><span class="dot"></span>${esc(t("dg.unanswered"))}</span>`}</div>
+    ${weak.length?`<div class="val-warn">${esc(t("dg.weak.warn"))} ${weak.map(k=>esc(t("dg.weak."+k))).join(" · ")}</div>`:""}
+    ${L(d,"note")?`<div class="lbl-mini">${esc(t("th.note"))}</div><p class="note">${esc(L(d,"note"))}</p>`:""}`;
+  drawerFoot("diagnoses",id); openDrawer();
+}
 function rightHolderL(r){
   if(!r) return "";
   const v=trView(r);
@@ -5538,7 +5916,7 @@ function openOutcome(id){
   drawerShell(t("dr.eye.outcome"), `<div style="margin-top:6px">${stateBadge(o.state)}</div>`);
   const g=o.goalId?byId("goals",o.goalId):null, sig=o.measuredBy?byId("signals",o.measuredBy):null;
   $("#drawerB").innerHTML = `<h3>${esc(L(o,"statement"))}</h3>
-    <dl class="kv"><dt>${esc(t("out.cat.lbl"))}</dt><dd>${catChip(o.category)}</dd><dt>${esc(t("dt.baseline"))}</dt><dd>${esc(L(o,"baseline")||"—")}</dd><dt>${esc(t("dt.target"))}</dt><dd>${esc(L(o,"target")||"—")}</dd><dt>${esc(t("dt.by"))}</dt><dd class="mono">${esc(o.by||"—")}</dd><dt>${esc(t("th.state"))}</dt><dd>${esc(t("state."+o.state)||o.state)}</dd></dl>
+    <dl class="kv"><dt>${esc(t("out.cat.lbl"))}</dt><dd>${catChip(o.category)}</dd><dt>${esc(t("nd.serves"))}</dt><dd>${(()=>{const n=needOf(o);return n?`<a class="linkc" onclick="openNeed('${n.id}')"><span class="tk">${esc(t("nd.src."+(n.source||"unset")))}</span>${esc(trunc(L(trView(n),"need"),34))}</a>`:`<span class="val-weak">${esc(t("nd.nonefor"))}</span>`;})()}</dd><dt>${esc(t("dt.baseline"))}</dt><dd>${esc(L(o,"baseline")||"—")}</dd><dt>${esc(t("dt.target"))}</dt><dd>${esc(L(o,"target")||"—")}</dd><dt>${esc(t("dt.by"))}</dt><dd class="mono">${esc(o.by||"—")}</dd><dt>${esc(t("th.state"))}</dt><dd>${esc(t("state."+o.state)||o.state)}</dd></dl>
     ${o.note?`<div class="note">${esc(o.note)}</div>`:""}
     ${g?`<div style="${KVH}">${esc(t("dt.goal"))}</div><div class="link-row"><a class="linkc" onclick="openGoal('${g.id}')"><span class="tk">${esc(t("tk.goal"))}</span>${esc(L(g,"title").slice(0,38))}</a></div>`:""}
     <div style="${KVH};margin-top:14px">${esc(t("dr.measuredsig"))}</div>
@@ -5561,6 +5939,7 @@ const FIELDS = {
     {k:"moves",l:"3 · The big moves (3–5)",t:"lines",ph:"One per line"},
     {k:"notDoing",l:"4 · What we are NOT doing",t:"lines",ph:"One per line"},
     {k:"howKnow",l:"5 · How we'll know it's working",t:"lines",ph:"One per line — visible signals"},
+    {k:"diagnosisId",l:"Answers diagnosis",t:"ref",ref:"diagnoses"},
     {k:"relations",l:"Relates to other strategies",t:"rels"},
     {k:"serves",l:"Serves goals",t:"multiref",ref:"goals"},
   ],
@@ -5596,6 +5975,24 @@ const FIELDS = {
     {k:"commitment",l:"What we are putting behind it",t:"seg",opts:["none","some","heavy"],noDefault:1},
     {k:"note",l:"Note",t:"textarea"},
     {k:"watchedBy",l:"Watched by signal",t:"ref",ref:"signals"},
+  ],
+  needs:[
+    {k:"need",l:"The need",t:"textarea",req:1,ph:"What they are trying to get done, and what is in the way. Not a feature."},
+    {k:"who",l:"Who has it",t:"text",req:1,ph:"A named group of people — «foresatte», «saksbehandlere» — not «brukerne»"},
+    {k:"source",l:"How we know",t:"seg",opts:["assumed","heard","verified"],noDefault:1},
+    {k:"evidence",l:"Where we heard it",t:"textarea",ph:"Who said it, when, and how many. Blank is an honest answer for an assumption."},
+    {k:"lastHeard",l:"Last heard from a real person",t:"date"},
+    {k:"owner",l:"Owner",t:"text"},
+    {k:"note",l:"Note",t:"textarea"},
+  ],
+  diagnoses:[
+    {k:"statement",l:"The critical difficulty",t:"textarea",req:1,ph:"The obstacle, not the goal. «We must become more data-driven» is an ambition."},
+    {k:"area",l:"Where it bites",t:"text",ph:"e.g. School transport, Platform, Governance"},
+    {k:"evidence",l:"Why we believe this is the difficulty",t:"textarea",ph:"What makes this the obstacle rather than a symptom of another one"},
+    {k:"fromInsights",l:"Rests on insights",t:"multiref",ref:"insights"},
+    {k:"state",l:"State",t:"seg",opts:["holding","shaky","wrong","resolved"]},
+    {k:"owner",l:"Owner",t:"text"},
+    {k:"note",l:"Note",t:"textarea"},
   ],
   rights:[
     {k:"decision",l:"Decision class",t:"textarea",req:1,ph:"A kind of decision, not one decision — «milestone gate», «decommission a system»"},
@@ -5661,6 +6058,7 @@ const FIELDS = {
     {k:"statement",l:"Outcome",t:"textarea",req:1,ph:"The measurable change that proves the goal is being reached"},
     {k:"goalId",l:"Goal",t:"ref",ref:"goals"},
     {k:"category",l:"Kind of outcome",t:"seg",opts:["user","product","business"],noDefault:1},
+    {k:"servesNeed",l:"Serves need",t:"ref",ref:"needs"},
     {k:"baseline",l:"Baseline",t:"text",ph:"Where it stands today"},
     {k:"target",l:"Target",t:"text",ph:"e.g. ≥60%"},
     {k:"by",l:"By when",t:"text",ph:"e.g. 2027-Q2"},
@@ -5669,11 +6067,26 @@ const FIELDS = {
     {k:"note",l:"Note",t:"textarea"},
   ],
 };
-const SING = {values:"Value",radar:"Force",rights:"Decision class",strategies:"Strategy",insights:"Insight",decisions:"Decision",assumptions:"Assumption",signals:"Signal",goals:"Goal",outcomes:"Outcome",org:"Organisation"};
-const SING_NO = {values:"Verdi",radar:"Kraft",rights:"Beslutningsklasse",strategies:"Strategi",insights:"Innsikt",decisions:"Beslutning",assumptions:"Antakelse",signals:"Signal",goals:"Mål",outcomes:"Resultat",org:"Organisasjon"};
+const SING = {values:"Value",radar:"Force",rights:"Decision class",diagnoses:"Diagnosis",needs:"Need",strategies:"Strategy",insights:"Insight",decisions:"Decision",assumptions:"Assumption",signals:"Signal",goals:"Goal",outcomes:"Outcome",org:"Organisation"};
+const SING_NO = {values:"Verdi",radar:"Kraft",rights:"Beslutningsklasse",diagnoses:"Diagnose",needs:"Behov",strategies:"Strategi",insights:"Innsikt",decisions:"Beslutning",assumptions:"Antakelse",signals:"Signal",goals:"Mål",outcomes:"Resultat",org:"Organisasjon"};
 // Norsk overlay for redigeringsskjemaet: [etikett, plassholder].
 // FIELDS er kilden for engelsk — mangler en nøkkel her, faller den tilbake dit.
 const FLD_NO = {
+  needs:{
+    need:["Behovet","Hva de prøver å få til, og hva som står i veien. Ikke en funksjon."],
+    who:["Hvem har det","En navngitt gruppe mennesker — «foresatte», «saksbehandlere» — ikke «brukerne»"],
+    source:["Hvordan vi vet det",""],
+    evidence:["Hvor vi hørte det","Hvem sa det, når, og hvor mange. Tomt er et ærlig svar for en antakelse."],
+    lastHeard:["Sist hørt fra et ekte menneske",""],
+    owner:["Eier",""], note:["Notat",""],
+  },
+  diagnoses:{
+    statement:["Den kritiske vanskeligheten","Hindringen, ikke målet. «Vi må bli mer datadrevne» er en ambisjon."],
+    area:["Hvor den biter","f.eks. Skoleskyss, Plattform, Styring"],
+    evidence:["Hvorfor vi tror dette er vanskeligheten","Hva som gjør dette til hindringen og ikke et symptom på en annen"],
+    fromInsights:["Hviler på innsikter",""],
+    state:["Tilstand",""], owner:["Eier",""], note:["Notat",""],
+  },
   rights:{
     decision:["Beslutningsklasse","En type beslutning, ikke én beslutning — «milepælsport», «avvikle et system»"],
     applies:["Gjelder når","Terskelen som trekker en beslutning inn i denne klassen"],
@@ -5716,6 +6129,7 @@ const FLD_NO = {
     moves:["3 · De store trekkene (3–5)","Ett per linje"],
     notDoing:["4 · Hva vi IKKE gjør","Ett per linje"],
     howKnow:["5 · Hvordan vi vet at det virker","Ett per linje — synlige signaler"],
+    diagnosisId:["Svarer på diagnose",""],
     relations:["Forhold til andre strategier",""], serves:["Tjener mål",""],
   },
   insights:{
@@ -5757,7 +6171,7 @@ const FLD_NO = {
   },
   outcomes:{
     statement:["Resultat","Den målbare endringen som viser at målet nås"],
-    goalId:["Mål",""], category:["Type utfall",""],
+    goalId:["Mål",""], category:["Type utfall",""], servesNeed:["Tjener behov",""],
     baseline:["Utgangspunkt","Hvor det står i dag"],
     target:["Målverdi","f.eks. ≥60 %"], by:["Innen","f.eks. 2027-Q2"],
     measuredBy:["Målt av signal",""], state:["Tilstand",""], note:["Notat",""],
@@ -5892,6 +6306,107 @@ function commitCounts(){
   const c={none:0,some:0,heavy:0,unset:0};
   liveBets().forEach(a=>{ c[COMMIT.includes(a.commitment)?a.commitment:"unset"]++; });
   return c;
+}
+
+// ── Behov ────────────────────────────────────────────────────────────────
+// Fire eksisterende registre kunne absorbert et «behov», så det må ha en
+// jobb ingen av dem har. Skillet: en innsikt er et funn som utløper når det
+// motbevises. Et behov er en vedvarende tilstand hos en person — sant enten
+// du gjør noe eller ikke.
+//
+// Derfor er ikke spørsmålet «er behovet sant», men HVOR DU VET DET FRA.
+// Et register der flertallet står på «antatt» er en diagnose av
+// organisasjonen, ikke av brukeren.
+const NEED_SRC = ["assumed","heard","verified"];
+const NEED_RANK = {assumed:0, heard:1, verified:2};
+const NEED_STALE_DAYS = 365;
+
+function outcomesOfNeed(nid){ return (DB.outcomes||[]).filter(o=>o.servesNeed===nid); }
+function needOf(outcome){ return outcome && outcome.servesNeed ? byId("needs",outcome.servesNeed) : null; }
+
+// Du endrer noe ingen har sagt at de trenger. Speilbildet av «utfall uten
+// verdi», men oppstrøms: verdi spør hvorfor, behov spør hvem som ba om det.
+function outcomesWithoutNeed(){ return (DB.outcomes||[]).filter(o=>!needOf(o)); }
+// Et behov ingen jobber mot.
+function needsUnserved(){ return (DB.needs||[]).filter(n=>!outcomesOfNeed(n.id).length); }
+// Den skarpeste: strategien hviler på et behov du aldri har hørt.
+function needsAssumedButLoadBearing(){
+  return (DB.needs||[]).filter(n=>(!n.source || n.source==="assumed") && outcomesOfNeed(n.id).length);
+}
+// Du hørte det én gang, for lenge siden. Et behov forfaller ikke — men det
+// gjør kunnskapen din om det.
+function needStale(n){
+  if(!n || !NEED_SRC.includes(n.source) || n.source==="assumed") return false;
+  if(!n.lastHeard) return true;
+  const age=Math.floor((Date.now()-new Date(n.lastHeard))/864e5);
+  return Number.isNaN(age) ? true : age>NEED_STALE_DAYS;
+}
+function needsStale(){ return (DB.needs||[]).filter(needStale); }
+// Et behov uten hvem er ikke et behov, det er en observasjon.
+function needWeak(n){
+  const miss=[];
+  if(!String(n&&n.who||"").trim()) miss.push("who");
+  if(n && n.source && n.source!=="assumed" && !String(n.evidence||"").trim()) miss.push("evidence");
+  return miss;
+}
+function needSrcCounts(){
+  const c={assumed:0,heard:0,verified:0,unset:0};
+  (DB.needs||[]).forEach(n=>{ c[NEED_SRC.includes(n.source)?n.source:"unset"]++; });
+  return c;
+}
+
+// ── Diagnose ─────────────────────────────────────────────────────────────
+// Det mest bærende objektet i metoden lå som en textarea inne i strategien.
+// Konsekvensen var tre ting den ikke kunne: deles mellom strategier, tas
+// feil, eller granskes.
+//
+// Den siste er den dyre. Når en diagnose er feil, er alt som hviler på den
+// ugyldig samtidig — og ingenting i appen kunne si det.
+const DIAG_RANK = {wrong:0, shaky:1, holding:2, resolved:3};
+const DIAG_DEAD = ["wrong","resolved"];
+
+function strategiesOfDiagnosis(did){ return (DB.strategies||[]).filter(s=>s.diagnosisId===did); }
+function diagnosisOf(st){ return st && st.diagnosisId ? byId("diagnoses",st.diagnosisId) : null; }
+function liveStrategy(st){ return st && st.status!=="archived"; }
+
+// En tilnærming uten å ha sagt hva den svarer på.
+function strategiesWithoutDiagnosis(){
+  return (DB.strategies||[]).filter(s=>liveStrategy(s) && !diagnosisOf(s));
+}
+// En vanskelighet ingen har tatt på seg.
+function diagnosesUnanswered(){
+  return (DB.diagnoses||[]).filter(d=>!DIAG_DEAD.includes(d.state) && !strategiesOfDiagnosis(d.id).length);
+}
+// Den dyre: diagnosen er feil eller ikke lenger vanskeligheten, og strategier
+// lever fortsatt på den. Alt de bærer er ugyldig til noen ser på det.
+function diagnosesVoided(){
+  return (DB.diagnoses||[]).filter(d=>DIAG_DEAD.includes(d.state)
+    && strategiesOfDiagnosis(d.id).some(liveStrategy));
+}
+function strategiesOnVoidDiagnosis(){
+  const bad=new Set(diagnosesVoided().map(d=>d.id));
+  return (DB.strategies||[]).filter(s=>liveStrategy(s) && bad.has(s.diagnosisId));
+}
+// En diagnose uten evidens er en mening. Uten innsikter bak er den en anelse.
+function diagnosisWeak(d){
+  const miss=[];
+  if(!String(d&&d.evidence||"").trim()) miss.push("evidence");
+  if(!((d&&d.fromInsights)||[]).length) miss.push("insights");
+  if(!String(d&&d.area||"").trim()) miss.push("area");
+  return miss;
+}
+// Strategien eier fortsatt sin egen challenge-tekst — det kanoniske artefaktet
+// leser den. «Løft ut» lager diagnosen ved siden av og kobler den, uten å
+// slette noe. Import, eksport, deling og kart ser ingen forskjell.
+function promoteChallenge(sid){
+  const st=byId("strategies",sid);
+  if(!st || st.diagnosisId || !String(st.challenge||"").trim()) return null;
+  const d={id:uid("dg"), statement:st.challenge, area:"", evidence:"",
+           fromInsights:[], state:"holding", owner:st.owner||"", note:""};
+  (DB.diagnoses=DB.diagnoses||[]).push(d);
+  st.diagnosisId=d.id;
+  save();
+  return d;
 }
 
 const OUT_CATS = ["user","product","business"];

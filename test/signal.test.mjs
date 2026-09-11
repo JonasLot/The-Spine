@@ -60,6 +60,13 @@ const harness = [
   decl("RADAR_DUE"), decl("RADAR_H"), decl("RADAR_E"),
   func("radarStatus"), func("radarWeight"), func("radarThreatening"),
   decl("RADAR_RINGS"), decl("RADAR_DOMS"), func("radarChart"), func("lvl"),
+  decl("DIAG_RANK"), decl("DIAG_DEAD"), func("strategiesOfDiagnosis"), func("diagnosisOf"),
+  func("liveStrategy"), func("strategiesWithoutDiagnosis"), func("diagnosesUnanswered"),
+  func("diagnosesVoided"), func("strategiesOnVoidDiagnosis"), func("diagnosisWeak"),
+  decl("NEED_SRC"), decl("NEED_RANK"), oneLine(/const NEED_STALE_DAYS\s*=/),
+  func("outcomesOfNeed"), func("needOf"), func("outcomesWithoutNeed"), func("needsUnserved"),
+  func("needsAssumedButLoadBearing"), func("needStale"), func("needsStale"),
+  func("needWeak"), func("needSrcCounts"),
   decl("CV_KINDS"), decl("CV_COLL"), decl("CV_GLYPH"), decl("CV_W"), decl("COLLS"),
   decl("COMMIT"), decl("COMMIT_W"), oneLine(/const COMMIT_STALE_REVIEWS\s*=/),
   func("liveBets"), func("betsUnfunded"), func("betsFundedBroken"), func("betMovedIn"),
@@ -101,6 +108,11 @@ const harness = [
   "reviewNoteSignal,reviewNoteBet,reviewChanged,closeReview," +
   "radarStatus,radarWeight,radarThreatening,RADAR_DUE," +
   "radarChart,RADAR_RINGS,RADAR_DOMS,parseRadarText,radarMapValue," +
+  "DIAG_RANK,DIAG_DEAD,strategiesOfDiagnosis,diagnosisOf,liveStrategy," +
+  "strategiesWithoutDiagnosis,diagnosesUnanswered,diagnosesVoided," +
+  "strategiesOnVoidDiagnosis,diagnosisWeak," +
+  "NEED_SRC,NEED_RANK,NEED_STALE_DAYS,outcomesOfNeed,needOf,outcomesWithoutNeed," +
+  "needsUnserved,needsAssumedButLoadBearing,needStale,needsStale,needWeak,needSrcCounts," +
   "CV_KINDS,CV_COLL,CV_GLYPH,CV_W,COLLS," +
   "COMMIT,COMMIT_STALE_REVIEWS,liveBets,betsUnfunded,betsFundedBroken,betMovedIn," +
   "recentReviews,betFundedStuck,betsFundedStuck,nothingStarved,commitCounts," +
@@ -123,6 +135,11 @@ const {
   reviewNoteSignal, reviewNoteBet, reviewChanged, closeReview, resetReview,
   radarStatus, radarWeight, radarThreatening, RADAR_DUE,
   radarChart, RADAR_RINGS, RADAR_DOMS, parseRadarText, radarMapValue,
+  DIAG_RANK, DIAG_DEAD, strategiesOfDiagnosis, diagnosisOf, liveStrategy,
+  strategiesWithoutDiagnosis, diagnosesUnanswered, diagnosesVoided,
+  strategiesOnVoidDiagnosis, diagnosisWeak,
+  NEED_SRC, NEED_RANK, NEED_STALE_DAYS, outcomesOfNeed, needOf, outcomesWithoutNeed,
+  needsUnserved, needsAssumedButLoadBearing, needStale, needsStale, needWeak, needSrcCounts,
   CV_KINDS, CV_COLL, CV_GLYPH, CV_W, COLLS,
   COMMIT, COMMIT_STALE_REVIEWS, liveBets, betsUnfunded, betsFundedBroken, betMovedIn,
   recentReviews, betFundedStuck, betsFundedStuck, nothingStarved, commitCounts,
@@ -874,6 +891,102 @@ ok(SING_NO.rights !== undefined, "klassen har et norsk entallsnavn");
 ok(SEED.rights.some(r => r.state === "contested") && SEED.rights.some(r => r.state === "aligned"),
    "seed viser både en omstridt og en fungerende rett");
 setDB({ signals: SEED.signals, assumptions: SEED.assumptions });
+
+group("diagnose — den kan endelig tas feil");
+setDB({ strategies: SEED.strategies, diagnoses: SEED.diagnoses, insights: SEED.insights,
+        outcomes: SEED.outcomes, needs: SEED.needs, assumptions: SEED.assumptions });
+const G = id => SEED.diagnoses.find(x => x.id === id);
+const ST = id => SEED.strategies.find(x => x.id === id);
+
+ok(SEED.diagnoses.length === 4, "fire diagnoser i seed");
+ok(diagnosisOf(ST("st1")).id === "dg1", "st1 svarer på plattformdiagnosen");
+ok(strategiesOfDiagnosis("dg1").length === 1, "én strategi svarer på dg1");
+ok(strategiesWithoutDiagnosis().length === 0, "alle tre seed-strategier har sagt hva de svarer på");
+ok(diagnosesUnanswered().length === 1 && diagnosesUnanswered()[0].id === "dg4",
+   "omgjøringsraten er splittet ut og ingen strategi svarer på den");
+ok(G("dg4").state === "shaky", "den usvarte diagnosen er også den vaklende");
+
+group("diagnose — den dyre alarmen");
+ok(diagnosesVoided().length === 0, "ingen feil diagnose i seed, så alarmen tier");
+{
+  setDB({ strategies:[{id:"sx", name:"X", status:"committed", diagnosisId:"dx"}],
+          diagnoses:[{id:"dx", state:"wrong"}] });
+  ok(diagnosesVoided().length === 1, "en feil diagnose med en levende strategi på seg");
+  ok(strategiesOnVoidDiagnosis()[0].id === "sx", "strategien som står på den navngis");
+  setDB({ strategies:[{id:"sx", name:"X", status:"archived", diagnosisId:"dx"}],
+          diagnoses:[{id:"dx", state:"wrong"}] });
+  ok(diagnosesVoided().length === 0, "en arkivert strategi utløser ikke alarmen");
+  setDB({ strategies:[{id:"sx", name:"X", status:"committed", diagnosisId:"dx"}],
+          diagnoses:[{id:"dx", state:"resolved"}] });
+  ok(diagnosesVoided().length === 1, "«ikke lenger vanskeligheten» teller like mye som «feil»");
+  setDB({ strategies:[], diagnoses:[{id:"dx", state:"wrong"}] });
+  ok(diagnosesVoided().length === 0 && diagnosesUnanswered().length === 0,
+     "en feil diagnose uten strategier er verken ugyldiggjørende eller usvart");
+}
+setDB({ strategies: SEED.strategies, diagnoses: SEED.diagnoses, insights: SEED.insights,
+        outcomes: SEED.outcomes, needs: SEED.needs });
+
+group("diagnose — hva som mangler");
+ok(diagnosisWeak(G("dg1")).length === 0, "en utfylt diagnose flagges ikke");
+ok(diagnosisWeak(G("dg2")).join() === "insights", "dg2 mangler innsikt bak seg, men har evidens");
+ok(diagnosisWeak({}).join() === "evidence,insights,area", "en tom diagnose mangler alle tre");
+["holding","shaky","wrong","resolved"].forEach(st =>
+  ok(T.en["state." + st] !== undefined && T.no["state." + st] !== undefined,
+     "state." + st + " finnes i begge språk"));
+ok(DIAG_DEAD.join() === "wrong,resolved", "to tilstander ugyldiggjør det som hviler på diagnosen");
+FIELDS.diagnoses.forEach(f =>
+  ok(FLD_NO.diagnoses[f.k] !== undefined, "FLD_NO.diagnoses dekker " + f.k));
+ok(FIELDS.strategies.some(f => f.k === "diagnosisId" && f.ref === "diagnoses"),
+   "strategien kan peke på en diagnose");
+ok(SEED.strategies.every(s => s.challenge), "challenge-teksten er ikke revet ut av artefaktet");
+
+group("behov — hvor du vet det fra");
+ok(NEED_SRC.join() === "assumed,heard,verified", "tre kilder, fra svakest til sterkest");
+ok(SEED.needs.length === 5, "fem behov i seed");
+ok(needSrcCounts().assumed === 2 && needSrcCounts().heard === 2 && needSrcCounts().verified === 1,
+   "seed dekker alle tre kildene");
+ok(outcomesOfNeed("nb3").length === 1, "ett utfall tjener administratorbehovet");
+ok(needOf(SEED.outcomes.find(o => o.id === "o1")).id === "nb2", "o1 tjener saksbehandlerbehovet");
+
+group("behov — antatt og bærende");
+ok(needsAssumedButLoadBearing().length === 1 && needsAssumedButLoadBearing()[0].id === "nb3",
+   "nb3 er antatt, og et utfall hviler allerede på det");
+ok(!needsAssumedButLoadBearing().some(n => n.id === "nb4"),
+   "et antatt behov uten utfall er ikke bærende — bare uprøvd");
+{
+  setDB({ needs:[{id:"n1"}], outcomes:[{id:"ox", servesNeed:"n1"}] });
+  ok(needsAssumedButLoadBearing().length === 1, "manglende kilde teller som antatt");
+}
+setDB({ strategies: SEED.strategies, diagnoses: SEED.diagnoses, insights: SEED.insights,
+        outcomes: SEED.outcomes, needs: SEED.needs });
+
+group("behov — de tre andre alarmene");
+ok(needsUnserved().length === 2, "to behov har ingenting som jobber mot seg");
+ok(needsUnserved().some(n => n.id === "nb5"), "fortrolig adresse har et trekk, men intet utfall");
+ok(outcomesWithoutNeed().length === 1 && outcomesWithoutNeed()[0].id === "o3",
+   "virksomhetsutfallet om tjenesteavbrudd tjener ikke noe oppgitt behov");
+ok(needStale({source:"heard", lastHeard:"2000-01-01"}) === true, "hørt for lenge siden er foreldet");
+ok(needStale({source:"assumed", lastHeard:""}) === false, "en antakelse kan ikke bli foreldet — den er aldri hørt");
+ok(needStale({source:"verified"}) === true, "verifisert uten dato er foreldet til det motsatte er vist");
+ok(NEED_STALE_DAYS === 365, "grensen for «sist hørt» er ett år");
+ok(needsStale().length === 1 && needsStale()[0].id === "nb5",
+   "fortrolig adresse ble hørt for halvannet år siden og aldri fulgt opp");
+ok(!needsStale().some(x => x.id === "nb3"), "et antatt behov havner ikke i foreldet-bøtta");
+
+group("behov — hva som mangler");
+ok(needWeak({who:"Foresatte", source:"heard", evidence:"x"}).length === 0, "et utfylt behov flagges ikke");
+ok(needWeak({source:"heard", evidence:"x"}).join() === "who", "et behov uten hvem er en observasjon");
+ok(needWeak({who:"X", source:"assumed"}).length === 0, "en antakelse trenger ikke evidens — tomt er ærlig");
+ok(needWeak({who:"X", source:"verified"}).join() === "evidence", "verifisert uten evidens er et hull");
+NEED_SRC.concat("unset").forEach(c =>
+  ok(T.en["nd.src." + c] !== undefined && T.no["nd.src." + c] !== undefined,
+     "nd.src." + c + " finnes i begge språk"));
+ok(T.no["nd.src.assumed"] === "Antatt" && T.no["nd.src.heard"] === "Hørt" &&
+   T.no["nd.src.verified"] === "Verifisert", "de norske kildenavnene");
+FIELDS.needs.forEach(f =>
+  ok(FLD_NO.needs[f.k] !== undefined, "FLD_NO.needs dekker " + f.k));
+ok(FIELDS.outcomes.some(f => f.k === "servesNeed" && f.ref === "needs"),
+   "utfallet kan peke på et behov");
 
 group("strategikartet — nodetypene henger sammen");
 {
