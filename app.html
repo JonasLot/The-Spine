@@ -488,6 +488,30 @@ a{color:inherit}
 .ch-step.miss .v{color:var(--warn);font-style:italic}
 .ch-arr{display:flex;align-items:center;padding:0 9px;font-size:10.5px;font-style:italic;
   color:var(--ink-3);background:var(--panel);border-left:1px solid var(--line);border-right:1px solid var(--line);white-space:nowrap}
+.sv-sum{padding:14px 18px;border-bottom:1px solid var(--line-2);font-size:13px;color:var(--ink-2);line-height:1.5}
+.sv-sum b{color:var(--ink)}
+.sv-sum .gap{display:block;margin-top:5px;color:var(--warn);font-weight:600}
+.sv-grp{padding:15px 18px;border-bottom:1px solid var(--line-2)}
+.sv-grp:last-child{border-bottom:none}
+.sv-out{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sv-out .gl{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:var(--goal)}
+.sv-out .s{font-size:13.5px;font-weight:600;text-wrap:pretty;cursor:pointer}
+.sv-out .s:hover{color:var(--accent-ink)}
+.sv-arr{font-size:10.5px;font-style:italic;color:var(--ink-3);margin:8px 0 2px 1px}
+.sv-vals{display:flex;flex-direction:column;gap:1px;background:var(--line-2);
+  border:1px solid var(--line-2);border-radius:var(--r-sm);overflow:hidden}
+.sv-v{background:var(--panel);padding:11px 13px;display:flex;gap:12px;align-items:flex-start;
+  justify-content:space-between;cursor:pointer}
+.sv-v:hover{background:var(--bg-2)}
+.sv-v .c{font-size:13px;line-height:1.45;text-wrap:pretty;min-width:0}
+.sv-v .m{font-size:11.5px;color:var(--ink-3);margin-top:4px}
+.sv-v .r{flex:none}
+.sv-v.gap{background:var(--warn-bg)}
+.sv-v.gap .c{color:var(--warn);font-weight:600}
+.sv-unval{padding:13px 18px;border-top:1px solid var(--line-2);font-size:12.5px;
+  color:var(--warn);line-height:1.55}
+.sv-unval .o{display:block;color:var(--ink-2);font-weight:500;margin-top:5px;cursor:pointer}
+.sv-unval .o:hover{color:var(--accent-ink)}
 .radar-paste{width:100%;border:1px solid var(--line);background:var(--bg-2);border-radius:var(--r-sm);
   padding:12px 14px;font-family:"Spline Sans Mono",ui-monospace,monospace;font-size:13px;
   line-height:1.6;color:var(--ink);resize:vertical;outline:none}
@@ -1567,6 +1591,13 @@ const T = {
     "val.orphan.head":"Outcomes nobody has valued","val.orphan.hint":"You are measuring a change without saying why it is worth reaching.",
     "val.banner.note":"The outcome is the causal bridge between what you do and the value you want. It fails at both ends: a number nobody justified, and a benefit counted in the business case that never arrived.",
     "val.nooutcome":"no outcome linked",
+    "sv.head":"The value this buys","sv.hint":"Read out of the chain, not written here: the strategy serves goals, the goals carry outcomes, the outcomes carry value. There is no strategy → value link, and there should not be — the outcome is the causal bridge.",
+    "sv.count.one":"gain follows from the outcomes under this strategy.",
+    "sv.count.many":"gains follow from the outcomes under this strategy.",
+    "sv.nogoal.t":"No goal served","sv.nogoal.d":"This strategy serves no goal, so the chain has nowhere to start. Link it to a goal and the value follows by itself.",
+    "sv.none.t":"No gain derived","sv.none.d":"The outcomes under this strategy's goals carry no value claim. You are measuring a change without saying what it is worth.",
+    "sv.unval.one":"outcome under this strategy carries no value claim:",
+    "sv.unval.many":"outcomes under this strategy carry no value claim:",
     "vh.rights.t":"Decision Rights","vh.rights.d":"Who can say yes, who can say no, and who must be heard first — set against who actually decided.",
     "nav.rights":"Decision Rights","dr.eye.right":"Decision class",
     "th.class":"Decision class","th.saysyes":"Says yes","th.saysno":"Can say no","th.consulted":"Consulted",
@@ -1904,6 +1935,13 @@ const T = {
     "val.orphan.head":"Utfall ingen har verdsatt","val.orphan.hint":"Dere måler en endring uten å ha sagt hvorfor den er verdt å nå.",
     "val.banner.note":"Utfallet er den kausale broen mellom det dere gjør og verdien dere vil skape. Den svikter i begge ender: et tall ingen har begrunnet, og en gevinst som ble talt i business-casen men aldri kom.",
     "val.nooutcome":"ingen utfall koblet",
+    "sv.head":"Verdien dette kjøper","sv.hint":"Lest ut av kjeden, ikke skrevet her: strategien tjener mål, målene bærer utfall, utfallene bærer verdi. Det finnes ingen kobling fra strategi til verdi, og det skal det ikke — utfallet er den kausale broen.",
+    "sv.count.one":"gevinst følger av utfallene under denne strategien.",
+    "sv.count.many":"gevinster følger av utfallene under denne strategien.",
+    "sv.nogoal.t":"Ingen mål tjent","sv.nogoal.d":"Denne strategien tjener ingen mål, så kjeden har ingen steder å begynne. Koble den til et mål, så følger verdien av seg selv.",
+    "sv.none.t":"Ingen gevinst utledet","sv.none.d":"Utfallene under målene denne strategien tjener bærer ingen verdipåstand. Dere måler en endring uten å si hva den er verdt.",
+    "sv.unval.one":"utfall under denne strategien bærer ingen verdipåstand:",
+    "sv.unval.many":"utfall under denne strategien bærer ingen verdipåstand:",
     "vh.rights.t":"Beslutningsrettigheter","vh.rights.d":"Hvem som kan si ja, hvem som kan si nei, og hvem som må høres først — holdt opp mot hvem som faktisk bestemte.",
     "nav.rights":"Beslutningsrettigheter","dr.eye.right":"Beslutningsklasse",
     "th.class":"Beslutningsklasse","th.saysyes":"Sier ja","th.saysno":"Kan si nei","th.consulted":"Konsulteres",
@@ -2794,6 +2832,69 @@ function vStrategyDetail(id){
     ${opSection(t("op.5"),opList(L(s,"howKnow"),"ul"))}`;
   w.appendChild(op);
 
+  // verdikjeden — lest ut av grafen, ikke erklært noe sted
+  w.appendChild(el("div","sect-h",
+    `<h2>${esc(t("sv.head"))}</h2><span class="hint">${esc(t("sv.hint"))}</span>`));
+  const vp=el("div","panel");
+  const vrows=valuesOfStrategy(s), unval=outcomesUnvaluedFor(s);
+  if(!(s.serves||[]).length){
+    vp.appendChild(el("div","empty",
+      `<span class="serif">${esc(t("sv.nogoal.t"))}</span>${esc(t("sv.nogoal.d"))}`));
+  }else if(!vrows.length){
+    vp.appendChild(el("div","empty",
+      `<span class="serif">${esc(t("sv.none.t"))}</span>${esc(t("sv.none.d"))}`));
+  }else{
+    const gapIds=new Set(valueGap().map(v=>v.id));
+    const nGap=vrows.filter(r=>gapIds.has(r.value.id)).length;
+    const sum=el("div","sv-sum");
+    sum.innerHTML=`<b>${vrows.length}</b> ${esc(t(vrows.length===1?"sv.count.one":"sv.count.many"))}`
+      + (nGap?`<span class="gap"><b>${nGap}</b> ${esc(t(nGap===1?"val.gap.one":"val.gap.many"))}</span>`:"");
+    vp.appendChild(sum);
+    // gruppert på utfallet: broen bærer kjeden, ikke gevinsten
+    const byOut=[];
+    vrows.forEach(r=>{
+      let g=byOut.find(x=>x.outcome.id===r.outcome.id);
+      if(!g){ g={goal:r.goal, outcome:r.outcome, values:[]}; byOut.push(g); }
+      g.values.push(r.value);
+    });
+    byOut.forEach(grp=>{
+      const ov=trView(grp.outcome), gv=trView(grp.goal);
+      const box=el("div","sv-grp");
+      const orow=el("div","sv-out");
+      orow.appendChild(el("span","gl",esc(trunc(L(gv,"title"),44))));
+      const os=el("span","s",esc(L(ov,"statement")));
+      clickable(os,()=>openOutcome(grp.outcome.id),openLbl("outcomes"));
+      orow.appendChild(os);
+      orow.appendChild(el("span",null,stateBadge(ov.state)));
+      box.appendChild(orow);
+      box.appendChild(el("div","sv-arr",esc(t("val.sothat"))));
+      const vl=el("div","sv-vals");
+      grp.values.forEach(raw=>{
+        const v=trView(raw);
+        const meta=[t("val.cur."+(v.currency||"time")), t("val.scope."+(v.scope||"direct"))]
+          .concat(L(v,"size")?[L(v,"size")]:[]).join(" · ");
+        const row=el("div","sv-v"+(gapIds.has(raw.id)?" gap":""));
+        row.innerHTML=`<div class="c">${esc(L(v,"claim"))}<div class="m">${esc(meta)}</div></div>`
+          +`<div class="r">${stateBadge(v.state)}</div>`;
+        clickable(row,()=>openValue(raw.id),openLbl("values"));
+        vl.appendChild(row);
+      });
+      box.appendChild(vl);
+      vp.appendChild(box);
+    });
+  }
+  if(unval.length && (s.serves||[]).length){
+    const u=el("div","sv-unval");
+    u.innerHTML=`<b>${unval.length}</b> ${esc(t(unval.length===1?"sv.unval.one":"sv.unval.many"))}`;
+    unval.forEach(o=>{
+      const li=el("span","o",esc(trunc(L(trView(o),"statement"),80)));
+      clickable(li,()=>openOutcome(o.id),openLbl("outcomes"));
+      u.appendChild(li);
+    });
+    vp.appendChild(u);
+  }
+  w.appendChild(vp);
+
   // linsens arbeidsflate — der du tenker deg fram til artefaktet over
   const lfields=lensFields(s.framework);
   if(lfields.length){
@@ -2943,7 +3044,22 @@ function miniList(title,rows,mapper){
 }
 function exportStrategy(s){
   const md=`---\ntype: strategy\nstrategy: ${yamlStr(s.name)}\nframework: ${s.framework}\nstatus: ${s.status}\nowner: ${yamlStr(s.owner)}\nreview: ${s.review||""}\nversion: ${s.version||1}\ncanonical: true\ntags: [strategy]\n---\n\n# ${s.name}\n**Version:** ${s.version||1} · **Owner:** ${s.owner||"—"} · **Review:** ${s.review||"—"}\n\n## 1 · The challenge\n${s.challenge||""}\n\n## 2 · Our approach\n${s.approach||""}\n\n## 3 · The big moves\n${(s.moves||[]).map((m,i)=>`${i+1}. ${m}`).join("\n")}\n\n## 4 · What we are NOT doing\n${(s.notDoing||[]).map(m=>`- ${m}`).join("\n")}\n\n## 5 · How we'll know it's working\n${(s.howKnow||[]).map(m=>`- ${m}`).join("\n")}\n`;
-  downloadFile(`Strategy — ${s.name}.md`, md);
+  downloadFile(`Strategy — ${s.name}.md`, md + strategyValueMd(s));
+}
+// Utledet, og merket som utledet: leseren skal se at ingen har skrevet dette.
+function strategyValueMd(s){
+  const rows=valuesOfStrategy(s);
+  if(!rows.length) return "";
+  const byOut=[];
+  rows.forEach(r=>{
+    let g=byOut.find(x=>x.o.id===r.outcome.id);
+    if(!g){ g={o:r.outcome, v:[]}; byOut.push(g); }
+    g.v.push(r.value);
+  });
+  return `\n## 6 · The value this buys *(derived — read from the chain, not declared)*\n`
+    + byOut.map(g=>`- **${g.o.statement||g.o.id}** *(${g.o.state||"—"})*\n`
+        + g.v.map(v=>`  - …so that… ${v.claim||v.id} — ${v.currency||"time"}`
+            + `${v.size?", "+v.size:""} *(${v.state||"—"})*`).join("\n")).join("\n") + "\n";
 }
 
 /* ---------- Goals & Outcomes (direction layer) ---------- */
@@ -6344,6 +6460,32 @@ function valuesOf(oid){ return (DB.values||[]).filter(v=>v.fromOutcome===oid); }
 // Et utfall uten en eneste verdipåstand: du måler noe ingen har begrunnet.
 function outcomesWithoutValue(){
   return (DB.outcomes||[]).filter(o=>!valuesOf(o.id).length);
+}
+// ── Verdikjede på strategikortet ────────────────────────────────
+// Strategi → verdi finnes ikke som kobling, og skal ikke finnes: utfallet er
+// den kausale broen mellom det dere gjør og gevinsten dere vil skape. Men
+// kjeden kan LESES: strategien tjener mål, målene bærer utfall, utfallene
+// bærer verdikrav. Utledet hver gang, aldri lagret — derfor kan en strategi
+// ikke hevde en gevinst uten å si hva som endrer seg.
+function valuesOfStrategy(st){
+  const rows=[];
+  if(!st) return rows;
+  [...new Set(st.serves||[])].forEach(gid=>{
+    const g=byId("goals",gid); if(!g) return;
+    outcomesOfGoal(gid).forEach(o=>valuesOf(o.id).forEach(v=>rows.push({goal:g,outcome:o,value:v})));
+  });
+  return rows;
+}
+// Den andre enden av samme kjede: utfall strategien jobber mot som ingen har
+// verdsatt. Da måler dere en endring uten å ha sagt hva den er verdt.
+function outcomesUnvaluedFor(st){
+  const out=[];
+  if(!st) return out;
+  [...new Set(st.serves||[])].forEach(gid=>{
+    if(!byId("goals",gid)) return;
+    outcomesOfGoal(gid).forEach(o=>{ if(!valuesOf(o.id).length) out.push(o); });
+  });
+  return out;
 }
 // Den viktige svikten: utfallet er nådd, men gevinsten uteble.
 // "Vi traff tallet og ingen fikk det bedre."

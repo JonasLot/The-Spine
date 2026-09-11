@@ -157,6 +157,32 @@ if (app.vStrategyDetail) {
   failures.push("vStrategyDetail ble ikke funnet i app.html");
 }
 
+console.log("verdikjeden pa strategikortet");
+{
+  const txt = id => { const n = app.vStrategyDetail(id); return n ? (n.deepText || "") : ""; };
+  for (const lang of ["en", "no"]) {
+    app.setLang(lang);
+    const t1 = txt("st1");
+    ok(t1.includes("Programmet frigjor driftsmidler".replace("frigjor", "frigj\u00f8r")),
+       `st1 viser gevinsten som folger av utfallene under malene den tjener (${lang})`);
+    ok(!t1.includes("Foresatte bruker mindre tid"),
+       `st1 viser ingen gevinst fra et mal den ikke tjener (${lang})`);
+    const t3 = txt("st3");
+    ok(t3.includes("Foresatte bruker mindre tid") && t3.includes("Saksbehandlerne f"),
+       `st3 viser begge gevinstene som folger av det samme utfallet (${lang})`);
+  }
+  app.setLang("en");
+  const db = structuredClone(app.SEED);
+  db.strategies = [{id:"stX", name:"Uten mal", framework:"kernel", status:"draft",
+                    owner:"Jonas", review:"2026-07-15", version:1, serves:[],
+                    challenge:"", approach:"", moves:[], notDoing:[], howKnow:[]}];
+  app.setDB(db);
+  const tx = txt("stX");
+  ok(tx.includes(app.T.en["sv.nogoal.t"]),
+     "strategi uten mal far beskjed om at kjeden ikke har noe sted a begynne");
+  app.setDB(structuredClone(app.SEED));
+}
+
 console.log("skjemaet bygger for hver kollesjon");
 // buildForm flyttet fra modal til skuff. Ingen visningstest rørte den, og
 // et skjema som kaster er usynlig til noen prøver å opprette noe.

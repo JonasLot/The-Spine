@@ -78,6 +78,7 @@ const harness = [
   func("outcomesUncategorised"), func("outcomeCatCounts"),
   func("valuesOf"), func("outcomesWithoutValue"), func("valueGap"),
   func("valueWeak"), func("valueChain"), decl("VAL_SCOPE_RANK"),
+  func("valuesOfStrategy"), func("outcomesUnvaluedFor"),
   func("rightHolder"), func("rightVetoHolder"), func("rightsDrift"),
   func("decisionsOfRight"), oneLine(/const RIGHT_STALE_DAYS\s*=/), func("rightUnexercised"),
   func("nameMatches"), func("decisionMandate"), func("rightsOrphans"),
@@ -121,6 +122,7 @@ const harness = [
   "recentReviews,betFundedStuck,betsFundedStuck,nothingStarved,commitCounts," +
   "OUT_CATS,outcomesOfGoal,goalsProductOnly,outcomesUncategorised,outcomeCatCounts," +
   "valuesOf,outcomesWithoutValue,valueGap,valueWeak,valueChain," +
+  "valuesOfStrategy,outcomesUnvaluedFor," +
   "rightHolder,rightVetoHolder,rightsDrift,decisionsOfRight,rightUnexercised," +
   "nameMatches,decisionMandate,rightsOrphans,rightsOutside,rightsDrifted,rightWeak," +
   "RIGHT_RANK,RIGHT_STALE_DAYS," +
@@ -149,6 +151,7 @@ const {
   recentReviews, betFundedStuck, betsFundedStuck, nothingStarved, commitCounts,
   OUT_CATS, outcomesOfGoal, goalsProductOnly, outcomesUncategorised, outcomeCatCounts,
   valuesOf, outcomesWithoutValue, valueGap, valueWeak, valueChain,
+  valuesOfStrategy, outcomesUnvaluedFor,
   rightHolder, rightVetoHolder, rightsDrift, decisionsOfRight, rightUnexercised,
   nameMatches, decisionMandate, rightsOrphans, rightsOutside, rightsDrifted, rightWeak,
   RIGHT_RANK, RIGHT_STALE_DAYS,
@@ -1295,6 +1298,60 @@ group("seed-ider er globalt unike");
   ok(orphanNO.length === 0, "hver SEED_NO-nøkkel peker på en entitet som finnes" +
      (orphanNO.length ? ": " + orphanNO.join(", ") : ""));
 }
+
+group("verdikjede pa strategikortet - utledet, ikke erklaert");
+// Strategi -> verdi finnes ikke som kobling. Kjeden leses: strategien tjener
+// mal, malene baerer utfall, utfallene baerer verdi.
+fullDB();
+{
+  const st1 = SEED.strategies.find(s => s.id === "st1");   // tjener g1 og g2
+  const rows = valuesOfStrategy(st1);
+  const ids = rows.map(r => r.value.id).sort().join(",");
+  ok(ids === "v3,v4,v5",
+     "st1 arver gevinstene som folger av utfallene under g1 og g2, ikke flere (fikk " + ids + ")");
+  ok(rows.every(r => r.outcome.goalId === r.goal.id),
+     "hver rad baerer malet utfallet faktisk horer til");
+  ok(rows.every(r => (st1.serves || []).includes(r.goal.id)),
+     "ingen rad smugler inn et mal strategien ikke tjener");
+  ok(rows.every(r => r.value.fromOutcome === r.outcome.id),
+     "hver gevinst peker tilbake pa utfallet den folger av");
+
+  const st3 = SEED.strategies.find(s => s.id === "st3");   // tjener g3 -> o4 -> v1, v2
+  const r3 = valuesOfStrategy(st3);
+  ok(r3.map(r => r.value.id).sort().join(",") === "v1,v2",
+     "ett utfall kan baere to gevinster i ulik valuta - begge folger med");
+  ok(new Set(r3.map(r => r.outcome.id)).size === 1,
+     "og begge kommer gjennom det samme utfallet");
+}
+// Utledningen ma forbli utledet: ingen strategi far et verdifelt a erklaere i.
+ok(!FIELDS.strategies.some(f => f.ref === "values" || /value/i.test(f.k)),
+   "strategiskjemaet har ingen verdikobling - utfallet er den kausale broen");
+ok(SEED.strategies.every(s => s.values === undefined),
+   "ingen strategi i seed baerer et verdifelt");
+
+ok(valuesOfStrategy(null).length === 0, "ingen strategi gir ingen kjede");
+ok(valuesOfStrategy({}).length === 0, "strategi uten serves-felt krasjer ikke");
+ok(valuesOfStrategy({serves:[]}).length === 0, "strategi uten mal gir ingen kjede");
+ok(valuesOfStrategy({serves:["finnes-ikke"]}).length === 0,
+   "mal som ikke finnes gir ingen kjede, ikke krasj");
+ok(valuesOfStrategy({serves:["g2","g2"]}).length === valuesOfStrategy({serves:["g2"]}).length,
+   "samme mal to ganger i serves dobler ikke gevinstene");
+
+// Den andre enden: utfall strategien jobber mot som ingen har verdsatt.
+setDB({ goals:[{id:"gA"}], strategies:[], signals:[],
+        outcomes:[{id:"oA", goalId:"gA"}, {id:"oB", goalId:"gA"}],
+        values:[{id:"vA", fromOutcome:"oA"}] });
+ok(outcomesUnvaluedFor({serves:["gA"]}).map(o => o.id).join() === "oB",
+   "utfallet ingen har verdsatt er det eneste som flagges");
+ok(valuesOfStrategy({serves:["gA"]}).length === 1,
+   "og det verdsatte utfallet baerer sin ene gevinst");
+fullDB();
+ok(outcomesUnvaluedFor(SEED.strategies.find(s => s.id === "st1")).length === 0,
+   "i seed er hvert utfall verdsatt, sa strategiene har ingenting a flagge");
+ok(outcomesUnvaluedFor(null).length === 0, "ingen strategi gir ingen flagg");
+["sv.head","sv.hint","sv.count.one","sv.count.many","sv.nogoal.t","sv.nogoal.d",
+ "sv.none.t","sv.none.d","sv.unval.one","sv.unval.many"].forEach(k =>
+  ok(T.en[k] !== undefined && T.no[k] !== undefined, k + " finnes i begge sprak"));
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,
