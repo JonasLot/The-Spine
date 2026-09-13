@@ -1622,6 +1622,49 @@ setDB({ ...SEED, reviews: [] });
      "en fullt utfylt verdi far ingen advarsel");
 }
 
+group("skuff og modal - lagreglene star i kilden");
+// Regelen som holder lagene atskilt: INGEN rorer #modal-klassen utenom
+// openModal/closeModal. Gjor noen det, kan tilstanden oppsta igjen.
+{
+  const bodies = ["openModal","closeModal"].map(n => {
+    const m = new RegExp("function " + n + "\\(\\)\\{[\\s\\S]*?\\n\\}").exec(src)
+           || new RegExp("function " + n + "\\([\\s\\S]*?\\n\\}").exec(src);
+    return m ? m[0] : "";
+  }).join("\n");
+  ok(bodies.includes("openModal") === false || bodies.length > 0, "openModal og closeModal finnes");
+  const total = (src.match(/\$\("#modal"\)\.classList/g) || []).length;
+  const inside = (bodies.match(/\$\("#modal"\)\.classList/g) || []).length;
+  ok(total === inside && total === 2,
+     "bare openModal og closeModal rorer #modal-klassen (" + inside + " av " + total + ")");
+  ok(/function openDrawer\(\)\{ closeModal\(\);/.test(src),
+     "openDrawer lukker modalen forst — det var den manglende linjen");
+  ok(/function openModal\(\)\{\s*\n\s*if\(drawerOpen\(\)\) closeDrawer\(\);/.test(src),
+     "openModal lukker skuffen forst");
+}
+// Modalen ma ha en bakgrunn. Uten den kunne den ligge usynlig over skuffen
+// og sluke klikk — det var grunnen til at feilen var umulig a se.
+{
+  const css = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m => m[1]).join("\n");
+  const block = /\.modal\{([\s\S]*?)\}/.exec(css);
+  ok(block && /background:\s*rgba/.test(block[1]),
+     "modalen har en synlig bakgrunn, sa et lag over aldri kan vaere usynlig");
+  ok(block && /pointer-events:none/.test(block[1]),
+     "og slipper klikk gjennom nar den er av");
+}
+// Esc skal lukke ETT lag. For lukket den skuffen og modalen i samme trykk.
+{
+  const esc = /if\(e\.key==="Escape"\)\{[\s\S]*?\n  \}/.exec(src);
+  ok(esc, "Esc-grenen ble funnet");
+  const n = (esc ? esc[0].match(/return;/g) || [] : []).length;
+  ok(n >= 3, "Esc returnerer etter hvert lag den lukker (" + n + " utganger)");
+  const order = ["modalOpen()", "IMPORT", "formOpen()", "drawerOpen()"]
+    .map(k => (esc ? esc[0].indexOf(k) : -1));
+  ok(order.every(i => i >= 0),
+     "Esc prover alle fire lagene — modal, import, skjema, skuff");
+  ok(order.every((v, i) => i === 0 || v > order[i - 1]),
+     "og prover dem ovenfra og ned, sa ett trykk lukker ett lag");
+}
+
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,
    "kvalitative signaler har ikke fått påtvunget nye felt");

@@ -242,6 +242,7 @@ a{color:inherit}
 /* Modal form */
 .modal{
   position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:24px;
+  background:rgba(28,26,22,.32);backdrop-filter:blur(2px);
   opacity:0;pointer-events:none;transition:opacity .22s
 }
 .modal.on{opacity:1;pointer-events:auto}
@@ -5252,7 +5253,7 @@ function openRadarPaste(){
   const foot=el("div","pm-foot");
   const cancel=el("button","btn",esc(t("btn.cancel")||"Cancel"));
   cancel.type="button";
-  cancel.onclick=()=>{ $("#modal").classList.remove("on"); editing=null; };
+  cancel.onclick=()=>{ closeModal(); editing=null; };
   const go=el("button","btn pri",esc(t("radar.imp.go")));
   go.type="button";
   go.onclick=()=>{
@@ -5264,7 +5265,7 @@ function openRadarPaste(){
   foot.appendChild(cancel); foot.appendChild(go);
   body.appendChild(count); body.appendChild(foot);
   upd();
-  $("#modal").classList.add("on");
+  openModal();
 }
 function parseRadarText(text){
   const lines=String(text||"").replace(/\r/g,"").split("\n");
@@ -5382,7 +5383,7 @@ function endImport(){
   const coll = IMPORT ? IMPORT.coll : "strategies";
   IMPORT = null;
   $("#drawer").classList.remove("form");
-  closeDrawer(); $("#modal").classList.remove("on"); editing = null;
+  closeDrawer(); closeModal(); editing = null;
   render();
   if(n) alert(LANG==="no"
     ? "Importert "+n+" oppføring"+(n>1?"er":"")+"."
@@ -6193,8 +6194,23 @@ window.removeOrg=removeOrg;
 
 /* ============================================================ DRAWERS */
 let DRAWER_REF=null;
-function openDrawer(){ $("#scrim").classList.add("on"); $("#drawer").classList.add("on"); }
+/* ---- lagene ----
+   Skuffen (z50) og modalen (z60) er begge modale. Sto de oppe samtidig, sa
+   skuffen synlig og klikkbar ut mens modalen — som ikke hadde bakgrunn —
+   slukte hvert eneste klikk. Den veien gikk radarimporten: veiviseren ga
+   arbeidet videre til skjemaet i skuffen uten a lukke seg selv.
+   Regelen na: apner det ene laget, lukker det andre. Ingen kan komme i
+   den tilstanden igjen uten a ga utenom disse fire funksjonene. */
+function openDrawer(){ closeModal(); $("#scrim").classList.add("on"); $("#drawer").classList.add("on"); }
 function closeDrawer(){ DRAWER_REF=null; $("#scrim").classList.remove("on"); $("#drawer").classList.remove("on"); }
+function openModal(){
+  if(drawerOpen()) closeDrawer();
+  $("#drawer").classList.remove("form");
+  $("#modal").classList.add("on");
+  const f=$("#mBody").querySelector("textarea,input,select");
+  if(f) setTimeout(()=>f.focus(),30);
+}
+function closeModal(){ $("#modal").classList.remove("on"); }
 function drawerShell(eyebrow,badge,title){
   $("#drawerH").innerHTML = `<div><div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:600">${eyebrow}</div>${badge||""}</div><button class="x" onclick="closeDrawer()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
 }
@@ -7155,14 +7171,14 @@ function openPremortemPush(s){
         ns++;
       }
     });
-    save(); $("#modal").classList.remove("on"); editing=null; render();
+    save(); closeModal(); editing=null; render();
   };
   const cancel=el("button","btn",esc(t("btn.cancel")||"Cancel"));
   cancel.type="button";
-  cancel.onclick=()=>{ $("#modal").classList.remove("on"); editing=null; };
+  cancel.onclick=()=>{ closeModal(); editing=null; };
   foot.appendChild(cancel); foot.appendChild(go);
   body.appendChild(foot);
-  $("#modal").classList.add("on");
+  openModal();
 }
 
 function openRouter(){
@@ -7218,7 +7234,7 @@ function openRouter(){
     body.appendChild(go); body.appendChild(other); body.appendChild(back);
   };
   draw();
-  $("#modal").classList.add("on");
+  openModal();
 }
 function editEntry(coll,id){ editing={coll,id,data:structuredClone(byId(coll,id))}; buildForm(); }
 /* ---- etiketter i skjemaet ----
@@ -7454,8 +7470,10 @@ $("#search").oninput = e=>{ q=e.target.value.trim().toLowerCase(); if(["insights
 $("#addBtn").onclick = newEntry;
 $("#scrim").onclick = closeDrawer;
 // Modalen er nå bare for veivisere. Entitetsskjemaet bor i skuffen.
-function defaultCancel(){ $("#modal").classList.remove("on"); editing=null; cvClearSeed(); }
+function defaultCancel(){ closeModal(); editing=null; cvClearSeed(); }
 $("#mCancel").onclick = defaultCancel;
+// Samme affordanse som scrim gir skuffen: klikk utenfor arket lukker.
+$("#modal").onclick = e => { if(e.target === $("#modal")) defaultCancel(); };
 $("#menuBtn").onclick = ()=> $("#side").classList.toggle("open");
 /* ---- hurtigtaster ----
    N ny · E rediger den åpne skuffen · Cmd/Ctrl+Enter lagre · Esc lukk.
@@ -7471,7 +7489,14 @@ function modalOpen(){ const m=$("#modal"); return !!(m && m.classList.contains("
 function drawerOpen(){ const d=$("#drawer"); return !!(d && d.classList.contains("on")); }
 
 document.addEventListener("keydown",e=>{
-  if(e.key==="Escape"){ if(IMPORT) finalizeImport(); if(formOpen()) cancelForm(); else closeDrawer(); $("#modal").classList.remove("on"); return; }
+  // Esc lukker det overste laget, ett om gangen — ikke alt pa en gang.
+  if(e.key==="Escape"){
+    if(modalOpen()){ defaultCancel(); return; }
+    if(IMPORT){ finalizeImport(); return; }
+    if(formOpen()){ cancelForm(); return; }
+    if(drawerOpen()) closeDrawer();
+    return;
+  }
 
   // Lagre: virker med vilje også midt i et felt.
   if((e.metaKey||e.ctrlKey) && (e.key==="Enter"||e.key==="s")){

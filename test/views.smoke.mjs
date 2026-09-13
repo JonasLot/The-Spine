@@ -106,7 +106,10 @@ try {
              SEED, SYSTEMS, T, FIELDS, FORM_TABS, buildForm, saveForm,
              setEditing:v=>{editing=v}, getEditing:()=>editing,
              drawerBody:()=>document.querySelector("#drawerB"),
-             CV_LINKS, CV_COLL, CV_KINDS, cvRelations, openGoal, openValue};
+             CV_LINKS, CV_COLL, CV_KINDS, cvRelations, openGoal, openValue,
+             openDrawer, closeDrawer, openModal, closeModal, modalOpen, drawerOpen,
+             openRadarImport:typeof openRadarImport==="function"?openRadarImport:null,
+             startImportReview, normalizeEntity};
   `)();
 } catch (err) {
   console.log("  ✗ app.html lastet ikke i det hele tatt");
@@ -223,6 +226,32 @@ console.log("gevinstspørsmalet i gjennomgangen");
   ok(r2.includes(app.T.en["rev.v"]) && r2.includes(app.T.en["rev.empty.val.t"]),
      "steget blir staende med tom tilstand nar ingen gevinst skal sjekkes");
   app.setDB(structuredClone(app.SEED));
+}
+
+console.log("skuff og modal - bare ett lag eier skjermen");
+{
+  // Feilen: veiviseren ga arbeidet videre til skjemaet i skuffen uten a
+  // lukke seg selv. Modalen hadde ingen bakgrunn, sa den sto usynlig over
+  // skuffen og slukte hvert klikk.
+  app.closeModal(); app.closeDrawer();
+  app.openDrawer();
+  ok(app.drawerOpen() && !app.modalOpen(), "skuffen alene er skuffen alene");
+  app.openModal();
+  ok(app.modalOpen() && !app.drawerOpen(), "apner modalen, lukker skuffen");
+  app.openDrawer();
+  ok(app.drawerOpen() && !app.modalOpen(), "apner skuffen, lukker modalen");
+  app.closeDrawer();
+  ok(!app.drawerOpen() && !app.modalOpen(), "begge lukket er begge lukket");
+
+  // Selve stien som utloste feilen, ende til ende.
+  app.openModal();
+  ok(app.modalOpen(), "radarveiviseren star oppe");
+  app.startImportReview("radar",
+    [{clean:{force:"En kraft fra innliming"}, warnings:[]}], "innliming");
+  ok(app.drawerOpen(), "importskjemaet apnet seg i skuffen");
+  ok(!app.modalOpen(),
+     "og veiviseren lukket seg — ellers ligger den usynlig over og sluker klikkene");
+  app.closeDrawer(); app.closeModal();
 }
 
 console.log("radaren snakker norsk");
