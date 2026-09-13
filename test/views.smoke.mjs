@@ -261,6 +261,34 @@ console.log("skuff og modal - bare ett lag eier skjermen");
   app.closeDrawer(); app.closeModal();
 }
 
+console.log("hoyde og tilslutning");
+{
+  for (const lang of ["en", "no"]) {
+    app.setLang(lang);
+    const g = app.ctx.vGoals().deepText || "";
+    ok(g.includes(app.T[lang]["rung.break.one"]) || g.includes(app.T[lang]["rung.break.many"]),
+       `malvisningen roper om det brutte trinnet (${lang})`);
+    ok(g.includes("T\u00d8FF"), `og navngir strategien som hopper (${lang})`);
+    const st = app.ctx.vStrategies().deepText || "";
+    ok(st.includes(app.T[lang]["bind.silence.one"]) || st.includes(app.T[lang]["bind.silence.many"]),
+       `portefoljen roper om taushet talt som enighet (${lang})`);
+    ok(st.includes("AtB"), `og navngir parten (${lang})`);
+    const sd = app.vStrategyDetail("st1").deepText || "";
+    ok(sd.includes(app.T[lang]["bind.head"]), `strategikortet viser hvem avtalen binder (${lang})`);
+    ok(sd.includes("Ruter") && sd.includes("AtB"), `med alle partene (${lang})`);
+  }
+  app.setLang("en");
+  // Uten parter skal seksjonen ikke staa der og se tom ut.
+  const db = structuredClone(app.SEED);
+  db.strategies = db.strategies.map(s => ({...s, binds: []}));
+  app.setDB(db);
+  ok(!(app.vStrategyDetail("st1").deepText || "").includes(app.T.en["bind.head"]),
+     "uten parter finnes seksjonen ikke");
+  ok(!(app.ctx.vStrategies().deepText || "").includes(app.T.en["bind.silence.one"]),
+     "og porteflojen tier");
+  app.setDB(structuredClone(app.SEED));
+}
+
 console.log("initiativ - sommen mot eksekvering");
 {
   for (const lang of ["en", "no"]) {

@@ -64,6 +64,12 @@ const harness = [
   decl("DIAG_RANK"), decl("DIAG_DEAD"), func("strategiesOfDiagnosis"), func("diagnosisOf"),
   func("liveStrategy"), func("strategiesWithoutDiagnosis"), func("diagnosesUnanswered"),
   func("diagnosesVoided"), func("strategiesOnVoidDiagnosis"), func("diagnosisWeak"),
+  // ALT_I fylles pa samme linje som den deklareres; decl() stopper ved
+  // forste }, sa den ma leses som en hel linje.
+  decl("ALT"), oneLine(/const ALT_I\s*=/), func("altI"), func("altOfGoal"), func("altOfStrategy"),
+  func("rungBreaks"), func("ladderGaps"), func("goalsAtAlt"), func("strategiesAtAlt"),
+  decl("ASSENT"), decl("ASSENT_RANK"), func("bindsOf"), func("assentAssumed"),
+  func("assentFloor"), func("strategiesOnSilence"),
   decl("NEED_SRC"), decl("NEED_RANK"), oneLine(/const NEED_STALE_DAYS\s*=/),
   func("outcomesOfNeed"), func("needOf"), func("outcomesWithoutNeed"), func("needsUnserved"),
   func("needsAssumedButLoadBearing"), func("needStale"), func("needsStale"),
@@ -133,6 +139,8 @@ const harness = [
   "DIAG_RANK,DIAG_DEAD,strategiesOfDiagnosis,diagnosisOf,liveStrategy," +
   "strategiesWithoutDiagnosis,diagnosesUnanswered,diagnosesVoided," +
   "strategiesOnVoidDiagnosis,diagnosisWeak," +
+  "ALT,altI,altOfGoal,altOfStrategy,rungBreaks,ladderGaps,goalsAtAlt,strategiesAtAlt," +
+  "ASSENT,bindsOf,assentAssumed,assentFloor,strategiesOnSilence," +
   "NEED_SRC,NEED_RANK,NEED_STALE_DAYS,outcomesOfNeed,needOf,outcomesWithoutNeed," +
   "needsUnserved,needsAssumedButLoadBearing,needStale,needsStale,needWeak,needSrcCounts," +
   "SYSTEMS,SYSTEMS_X,SYSTEMS_ALL,SYS_NO,SYS_X_NO," +
@@ -170,6 +178,8 @@ const {
   DIAG_RANK, DIAG_DEAD, strategiesOfDiagnosis, diagnosisOf, liveStrategy,
   strategiesWithoutDiagnosis, diagnosesUnanswered, diagnosesVoided,
   strategiesOnVoidDiagnosis, diagnosisWeak,
+  ALT, altI, altOfGoal, altOfStrategy, rungBreaks, ladderGaps, goalsAtAlt, strategiesAtAlt,
+  ASSENT, bindsOf, assentAssumed, assentFloor, strategiesOnSilence,
   NEED_SRC, NEED_RANK, NEED_STALE_DAYS, outcomesOfNeed, needOf, outcomesWithoutNeed,
   needsUnserved, needsAssumedButLoadBearing, needStale, needsStale, needWeak, needSrcCounts,
   SYSTEMS, SYSTEMS_X, SYSTEMS_ALL, SYS_NO, SYS_X_NO,
@@ -1940,6 +1950,97 @@ group("apnere - ett kart, ikke en handskrevet kjede");
      "hashen legges til side for omdirigeringen til login");
   ok(/openFromHash\(takeStashedHash\(\)\)/.test(src),
      "og hentes fram igjen nar appen har lastet");
+}
+fullDB();
+
+group("hoyde - stigen, ikke zoom");
+{
+  ok(ALT.join(",") === "team,product,portfolio,company,owner",
+     "stigen gar nedenfra og opp, og «team» star igjen sa ingen mister hoyde de alt har skrevet");
+  ok(altOfGoal({}) === "product" && altOfStrategy({}) === "product",
+     "uten hoyde antas produkt — det er der de fleste faktisk jobber");
+  ok(altI("finnes-ikke") === altI("product"), "en ukjent hoyde faller til produkt, den krasjer ikke");
+  // Skjemaet og stigen ma vaere samme liste, ellers kan du velge en hoyde
+  // funksjonene ikke kjenner.
+  const gOpt = FIELDS.goals.find(f => f.k === "type").opts;
+  const sOpt = FIELDS.strategies.find(f => f.k === "alt").opts;
+  ok(gOpt.join() === ALT.join(), "malskjemaet tilbyr noyaktig stigen");
+  ok(sOpt.join() === ALT.join(), "strategiskjemaet tilbyr noyaktig stigen");
+  ALT.forEach(a => ok(T.en["goal.type."+a] !== undefined && T.no["goal.type."+a] !== undefined,
+    "goal.type." + a + " finnes i begge sprak"));
+}
+
+group("hoyde - det brutte trinnet");
+setDB({ ...SEED, reviews: [] });
+{
+  const br = rungBreaks();
+  ok(br.length === 1 && (br[0]||{}).gap === 2 && ((br[0]||{}).strategy||{}).id === "st2",
+     "TOFF lader to trinn opp til selskapsmalet — portefoljenivaet ble aldri skrevet");
+  ok(!br.some(b => b.strategy.id === "st1"),
+     "en portefoljestrategi som leverer et produktmal er IKKE brutt — det er slik en plattform virker");
+}
+setDB({ goals:[{id:"g",type:"owner"}], signals:[], outcomes:[], assumptions:[],
+        strategies:[{id:"s",name:"s",alt:"team",serves:["g"]}] });
+ok((rungBreaks()[0]||{}).gap === 4, "et sprang fra team til eier er fire trinn, og fanges");
+setDB({ goals:[{id:"g",type:"team"}], signals:[], outcomes:[], assumptions:[],
+        strategies:[{id:"s",name:"s",alt:"company",serves:["g"]}] });
+ok((rungBreaks()[0]||{}).gap === -3, "og et sprang NEDOVER teller like mye — retningen er ikke poenget");
+setDB({ goals:[{id:"g",type:"product"}], signals:[], outcomes:[], assumptions:[],
+        strategies:[{id:"s",name:"s",alt:"product",serves:["g"]},
+                    {id:"s2",name:"s2",alt:"product",serves:["finnes-ikke"]}] });
+ok(rungBreaks().length === 0, "samme hoyde er ikke et sprang, og et mal som ikke finnes gir ingen falsk alarm");
+
+group("hoyde - hullet i stigen");
+setDB({ signals:[], outcomes:[], assumptions:[], strategies:[],
+        goals:[{id:"a",type:"product"},{id:"b",type:"company"}] });
+ok(ladderGaps().join() === "portfolio", "et tomt trinn MELLOM to som er i bruk er hullet");
+setDB({ signals:[], outcomes:[], assumptions:[], strategies:[],
+        goals:[{id:"a",type:"product"},{id:"b",type:"portfolio"}] });
+ok(ladderGaps().length === 0, "nabotrinn har ingen hull mellom seg");
+setDB({ signals:[], outcomes:[], assumptions:[], strategies:[],
+        goals:[{id:"a",type:"product"}] });
+ok(ladderGaps().length === 0,
+   "jobber du bare pa ett nivaa er de tomme trinnene et VALG, ikke et hull — alarmen maser ikke");
+setDB({ signals:[], outcomes:[], assumptions:[], goals:[],
+        strategies:[{id:"s",name:"s",alt:"team"},{id:"s2",name:"s2",alt:"company"}] });
+ok(ladderGaps().join() === "product,portfolio",
+   "strategier teller med i stigen, ikke bare mal");
+
+group("tilslutning - taushet lest som enighet");
+setDB({ ...SEED, reviews: [] });
+{
+  const st1 = byId("strategies","st1");
+  ok(bindsOf(st1).length === 4, "fire parter er fort opp");
+  ok(assentAssumed(st1).map(b => b.who).join() === "AtB",
+     "AtB er talt som enig uten at noen har hort dem si det");
+  ok(assentFloor(st1) === "assumed",
+     "avtalen er ikke sterkere enn sin svakeste tilslutning");
+  ok(strategiesOnSilence().map(s => s.id).join() === "st1",
+     "og porteflojen viser hvilken strategi som hviler pa taushet");
+}
+ok(assentFloor({}) === null, "en strategi uten parter har ingen tilslutningsgulv");
+ok(bindsOf({binds:[{who:"  "},{who:"Ruter"}]}).length === 1,
+   "en tom rad teller ikke som en part");
+ok(assentAssumed({binds:[{who:"X"}]}).length === 1,
+   "uten oppgitt tilslutning er den antatt — det er standarden som er aerlig");
+{
+  setDB({ signals:[], outcomes:[], assumptions:[], goals:[],
+          strategies:[{id:"s",name:"s",status:"archived",binds:[{who:"X",assent:"assumed"}]}] });
+  ok(strategiesOnSilence().length === 0, "en arkivert strategi mases det ikke om");
+}
+ok(ASSENT.join() === "assumed,heard,confirmed",
+   "samme akse som Behov bruker — sviktene er den samme");
+["bind.assumed","bind.heard","bind.confirmed","bind.head","bind.floor","bind.add",
+ "bind.none","bind.who.ph","bind.note","bind.silence.one","bind.silence.many",
+ "alt.lbl","alt.all","rung.up","rung.down","rung.banner.note"].forEach(k =>
+  ok(T.en[k] !== undefined && T.no[k] !== undefined, k + " finnes i begge sprak"));
+{
+  const f = FIELDS.strategies.find(x => x.k === "binds");
+  ok(f && f.t === "binds", "«hvem den binder» er et eget felt pa strategien");
+  ok(FLD_NO.strategies.binds !== undefined, "og oversatt");
+  // Sammensatte felt ma nullstilles som lister, ikke som tomme strenger.
+  ok(/f\.t==="rels"\|\|f\.t==="binds"/.test(src),
+     "nye tomme strategier far binds som liste");
 }
 fullDB();
 

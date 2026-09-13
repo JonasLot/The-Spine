@@ -835,6 +835,32 @@ a{color:inherit}
 .cv-statusbar{position:absolute;left:14px;bottom:14px;display:flex;gap:8px;align-items:center;
   background:var(--panel);border:1px solid var(--line);border-radius:99px;
   padding:5px 6px 5px 14px;box-shadow:var(--shadow);font-size:11.5px;color:var(--ink-3)}
+.bind-banner{display:flex;gap:13px;align-items:flex-start;padding:15px 18px;border-radius:var(--r-md);
+  background:var(--warn-bg);border:1px solid transparent;margin-bottom:16px;color:var(--warn)}
+.bind-banner svg{width:19px;height:19px;flex:none;margin-top:1px}
+.bind-banner .who{font-size:12px;color:var(--ink-2);margin-top:4px;line-height:1.55}
+.bind-banner .sub{font-size:12.5px;color:var(--ink-2);margin-top:6px;max-width:78ch;line-height:1.5}
+.bind-row{display:flex;gap:14px;align-items:center;justify-content:space-between;
+  padding:12px 18px;border-bottom:1px solid var(--line-2)}
+.bind-row:last-child{border-bottom:none}
+.bind-row .w{font-size:13.5px;font-weight:500;text-wrap:pretty}
+.bind-row.thin .w{color:var(--warn)}
+.bind-row .a{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;flex:none}
+.bind-row .a.as-assumed{color:var(--warn)}
+.bind-row .a.as-heard{color:var(--ink-2)}
+.bind-row .a.as-confirmed{color:var(--good,var(--accent-ink))}
+.bind-warn{padding:14px 18px;border-bottom:1px solid var(--line-2);color:var(--warn);font-size:13px}
+.bind-warn .sub{font-size:12.5px;color:var(--ink-2);margin-top:6px;max-width:76ch;line-height:1.5}
+.rung-banner{display:flex;gap:13px;align-items:flex-start;padding:15px 18px;border-radius:var(--r-md);
+  background:var(--warn-bg);border:1px solid transparent;margin-bottom:16px;color:var(--warn)}
+.rung-banner svg{width:19px;height:19px;flex:none;margin-top:1px}
+.rung-banner .who{font-size:12px;color:var(--ink-2);margin-top:4px;line-height:1.55}
+.rung-banner .sub{font-size:12.5px;color:var(--ink-2);margin-top:6px;max-width:78ch;line-height:1.5}
+.cv-altbar{display:flex;align-items:center;gap:10px;padding:14px 30px 0;flex-wrap:wrap}
+.cv-alts{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.cv-althid{font-size:11.5px;color:var(--ink-3);font-style:italic}
+.cv-altchip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.cv-altchip.on .cv-cn{color:#fff}
 .cv-zoom{display:flex;gap:5px}
 .cv-zbtn{width:24px;height:24px;border-radius:99px;border:1px solid var(--line);background:var(--panel);
   color:var(--ink-2);display:grid;place-items:center;font-size:14px;line-height:1;padding:0;cursor:pointer}
@@ -1327,20 +1353,21 @@ const SEED = {
   ],
 
   strategies: [
-    {id:"st1", name:"Tet Vedtak — Case Platform", framework:"kernel", status:"committed", owner:"Jonas", review:"2026-07-15", version:3, serves:["g1","g2"], diagnosisId:"dg1",
+    {id:"st1", name:"Tet Vedtak — Case Platform", framework:"kernel", status:"committed", owner:"Jonas", review:"2026-07-15", version:3, alt:"portfolio", serves:["g1","g2"], diagnosisId:"dg1",
+      binds:[{who:"Ruter",assent:"confirmed"},{who:"Skyss",assent:"confirmed"},{who:"AKT",assent:"heard"},{who:"AtB",assent:"assumed"}],
       challenge:"150+ municipalities run school transport on legacy systems (FSkyss/Voyager) that can neither automate nor isolate tenant data — and ~90% of appeals are overturned, signalling systemic rule-application errors rather than caseworker discretion.",
       approach:"Build one multi-tenant case platform with a transparent, traceable rule engine — so the same decision logic runs everywhere, automates the routine, and makes every outcome auditable.",
       moves:["Verify the rule engine against 30+ historical appeals (M1 checkpoint)","Clear the DPIA gate before any automated decision (Gate 1)","Per-tenant configuration, never per-tenant code","A separate processing flow for confidential addresses"],
       notDoing:["Extending FSkyss/Voyager","Buying off-the-shelf in this phase","Automating non-routine or discretionary cases"],
       howKnow:["Appeal-overturn rate falls as the pilot rolls out","≥60% of ordinary cases fully automated at quality","Zero statutory-deadline breaches"]},
-    {id:"st2", name:"TØFF Migration", framework:"premortem", status:"reviewed", owner:"Jonas", review:"2026-09-01", version:1, serves:["g1"], diagnosisId:"dg2",
+    {id:"st2", name:"TØFF Migration", framework:"premortem", status:"reviewed", owner:"Jonas", review:"2026-09-01", version:1, alt:"product", serves:["g1"], diagnosisId:"dg2",
       relations:[{to:"st1", type:"enables"}],
       challenge:"CMP is decommissioned on 31.12.2026; the TØFF migration must complete inside a fixed window with no break in statutory service delivery.",
       approach:"Sequence the migration into increment T2 with a clean rollback path, validating statutory flows in a shadow run before cutover.",
       moves:["Establish a pre-migration baseline","Stage the cutover with a tested rollback","Validate statutory deadlines in a shadow run"],
       notDoing:["Deferring to T3","A big-bang cutover with no fallback"],
       howKnow:["No measurable service interruption in the window","All statutory deadlines met during cutover"]},
-    {id:"st3", name:"On-Demand Transit Planning", framework:"one-pager", status:"draft", owner:"Jonas", review:"2026-08-10", version:1, serves:["g3"], diagnosisId:"dg3",
+    {id:"st3", name:"On-Demand Transit Planning", framework:"one-pager", status:"draft", owner:"Jonas", review:"2026-08-10", version:1, alt:"product", serves:["g3"], diagnosisId:"dg3",
       challenge:"School admins drop off during onboarding and lean on support calls, capping how fast on-demand planning can scale.",
       approach:"Make onboarding fully self-serve with guided setup, so a new admin reaches first value without a support call.",
       moves:["Guided first-run setup","In-product help at the known drop-off points"],
@@ -1652,6 +1679,21 @@ const T = {
     "dr.outcomes":"Outcomes", "dr.served":"Served by strategies", "dr.measuredsig":"Measured by signal", "dr.servesgoals":"Serves goals", "dr.uncovered":"No strategy serves this yet", "dr.nomeasure":"No signal measuring this yet", "dr.goalstatement":"What this means",
     "state.on-track":"On track", "state.at-risk":"At risk", "state.off-track":"Off track", "state.not-measured":"Not measured",
     "goal.type.company":"Company", "goal.type.product":"Product", "goal.type.team":"Team",
+    "goal.type.portfolio":"Portfolio", "goal.type.owner":"Owner / partner",
+    "alt.lbl":"Height","alt.all":"Every height","alt.hidden":"{n} hidden at other heights",
+    "bind.assumed":"Assumed","bind.heard":"Heard","bind.confirmed":"Confirmed",
+    "bind.who.ph":"The owner or partner the agreement binds",
+    "bind.none":"Nobody stated — then it binds nobody in particular.",
+    "bind.add":"Add a party","bind.head":"Who it binds","bind.floor":"Weakest assent",
+    "bind.silence.one":"party is counted as agreeing without anyone having heard them say it.",
+    "bind.silence.many":"parties are counted as agreeing without anyone having heard them say it.",
+    "bind.note":"Responsibility without authority does not produce disagreement — it produces silence, and silence reads as consensus right up until somebody has to deliver on it.",
+    "rung.break.one":"strategy serves a goal it cannot ladder to.",
+    "rung.break.many":"strategies serve goals they cannot ladder to.",
+    "rung.gap.one":"height between them is empty.","rung.gap.many":"heights between them are empty.",
+    "rung.up":"ladders up {n} steps — nothing in between is written",
+    "rung.down":"reaches {n} steps down — nothing in between is written",
+    "rung.banner.note":"A strategy serves an adjacent height or its own — a portfolio strategy delivering a product goal is normal. The break is the jump: more than one step means the rung in between was never written, and nobody can say what the work adds up to there.",
     "tk.goal":"goal", "tk.outcome":"outcome", "tk.strategy":"strategy",
     "kpi.coverage":"Goal coverage", "kpi.coverage.s":"goals served by ≥1 strategy",
     "vh.dashboard":`<h1>Am I moving toward the goal?</h1><p>One read of the whole apparatus. The bets the strategy rests on, the signals watching them, and what disagrees with you right now.</p>`,
@@ -2041,6 +2083,21 @@ const T = {
     "dr.outcomes":"Utfall", "dr.served":"Tjent av strategier", "dr.measuredsig":"Målt av signal", "dr.servesgoals":"Tjener mål", "dr.uncovered":"Ingen strategi tjener dette ennå", "dr.nomeasure":"Ingen signal måler dette ennå", "dr.goalstatement":"Hva dette betyr",
     "state.on-track":"På sporet", "state.at-risk":"I faresonen", "state.off-track":"Av sporet", "state.not-measured":"Ikke målt",
     "goal.type.company":"Selskap", "goal.type.product":"Produkt", "goal.type.team":"Team",
+    "goal.type.portfolio":"Portefølje", "goal.type.owner":"Eier / partner",
+    "alt.lbl":"Høyde","alt.all":"Alle høyder","alt.hidden":"{n} skjult på andre høyder",
+    "bind.assumed":"Antatt","bind.heard":"Hørt","bind.confirmed":"Bekreftet",
+    "bind.who.ph":"Eieren eller partneren avtalen binder",
+    "bind.none":"Ingen oppgitt — da binder den ingen spesielle.",
+    "bind.add":"Legg til en part","bind.head":"Hvem den binder","bind.floor":"Svakeste tilslutning",
+    "bind.silence.one":"part er talt som enig uten at noen har hørt dem si det.",
+    "bind.silence.many":"parter er talt som enige uten at noen har hørt dem si det.",
+    "bind.note":"Ansvar uten autoritet gir ikke uenighet — det gir taushet, og taushet ser ut som konsensus helt til noen må levere på den.",
+    "rung.break.one":"strategi tjener et mål den ikke kan lade opp mot.",
+    "rung.break.many":"strategier tjener mål de ikke kan lade opp mot.",
+    "rung.gap.one":"høyde mellom dem er tom.","rung.gap.many":"høyder mellom dem er tomme.",
+    "rung.up":"lader opp {n} trinn — ingenting i mellom er skrevet",
+    "rung.down":"rekker {n} trinn ned — ingenting i mellom er skrevet",
+    "rung.banner.note":"En strategi tjener nabotrinnet eller sitt eget — at en porteføljestrategi leverer et produktmål er normalt. Det brutte er spranget: mer enn ett trinn betyr at nivået i mellom aldri ble skrevet, og da kan ingen si hva arbeidet summerer seg til der.",
     "tk.goal":"mål", "tk.outcome":"utfall", "tk.strategy":"strategi",
     "kpi.coverage":"Måldekning", "kpi.coverage.s":"mål tjent av ≥1 strategi",
     "vh.dashboard":`<h1>Beveger jeg meg mot målet?</h1><p>Ett blikk på hele apparatet. Bettene strategien hviler på, signalene som overvåker dem, og hva som er uenig med deg akkurat nå.</p>`,
@@ -2954,11 +3011,22 @@ function vStrategies(){
   const head=el("div","view-head");
   head.style.cssText="display:flex;justify-content:space-between;align-items:flex-start;gap:20px";
   head.innerHTML=t("vh.strategies");
+  const silent=strategiesOnSilence();
   const imp=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21V9M7 14l5-5 5 5"/><path d="M5 3h14"/></svg>${esc(LANG==="no"?"Importer":"Import")}`);
   imp.style.flex="none"; imp.onclick=()=>importEntities("strategies");
   head.appendChild(imp);
   w.appendChild(head);
   if(!DB.strategies.length){ const p=el("div","panel"); return emptyInto(w,p,t("empty.strat.t"),t("empty.strat.d")); }
+  // Taushet talt som enighet. Den ene alarmen ingen annen visning kan se.
+  if(silent.length){
+    const n=silent.reduce((a,st)=>a+assentAssumed(st).length,0);
+    const bn=el("div","bind-banner");
+    bn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11v2M7 8v8M11 5v14M15 9v6M19 11v2" opacity=".55"/><path d="M2 2l20 20"/></svg>
+      <div><div><b>${n}</b> ${esc(t(n===1?"bind.silence.one":"bind.silence.many"))}</div>
+      <div class="who">${silent.map(st=>esc(st.name)+" — "+assentAssumed(st).map(b=>esc(b.who)).join(", ")).join("<br>")}</div>
+      <div class="sub">${esc(t("bind.note"))}</div></div>`;
+    w.appendChild(bn);
+  }
   const grid=el("div","grid strat-grid");
   DB.strategies.forEach(s=>{
     const st=STRAT_STATUS[s.status]||["b-mute",s.status];
@@ -3094,6 +3162,28 @@ function vStrategyDetail(id){
     ${opSection(t("op.4"),opList(L(s,"notDoing"),"ul"))}
     ${opSection(t("op.5"),opList(L(s,"howKnow"),"ul"))}`;
   w.appendChild(op);
+
+  // hvem avtalen binder — bare der noen faktisk er ført opp
+  const bd=bindsOf(s);
+  if(bd.length){
+    const thin=assentAssumed(s);
+    w.appendChild(el("div","sect-h",
+      `<h2>${esc(t("bind.head"))}</h2><span class="hint">${esc(t("bind.floor"))}: ${esc(t("bind."+assentFloor(s)))}</span>`));
+    const bp=el("div","panel");
+    if(thin.length){
+      const warn=el("div","bind-warn");
+      warn.innerHTML=`<b>${thin.length}</b> ${esc(t(thin.length===1?"bind.silence.one":"bind.silence.many"))}
+        <div class="sub">${esc(t("bind.note"))}</div>`;
+      bp.appendChild(warn);
+    }
+    bd.forEach(b=>{
+      const k=ASSENT.includes(b.assent)?b.assent:"assumed";
+      const row=el("div","bind-row"+(k==="assumed"?" thin":""));
+      row.innerHTML=`<span class="w">${esc(b.who)}</span><span class="a as-${k}">${esc(t("bind."+k))}</span>`;
+      bp.appendChild(row);
+    });
+    w.appendChild(bp);
+  }
 
   // verdikjeden — lest ut av grafen, ikke erklært noe sted
   w.appendChild(el("div","sect-h",
@@ -3361,6 +3451,18 @@ function goalTypeL(k){ return t("goal.type."+(k||"product"))||k; }
 function vGoals(){
   const w=el("div","view");
   w.appendChild(el("div","view-head",`<h1>${esc(t("vh.goals.t"))}</h1><p>${esc(t("vh.goals.d"))}</p>`));
+  const breaks=rungBreaks(), gaps=ladderGaps();
+  if(breaks.length||gaps.length){
+    const bn=el("div","rung-banner");
+    bn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 20V4M18 20V4M6 8h12M6 16h12"/></svg>
+      <div>${breaks.length?`<div><b>${breaks.length}</b> ${esc(t(breaks.length===1?"rung.break.one":"rung.break.many"))}</div>
+        <div class="who">${breaks.map(b=>esc(b.strategy.name)+" → "+esc(trunc(L(trView(b.goal),"title"),34))
+          +" ("+esc(b.gap<0?t("rung.down").replace("{n}",-b.gap):t("rung.up").replace("{n}",b.gap))+")").join("<br>")}</div>`:""}
+      ${gaps.length?`<div><b>${gaps.length}</b> ${esc(t(gaps.length===1?"rung.gap.one":"rung.gap.many"))}
+        <span class="who">${gaps.map(a=>esc(t("goal.type."+a))).join(" · ")}</span></div>`:""}
+      <div class="sub">${esc(t("rung.banner.note"))}</div></div>`;
+    w.appendChild(bn);
+  }
   if(!DB.goals.length){ const p=el("div","panel"); return emptyInto(w,p,t("empty.goals.t"),t("empty.goals.d")); }
   const tb=el("table","tbl");
   tb.innerHTML=`<thead><tr><th>${esc(t("th.goal"))}</th><th>${esc(t("th.type"))}</th><th>${esc(t("th.outcomes"))}</th><th>${esc(t("th.serving"))}</th><th>${esc(t("th.owner"))}</th></tr></thead>`;
@@ -4078,6 +4180,17 @@ function cvSub(k,o){
   return "";
 }
 /* hvilken strategi hører elementet til? brukes av det globale strategifilteret */
+/* Hvilken hoyde ligger noden pa? Malet og strategien baerer sin egen; alt
+   annet arver hoyden til strategien det henger pa. Derfor holder det a merke
+   to registre for at hele lerretet far en hoyde. */
+let CV_ALT = null;   // null = alle hoyder
+function cvAlt(k,o){
+  if(k==="goal") return altOfGoal(o);
+  if(k==="strategy") return altOfStrategy(o);
+  const nm=cvStrat(k,o);
+  const st=nm?(DB.strategies||[]).find(x=>x.name===nm):null;
+  return st?altOfStrategy(st):null;   // null = hoyre ukjent, skjules aldri
+}
 function cvStrat(k,o){
   if(k==="strategy") return o.name;
   if(k==="assumption"||k==="signal"||k==="decision") return o.strategy||"";
@@ -4242,7 +4355,7 @@ function cvCreatableFrom(srcKind, srcObj){
 function cvBlank(coll){
   const o={};
   (FIELDS[coll]||[]).forEach(f=>{
-    o[f.k] = (f.t==="lines"||f.t==="multiref"||f.t==="rels") ? []
+    o[f.k] = (f.t==="lines"||f.t==="multiref"||f.t==="rels"||f.t==="binds") ? []
            : f.t==="seg" ? (f.noDefault?"":f.opts[0])
            : "";
   });
@@ -4439,8 +4552,12 @@ function renderCanvas(host, opts={}){
 
   const vp = readonly ? {x:0,y:0,z:1} : CV_VIEW;
 
-  const shown = () => cvPlaced().filter(n=>layers[n.kind] && (!only || only.has(n.id)));
-  const isShown = id => { const e=cvEntity(id); return !!(e && e.o.pos && layers[e.kind] && (!only || only.has(id))); };
+  // En node uten kjent hoyde skjules aldri: a gjemme noe fordi vi ikke VET
+  // hvor det hoerer hjemme ville vaert a lyve ved utelatelse.
+  const altOK = n => { if(!CV_ALT) return true; const a=cvAlt(n.kind,n.o); return !a || a===CV_ALT; };
+  const shown = () => cvPlaced().filter(n=>layers[n.kind] && altOK(n) && (!only || only.has(n.id)));
+  const isShown = id => { const e=cvEntity(id);
+    return !!(e && e.o.pos && layers[e.kind] && altOK(e) && (!only || only.has(id))); };
 
   /* ---- kortene ---- */
   function card(n){
@@ -4624,7 +4741,7 @@ function renderCanvas(host, opts={}){
     });
   }
   /* ---- full opptegning ---- */
-  let statusEl=null, drawerEl=null, layerEl=null, toastEl=null;
+  let statusEl=null, drawerEl=null, layerEl=null, altEl=null, toastEl=null;
   function paint(){
     world.querySelectorAll(".cv-node").forEach(x=>x.remove());
     const list=shown();
@@ -4636,6 +4753,7 @@ function renderCanvas(host, opts={}){
     if(statusEl) statusEl.innerHTML=`<span>${esc(t("cv.stat").replace("{n}",list.length).replace("{e}",links))}</span>`;
     if(drawerEl) paintSide();
     if(layerEl) paintLayers();
+    if(altEl) paintAlts();
   }
   function transform(){
     if(typeof hideCut==='function') hideCut();
@@ -4915,6 +5033,31 @@ function renderCanvas(host, opts={}){
   /* ════════ full utgave: lagbrytere, skuff, statuslinje ════════ */
   const ties = id => [...(NB[id]||[])].filter(isShown).length;
 
+  altEl=el("div","cv-alts");
+  function paintAlts(){
+    altEl.innerHTML="";
+    const g=el("div","cv-lgrp cv-altgrp");
+    g.appendChild(el("span","cv-llbl",esc(t("alt.lbl"))));
+    const mk=(key,label)=>{
+      const on = key===CV_ALT;
+      const b=el("button","cv-chip cv-altchip"+(on?" on":""),esc(label));
+      b.type="button"; b.setAttribute("aria-pressed",String(on));
+      b.onclick=()=>{ CV_ALT = on ? null : key; paintAlts(); paint(); };
+      g.appendChild(b);
+    };
+    mk(null,t("alt.all"));
+    ALT.forEach(a=>{
+      const n=goalsAtAlt(a).length+strategiesAtAlt(a).length;
+      if(n||a===CV_ALT) mk(a,t("goal.type."+a));
+    });
+    altEl.appendChild(g);
+    // Skjuler hoyden noe, skal kartet si det — ikke bare vise faerre kort.
+    if(CV_ALT){
+      const tot=cvPlaced().length, vis=shown().length;
+      if(tot>vis) altEl.appendChild(el("span","cv-althid",
+        esc(t("alt.hidden").replace("{n}",tot-vis))));
+    }
+  }
   layerEl=el("div","cv-layers");
   function paintLayers(){
     layerEl.innerHTML="";
@@ -5204,6 +5347,9 @@ function renderCanvas(host, opts={}){
      <span>${esc(t("cv.lg.state"))}</span>`));
 
   /* ---- sett det sammen ---- */
+  paintAlts();
+  const altbar=el("div","cv-altbar");
+  altbar.appendChild(altEl);
   const bar=el("div","cv-bar");
   bar.appendChild(layerEl);
   bar.appendChild(el("div","cv-grow"));
@@ -5253,7 +5399,7 @@ function renderCanvas(host, opts={}){
 
   const split=el("div","cv-split");
   split.appendChild(stage); split.appendChild(side);
-  host.appendChild(bar); host.appendChild(split);
+  host.appendChild(altbar); host.appendChild(bar); host.appendChild(split);
 
   function setSide(open){
     CV_VIEW.side = !!open; cvSaveView();
@@ -5427,7 +5573,7 @@ function normalizeEntity(coll, raw){
   FIELDS[coll].forEach(f=>{
     const v = raw ? raw[f.k] : undefined;
     if(REF_FIELD_TYPES.includes(f.t)){
-      clean[f.k] = (f.t==="multiref"||f.t==="rels") ? [] : "";
+      clean[f.k] = (f.t==="multiref"||f.t==="rels"||f.t==="binds") ? [] : "";
       const had = Array.isArray(v) ? v.length : (v!=null && v!=="");
       if(had) warnings.push(`«${fldL(coll,f)}» (referanse) tømt — koble manuelt etter import`);
       return;
@@ -6783,6 +6929,7 @@ const FIELDS = {
     {k:"framework",l:"Framework",t:"seg",opts:["kernel","cascade","wardley","premortem","one-pager"]},
     {k:"status",l:"Status",t:"seg",opts:["draft","reviewed","committed","archived"]},
     {k:"owner",l:"Owner",t:"text"},
+    {k:"alt",l:"Height",t:"seg",opts:["team","product","portfolio","company","owner"]},
     {k:"review",l:"Next review",t:"date"},
     {k:"version",l:"Version",t:"text",ph:"e.g. 1"},
     {k:"challenge",l:"1 · The challenge",t:"textarea",ph:"Two honest sentences. From the kernel diagnosis."},
@@ -6793,6 +6940,7 @@ const FIELDS = {
     {k:"diagnosisId",l:"Answers diagnosis",t:"ref",ref:"diagnoses"},
     {k:"relations",l:"Relates to other strategies",t:"rels"},
     {k:"serves",l:"Serves goals",t:"multiref",ref:"goals"},
+    {k:"binds",l:"Who it binds",t:"binds"},
   ],
   insights:[
     {k:"claim",l:"Claim",t:"textarea",req:1,ph:"What you now believe is true…"},
@@ -6915,7 +7063,7 @@ const FIELDS = {
   ],
   goals:[
     {k:"title",l:"Goal",t:"text",req:1,ph:"The destination — why the work exists"},
-    {k:"type",l:"Type",t:"seg",opts:["company","product","team"]},
+    {k:"type",l:"Height",t:"seg",opts:["team","product","portfolio","company","owner"]},
     {k:"horizon",l:"Horizon",t:"text",ph:"e.g. 2026"},
     {k:"owner",l:"Owner",t:"text"},
     {k:"statement",l:"What this means",t:"textarea",ph:"One or two sentences a new hire understands"},
@@ -6999,7 +7147,8 @@ const FLD_NO = {
   },
   strategies:{
     name:["Strateginavn","Visningsnavnet på dette arbeidet"],
-    framework:["Rammeverk",""], status:["Status",""], owner:["Eier",""],
+    framework:["Rammeverk",""], status:["Status",""], alt:["Høyde",""],
+    binds:["Hvem den binder",""], owner:["Eier",""],
     review:["Neste gjennomgang",""], version:["Versjon","f.eks. 1"],
     challenge:["1 · Utfordringen","To ærlige setninger. Fra kernel-diagnosen."],
     approach:["2 · Vår tilnærming","Den styrende policyen, i ord en nyansatt forstår."],
@@ -7294,6 +7443,72 @@ function commitCounts(){
 // Derfor er ikke spørsmålet «er behovet sant», men HVOR DU VET DET FRA.
 // Et register der flertallet står på «antatt» er en diagnose av
 // organisasjonen, ikke av brukeren.
+/* ── Høyde: stigen strategien lader opp gjennom ──────────────────────────
+   Ikke zoom. Lerretet har allerede zoom, og den gjør bildet større — dette
+   bytter hva som vises. Kartografer kaller det generalisering.
+   «team» sto der fra før og blir staaende: a fjerne den ville slettet hoyde
+   pa mal noen allerede har skrevet. */
+const ALT = ["team","product","portfolio","company","owner"];
+const ALT_I = {}; ALT.forEach((a,i)=>ALT_I[a]=i);
+function altI(a){ const i=ALT_I[a]; return i===undefined ? ALT_I.product : i; }
+function altOfGoal(g){ return g&&g.type ? g.type : "product"; }
+function altOfStrategy(st){ return st&&st.alt ? st.alt : "product"; }
+
+// En strategi skal tjene mål på nabotrinnet eller sitt eget. At en
+// porteføljestrategi leverer et produktmål er helt normalt — det er slik en
+// plattform virker. Det brutte trinnet er SPRANGET: mer enn ett trinn, i
+// hvilken som helst retning, betyr at nivået i mellom aldri ble skrevet.
+function rungBreaks(){
+  const out=[];
+  (DB.strategies||[]).forEach(st=>{
+    const si=altI(altOfStrategy(st));
+    (st.serves||[]).forEach(gid=>{
+      const g=byId("goals",gid); if(!g) return;
+      const gi=altI(altOfGoal(g)), d=gi-si;
+      if(Math.abs(d)>1) out.push({strategy:st, goal:g, gap:d});
+    });
+  });
+  return out;
+}
+// Et tomt trinn MELLOM to som er i bruk. Jobber du bare på produktnivå, er
+// det ikke noe hull — det er et valg. Hullet er når noe over og noe under
+// finnes, og mellomtrinnet ikke gjør det.
+function ladderGaps(){
+  const used=new Set();
+  (DB.goals||[]).forEach(g=>used.add(altI(altOfGoal(g))));
+  (DB.strategies||[]).forEach(st=>used.add(altI(altOfStrategy(st))));
+  // Ingen egen vakt for «bare ett nivå i bruk»: da er lo===hi, og løkken
+  // under går null runder av seg selv. En vakt her ville sett ut som om den
+  // fanget et tilfelle koden ikke håndterer.
+  const lo=Math.min(...used), hi=Math.max(...used);
+  const gaps=[];
+  for(let i=lo+1;i<hi;i++) if(!used.has(i)) gaps.push(ALT[i]);
+  return gaps;
+}
+function goalsAtAlt(a){ return (DB.goals||[]).filter(g=>altOfGoal(g)===a); }
+function strategiesAtAlt(a){ return (DB.strategies||[]).filter(st=>altOfStrategy(st)===a); }
+
+/* ── Tilslutning: hvem avtalen binder, og hvor sikker hver enkelt er ─────
+   «Partnerne er enige som en helhet» er en pastand. «Noen kan fole seg
+   uteglemt» er maten den er feil pa. Samme akse som Behov bruker, fordi
+   sviktene er den samme: stillhet lest som enighet.
+   Ansvar uten autoritet gir ikke uenighet — det gir taushet, og taushet ser
+   ut som konsensus helt til noen ma levere pa den. */
+const ASSENT = ["assumed","heard","confirmed"];
+const ASSENT_RANK = {assumed:0, heard:1, confirmed:2};
+function bindsOf(st){ return (st&&st.binds||[]).filter(b=>b&&String(b.who||"").trim()); }
+// Talt som enige uten at noen har hort dem si det.
+function assentAssumed(st){ return bindsOf(st).filter(b=>(b.assent||"assumed")==="assumed"); }
+// Avtalen er ikke sterkere enn sin svakeste tilslutning.
+function assentFloor(st){
+  const b=bindsOf(st); if(!b.length) return null;
+  return ASSENT[Math.min(...b.map(x=>ASSENT_RANK[x.assent]??0))];
+}
+// Over hele porteforljen: hvilke strategier hviler pa antatt tilslutning.
+function strategiesOnSilence(){
+  return (DB.strategies||[]).filter(st=>st.status!=="archived" && assentAssumed(st).length);
+}
+
 const NEED_SRC = ["assumed","heard","verified"];
 const NEED_RANK = {assumed:0, heard:1, verified:2};
 const NEED_STALE_DAYS = 365;
@@ -7801,6 +8016,8 @@ const OPT_PREFIX = {
   door:"door.", framework:"fw.", status:"status.", commitment:"cm.",
   domain:"radar.dom.", horizon:"radar.hz.", movement:"radar.mv.", dir:"dir.",
   type:"goal.type.",
+  // Høyden på strategien bruker samme stige som målet, så etikettene deles.
+  alt:"goal.type.",
 };
 function optL(fieldKey,opt){
   const p=OPT_PREFIX[fieldKey];
@@ -7814,9 +8031,9 @@ function optL(fieldKey,opt){
    rendres den flatt som før. */
 const FORM_TABS = {
   strategies:[
-    {k:"card",     keys:["name","framework","status","owner","review","version"]},
+    {k:"card",     keys:["name","framework","status","alt","owner","review","version"]},
     {k:"artifact", keys:["challenge","approach","moves","notDoing","howKnow"]},
-    {k:"links",    keys:["diagnosisId","serves","relations"]},
+    {k:"links",    keys:["diagnosisId","serves","binds","relations"]},
   ],
 };
 let FORM_TAB = 0;
@@ -7874,6 +8091,34 @@ function buildForm(tabIx){
     else if(f.t==="lines"){
       inp=el("textarea"); inp.value=(data[f.k]||[]).join("\n"); inp.placeholder=FPH||t("form.oneperline"); inp.rows=4;
       inp.oninput=()=>data[f.k]=inp.value.split("\n").map(x=>x.trim()).filter(Boolean);
+    }
+    else if(f.t==="binds"){
+      // Samme form som relasjonsfeltet: rader med en tekst og et valg.
+      inp=el("div"); inp.style.cssText="display:flex;flex-direction:column;gap:8px";
+      const list=el("div"); list.style.cssText="display:flex;flex-direction:column;gap:8px";
+      const draw=()=>{
+        list.innerHTML="";
+        (data.binds||[]).forEach((b,ix)=>{
+          const row=el("div","rel-row");
+          const who=el("input"); who.type="text"; who.value=b.who||"";
+          who.placeholder=t("bind.who.ph");
+          who.oninput=()=>b.who=who.value;
+          const sel=el("select"); sel.style.cssText="max-width:170px;flex:none";
+          ASSENT.forEach(k=>{ const o=el("option"); o.value=k; o.textContent=t("bind."+k);
+            if((b.assent||"assumed")===k) o.selected=true; sel.appendChild(o); });
+          if(!b.assent) b.assent="assumed";
+          sel.onchange=()=>b.assent=sel.value;
+          const del=el("button","rel-del","×"); del.type="button"; del.title=t("form.rel.del");
+          del.onclick=()=>{ data.binds.splice(ix,1); draw(); };
+          row.appendChild(who); row.appendChild(sel); row.appendChild(del);
+          list.appendChild(row);
+        });
+        if(!(data.binds||[]).length) list.appendChild(el("div","mini-empty",esc(t("bind.none"))));
+      };
+      draw();
+      const add=el("button","btn","+ "+esc(t("bind.add"))); add.type="button"; add.style.alignSelf="flex-start";
+      add.onclick=()=>{ (data.binds=data.binds||[]).push({who:"",assent:"assumed"}); draw(); };
+      inp.appendChild(list); inp.appendChild(add);
     }
     else if(f.t==="rels"){
       inp=el("div"); inp.style.cssText="display:flex;flex-direction:column;gap:8px";
