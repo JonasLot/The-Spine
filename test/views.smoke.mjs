@@ -90,7 +90,7 @@ if (!global.crypto) Object.defineProperty(global, "crypto", {
 global.d3 = undefined;                            // kartet skal degradere pent
 
 // ── last appen ───────────────────────────────────────────────────────────
-const VIEWS = ["vDashboard","vStrategies","vMap","vNeeds","vGoals","vOutcomes","vValues","vRadar","vRights","vDiagnoses","vInsights",
+const VIEWS = ["vDashboard","vStrategies","vMap","vNeeds","vGoals","vOutcomes","vValues","vRadar","vRights","vDiagnoses","vInsights","vInitiatives",
                "vDecisions","vAssumptions","vSignals","vReview","vShares",
                "vFlywheel","vSystems","vProfile"];
 let app;
@@ -106,7 +106,7 @@ try {
              SEED, SYSTEMS, SYSTEMS_X, SYSTEMS_ALL, T, FIELDS, FORM_TABS, buildForm, saveForm,
              setEditing:v=>{editing=v}, getEditing:()=>editing,
              drawerBody:()=>document.querySelector("#drawerB"),
-             CV_LINKS, CV_COLL, CV_KINDS, cvRelations, openGoal, openValue,
+             CV_LINKS, CV_COLL, CV_KINDS, cvRelations, openGoal, openValue, openInitiative,
              openDrawer, closeDrawer, openModal, closeModal, modalOpen, drawerOpen,
              openRadarImport:typeof openRadarImport==="function"?openRadarImport:null,
              startImportReview, normalizeEntity};
@@ -261,6 +261,38 @@ console.log("skuff og modal - bare ett lag eier skjermen");
   app.closeDrawer(); app.closeModal();
 }
 
+console.log("initiativ - sommen mot eksekvering");
+{
+  for (const lang of ["en", "no"]) {
+    app.setLang(lang);
+    const v = app.ctx.vInitiatives().deepText || "";
+    ok(v.includes("M1"), `initiativene star i tabellen (${lang})`);
+    ok(v.includes("notion.so"), `lenken ut vises (${lang})`);
+    ok(v.includes(app.T[lang]["init.noauth.one"]) || v.includes(app.T[lang]["init.noauth.many"]),
+       `alarmen om arbeid uten beslutning gaar (${lang})`);
+    // Sommen pa strategikortet.
+    const sd = app.vStrategyDetail("st1").deepText || "";
+    ok(sd.includes(app.T[lang]["sect.exec"]), `strategikortet har overgangsseksjonen (${lang})`);
+    ok(sd.includes("M1"), `og viser arbeidet som kjoper ned strategiens bets (${lang})`);
+  }
+  app.setLang("en");
+  // Ingen initiativer: begge stedene skal si fra, ikke vaere tomme.
+  const db = structuredClone(app.SEED);
+  db.initiatives = [];
+  app.setDB(db);
+  ok((app.ctx.vInitiatives().deepText || "").includes(app.T.en["empty.init.t"]),
+     "tomt register sier fra");
+  ok((app.vStrategyDetail("st1").deepText || "").includes(app.T.en["exec.empty.t"]),
+     "og strategikortet sier at ingenting har krysset");
+  app.setDB(structuredClone(app.SEED));
+  // Skuffen.
+  app.openInitiative("in3");
+  const d = app.drawerBody().deepText || "";
+  ok(d.includes(app.T.en["init.none.dec"]), "skuffen sier at in3 ikke er hjemlet i noen beslutning");
+  ok(d.includes(app.T.en["init.weak.warn"]), "og at den ikke kan folges enda");
+  app.closeDrawer();
+}
+
 console.log("systemer som deler register lander pa sin egen del");
 {
   for (const lang of ["en", "no"]) {
@@ -299,7 +331,8 @@ console.log("registrene rammeverket ikke navnga star pa staaende systemer");
     ok(v.includes(app.T[lang]["sys.x.why"]), `hvert kort sier hvorfor det star utenfor (${lang})`);
     for (const s of app.SYSTEMS_X) {
       const navn = lang === "no"
-        ? ({Needs:"Behov", Goals:"Mål", Outcomes:"Utfall", Value:"Verdi", Diagnoses:"Diagnoser"})[s.name]
+        ? ({Needs:"Behov", Goals:"Mål", Outcomes:"Utfall", Value:"Verdi",
+            Initiatives:"Initiativ", Diagnoses:"Diagnoser"})[s.name]
         : s.name;
       ok(v.includes(navn), `${navn} star som kort (${lang})`);
     }

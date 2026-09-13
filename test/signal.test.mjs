@@ -80,7 +80,11 @@ const harness = [
   func("valuesOf"), func("outcomesWithoutValue"), func("valueGap"),
   func("valueWeak"), func("valueChain"), decl("VAL_SCOPE_RANK"),
   func("valuesOfGoal"), func("outcomesUnvaluedOfGoal"),
-  func("yamlStr"), func("mdInsight"), func("mdDecision"), func("mdAssumption"),
+  func("yamlStr"), oneLine(/const INIT_LIVE\s*=/),
+  func("initiativesOfBet"), func("initiativesOfOutcome"), func("liveInitiatives"),
+  func("initiativesUnserved"), func("initiativesBlind"), func("initiativesUnauthorised"),
+  func("initiativesOnBrokenBet"), func("outcomesUnworked"), func("initiativeWaitsFor"),
+  func("initiativeWeak"), func("mdInitiative"), func("mdInsight"), func("mdDecision"), func("mdAssumption"),
   func("mdSignal"), func("mdValue"), func("mdForce"), func("mdRight"),
   func("mdDiagnosis"), func("mdNeed"), decl("MD_FN"),
   oneLine(/const mdT\s*=/), decl("MD_TITLE"), func("mdLink"),
@@ -134,10 +138,14 @@ const harness = [
   "OUT_CATS,outcomesOfGoal,goalsProductOnly,outcomesUncategorised,outcomeCatCounts," +
   "valuesOf,outcomesWithoutValue,valueGap,valueWeak,valueChain," +
   "valuesOfGoal,outcomesUnvaluedOfGoal,valuesOfStrategy,outcomesUnvaluedFor," +
-  "mdValue,MD_FN,MD_TITLE,mdLink,mdAssumption," +
+  "mdValue,MD_FN,MD_TITLE,mdLink,mdAssumption,mdInitiative," +
+  "INIT_LIVE,initiativesOfBet,initiativesOfOutcome,liveInitiatives," +
+  "initiativesUnserved,initiativesBlind,initiativesUnauthorised," +
+  "initiativesOnBrokenBet,outcomesUnworked,initiativeWaitsFor,initiativeWeak," +
   "rightHolder,rightVetoHolder,rightsDrift,decisionsOfRight,rightUnexercised," +
   "nameMatches,decisionMandate,rightsOrphans,rightsOutside,rightsDrifted,rightWeak," +
   "RIGHT_RANK,RIGHT_STALE_DAYS," +
+  "byId,STATE_MAP," +
   "resetReview:()=>{REVIEW_SESSION=null}," +
   "setLang:v=>{LANG=v},setDB:v=>{DB=v}};",
 ].join("\n");
@@ -149,6 +157,7 @@ const {
   STRAT_FW, LENSES, LENSES_NO, lensWhen, lensAnatomy, lensSmells, smellsFlagged,
   lensFields, lensDerive, lensVal, artifactEmpty, routeLens, KEEP_KEYS, premortemCandidates,
   buildSharePayload, shareUrl, shareStale, shareBehind, shareOldFormat, SHARE_V, setShares,
+  byId, STATE_MAP,
   reviewNoteSignal, reviewNoteBet, reviewChanged, closeReview, resetReview,
   reviewNoteValue, strategiesOfValue, valuesDue, valueGapInView, setStratF,
   radarStatus, radarWeight, radarThreatening, RADAR_DUE,
@@ -166,7 +175,10 @@ const {
   OUT_CATS, outcomesOfGoal, goalsProductOnly, outcomesUncategorised, outcomeCatCounts,
   valuesOf, outcomesWithoutValue, valueGap, valueWeak, valueChain,
   valuesOfGoal, outcomesUnvaluedOfGoal, valuesOfStrategy, outcomesUnvaluedFor,
-  mdValue, MD_FN, MD_TITLE, mdLink, mdAssumption,
+  mdValue, MD_FN, MD_TITLE, mdLink, mdAssumption, mdInitiative,
+  INIT_LIVE, initiativesOfBet, initiativesOfOutcome, liveInitiatives,
+  initiativesUnserved, initiativesBlind, initiativesUnauthorised,
+  initiativesOnBrokenBet, outcomesUnworked, initiativeWaitsFor, initiativeWeak,
   rightHolder, rightVetoHolder, rightsDrift, decisionsOfRight, rightUnexercised,
   nameMatches, decisionMandate, rightsOrphans, rightsOutside, rightsDrifted, rightWeak,
   RIGHT_RANK, RIGHT_STALE_DAYS,
@@ -1677,8 +1689,8 @@ ok(SYSTEMS.length === 10, "de ti er fortsatt ti (" + SYSTEMS.length + ")");
   ok(SYSTEMS_X.every(s => !tiRegs.has(s.reg)),
      "ingen av dem dublerer et register de ti allerede eier");
   // Rekkefolgen ER kjeden. Sorteres den bort, mister seksjonen poenget sitt.
-  ok(SYSTEMS_X.map(s => s.reg).join(",") === "Needs,Goals,Outcomes,Values,Diagnoses",
-     "retningen star i kjederekkefolge, og diagnosen sist (fikk: " +
+  ok(SYSTEMS_X.map(s => s.reg).join(",") === "Needs,Goals,Outcomes,Values,Diagnoses,Initiatives",
+     "retningen star i kjederekkefolge, sa diagnosen, sa arbeidet (fikk: " +
      SYSTEMS_X.map(s => s.reg).join(",") + ")");
   ok(SYSTEMS_X.every(s => s.dies && s.why && s.feeds),
      "hvert kort sier hva som dor uten det, hvorfor det star utenfor, og hvor det mater inn");
@@ -1738,6 +1750,107 @@ ok(src.includes("commitCounts()") && src.split("commitCounts()").length > 2,
    "commitCounts() brukes faktisk i en visning, ikke bare i testene");
 ["sect.alloc","sect.alloc.h","cm.nobets"].forEach(k =>
   ok(T.en[k] !== undefined && T.no[k] !== undefined, k + " finnes i begge sprak"));
+
+group("initiativ - kanten mot leveranseverktoyet");
+// Kanten er hele poenget: Spine holder pastanden om hva arbeidet er FOR.
+// Et statusfelt her ville vaert en kopi av Notion som rakner stille.
+{
+  const felt = FIELDS.initiatives.map(f => f.k);
+  ok(!felt.some(k => /progress|percent|status|budget|cost|spent|due|start|end/i.test(k)),
+     "ingen felt prover a speile fremdrift, budsjett eller datoer fra verktoyet (" + felt.join(",") + ")");
+  ok(felt.filter(k => /livesIn|url|link/i.test(k)).length === 1,
+     "noyaktig ETT felt peker ut av appen");
+  ok(!felt.includes("commitment"),
+     "forpliktelsen bor pa bettet, ikke her — to steder ville drevet fra hverandre");
+  ok(!felt.includes("parent") && !felt.includes("children"),
+     "ingen under-initiativer: arbeidsnedbrytning er verktoyets jobb");
+  ok(!felt.includes("dependsOn"),
+     "avhengighet erklaeres ikke — den utledes");
+  FIELDS.initiatives.forEach(f =>
+    ok(FLD_NO.initiatives[f.k] !== undefined, "FLD_NO.initiatives dekker " + f.k));
+}
+
+group("initiativ - alarmene");
+fullDB();
+setDB({ ...SEED, reviews: [] });
+ok(initiativesUnauthorised().map(i => i.id).join() === "in3",
+   "lopende arbeid uten beslutning bak seg flagges — medlemskapstesten handhevet");
+ok(initiativesOnBrokenBet().length === 0, "ingen bet i seed er brutt, sa ingen loper mot et brutt");
+// Den skarpeste alarmen, framkalt.
+setDB({ decisions:[{id:"dX", rests:[]}], outcomes:[{id:"oX"}], goals:[], signals:[],
+        assumptions:[{id:"aX", state:"broken"}],
+        initiatives:[{id:"iX", name:"lop", serves:["oX"], buysDown:["aX"],
+                      decisionId:"dX", state:"running", livesIn:"https://x.no"}] });
+ok(initiativesOnBrokenBet().map(i => i.id).join() === "iX",
+   "arbeid som loper mot et bet som allerede falt er den leveranseverktoyet ikke kan se");
+ok(initiativeWeak(null).sort().join(",") === "bet,decision,link,outcome",
+   "et initiativ uten noe som helst mangler alle fire, og krasjer ikke");
+setDB({ decisions:[{id:"dX"}], outcomes:[{id:"oX"}], goals:[], signals:[],
+        assumptions:[{id:"aX", state:"broken"}],
+        initiatives:[{id:"iX", buysDown:["aX"], decisionId:"dX", state:"delivered"}] });
+ok(initiativesOnBrokenBet().length === 0,
+   "et levert initiativ loper ikke lenger — da er det ingen alarm");
+ok(initiativesUnserved().map(i => i.id).join() === "iX", "levert arbeid uten utfall flagges fortsatt");
+setDB({ decisions:[], outcomes:[], goals:[], signals:[], assumptions:[],
+        initiatives:[{id:"iX", state:"stopped"}] });
+ok(initiativesUnserved().length === 0 && initiativesBlind().length === 0,
+   "stoppet arbeid mases det ikke om — det er allerede avgjort");
+// Den andre enden.
+setDB({ decisions:[], goals:[], signals:[], assumptions:[],
+        outcomes:[{id:"o1"},{id:"o2"}],
+        initiatives:[{id:"iA", serves:["o1"], state:"running"}] });
+ok(outcomesUnworked().map(o => o.id).join() === "o2", "utfall ingen jobber mot flagges");
+setDB({ decisions:[], goals:[], signals:[], assumptions:[],
+        outcomes:[{id:"o1"}], initiatives:[{id:"iA", serves:["o1"], state:"stopped"}] });
+ok(outcomesUnworked().map(o => o.id).join() === "o1",
+   "et stoppet initiativ teller ikke som at noen jobber mot utfallet");
+
+group("initiativ - avhengighet utledes, den erklaeres ikke");
+// B venter pa A naar beslutningen bak B hviler pa et bet A kjoper ned.
+setDB({ goals:[], signals:[], outcomes:[], assumptions:[{id:"a1"},{id:"a2"}],
+        decisions:[{id:"dB", rests:["a1"]}, {id:"dA", rests:[]}],
+        initiatives:[
+          {id:"iA", name:"kjoper ned a1", buysDown:["a1"], decisionId:"dA", state:"running"},
+          {id:"iB", name:"hviler pa a1",  buysDown:["a2"], decisionId:"dB", state:"proposed"}] });
+ok(initiativeWaitsFor(byId("initiatives","iB")).map(i => i.id).join() === "iA",
+   "B venter pa A, lest ut av beslutningens rests-kobling");
+ok(initiativeWaitsFor(byId("initiatives","iA")).length === 0,
+   "A venter ikke pa noen — beslutningen bak den hviler ikke pa noe");
+ok(initiativeWaitsFor({id:"iC"}).length === 0, "initiativ uten beslutning venter ikke pa noen");
+ok(initiativeWaitsFor(null).length === 0, "ingen initiativ, ingen avhengighet");
+{
+  const selv = {id:"iS", buysDown:["a1"], decisionId:"dB", state:"running"};
+  setDB({ goals:[], signals:[], outcomes:[], assumptions:[{id:"a1"}],
+          decisions:[{id:"dB", rests:["a1"]}], initiatives:[selv] });
+  ok(initiativeWaitsFor(selv).length === 0,
+     "et initiativ venter aldri pa seg selv, selv naar det kjoper ned bettet beslutningen hviler pa");
+}
+
+group("initiativ - kjeden ut og tilbake");
+setDB({ ...SEED, reviews: [] });
+ok(initiativesOfBet("a1").map(i => i.id).join() === "in1", "bettet vet hvilket arbeid som kjoper det ned");
+ok(initiativesOfOutcome("o2").map(i => i.id).sort().join(",") === "in1,in4",
+   "et utfall kan realiseres av flere initiativer");
+ok(liveInitiatives().map(i => i.id).sort().join(",") === "in1,in2,in3",
+   "levert og stoppet arbeid er ikke levende");
+{
+  const md = mdInitiative(byId("initiatives","in1"));
+  ok(md.includes("[[Outcome —") && md.includes("[[Assumption —") && md.includes("[[Decision —"),
+     "eksportnotatet baerer hele kjeden som backlinks");
+  ok(md.includes("## Where the work lives") && md.includes("notion.so"),
+     "og lenken ut staar i notatet");
+  const tom = mdInitiative({id:"iT", name:"tom"});
+  ok(tom.includes("no decision; then it is a task"),
+     "uten beslutning sier notatet det i klartekst");
+}
+["nav.initiatives","vh.init.t","vh.init.d","init.livesin","init.waits","init.waits.note",
+ "init.brk.one","init.noauth.one","sect.exec","exec.empty.t","cv.k.initiative",
+ "rel.realises","rel.buysdown","rel.authorised"].forEach(k =>
+  ok(T.en[k] !== undefined && T.no[k] !== undefined, k + " finnes i begge sprak"));
+["proposed","committed","running","delivered","stopped"].forEach(k =>
+  ok(T.en["state."+k] !== undefined && T.no["state."+k] !== undefined && STATE_MAP[k],
+     "tilstanden " + k + " er oversatt og har en merkelapp"));
+fullDB();
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,

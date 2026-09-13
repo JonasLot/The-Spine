@@ -36,6 +36,7 @@
      med vilje: oliven, plomme og skifer ligger i hullene på fargesirkelen. */
   --val:#6F7A2E;    --val-bg:#F0F2E2;
   --right:#8A4A8C;  --right-bg:#F3E8F4;
+  --init:#1F6F6B;   --init-bg:#E2F0EE;
   --force:#55687A;  --force-bg:#EBEFF3;
   --need:#4A57A0;   --need-bg:#EAECF7;
   --diag:#94502E;   --diag-bg:#F6EAE2;
@@ -426,6 +427,25 @@ a{color:inherit}
 .dg-banner .sub{font-size:12.5px;color:var(--ink-2);margin-top:6px;max-width:78ch;line-height:1.5}
 .op-diag{margin-top:9px}
 .op-diag.none{font-size:12.5px;color:var(--warn);font-style:italic}
+.init-banner{display:flex;gap:13px;align-items:flex-start;padding:15px 18px;border-radius:var(--r-md);
+  background:var(--warn-bg);border:1px solid transparent;margin-bottom:16px;color:var(--warn)}
+.init-banner.hot{background:var(--bad-bg);color:var(--bad)}
+.init-banner svg{width:19px;height:19px;flex:none;margin-top:1px}
+.init-banner .sub{font-size:12.5px;color:var(--ink-2);margin-top:6px;max-width:78ch;line-height:1.5}
+.init-link{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;
+  color:var(--accent-ink);text-decoration:none;overflow-wrap:anywhere}
+.init-link:hover{text-decoration:underline}
+.init-link svg{width:13px;height:13px;flex:none}
+.init-link.none{color:var(--ink-3);font-style:italic}
+.init-none{font-size:12px;color:var(--warn);font-style:italic}
+.init-weak{font-size:11.5px;color:var(--warn);font-weight:600;margin-top:5px}
+.init-row{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;
+  padding:14px 18px;border-bottom:1px solid var(--line-2);cursor:pointer}
+.init-row:last-child{border-bottom:none}
+.init-row:hover{background:var(--bg-2)}
+.init-row .s{font-size:13.5px;font-weight:600;text-wrap:pretty}
+.init-row .m{margin-top:5px}
+.init-row .r{flex:none}
 .sys-landed{animation:sysLand 1.6s ease-out}
 @keyframes sysLand{0%,60%{background:var(--accent-soft)}100%{background:transparent}}
 .cm-dist{margin-bottom:16px}
@@ -1051,6 +1071,10 @@ kbd.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:
     <a class="nav-item" data-view="rights">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v18M6 7l-3 6h6l-3-6ZM18 7l-3 6h6l-3-6Z"/><path d="M5 21h14M8 5h8"/></svg>
       <span>Decision Rights</span><span class="ct" data-count="rights">0</span></a>
+    <a class="nav-item" data-view="initiatives">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h9"/><path d="M11 7l5 5-5 5"/><path d="M19 4v16"/></svg>
+      <span>Initiatives</span><span class="ct" data-count="initiatives">0</span></a>
+
     <a class="nav-item" data-view="signals">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 14a8 8 0 0 1 8-8M4 18a4 4 0 0 1 4-4"/><circle cx="5" cy="19" r="1.4" fill="currentColor" stroke="none"/><path d="M14 4a14 14 0 0 1 6 6" opacity=".5"/></svg>
       <span>Signals</span><span class="ct" data-count="signals">0</span></a>
@@ -1265,6 +1289,23 @@ const SEED = {
      size:"", owner:"", note:"Samfunnsverdien hele programmet til slutt måles på."},
   ],
 
+  initiatives: [
+    {id:"in1", name:"M1 — rule engine verified against 30+ historical appeals",
+     serves:["o1","o2"], buysDown:["a1"], decisionId:"d1", state:"running",
+     livesIn:"https://www.notion.so/tet/M1-regelmotor-verifisering", owner:"Jonas",
+     note:"The move the whole automation case rests on. If the engine disagrees with the historical record, a1 is not shaky — it is broken."},
+    {id:"in2", name:"TØFF migration, increment T2",
+     serves:["o3"], buysDown:["a4"], decisionId:"d4", state:"running",
+     livesIn:"https://www.notion.so/tet/toff-t2", owner:"Jonas", note:""},
+    {id:"in3", name:"Self-serve onboarding for school administrators",
+     serves:["o4"], buysDown:["a6"], decisionId:"", state:"committed",
+     livesIn:"", owner:"",
+     note:"Nobody can point at the decision that authorised this, and nobody can point at where the work is. Both are the finding."},
+    {id:"in4", name:"DPIA for automated processing",
+     serves:["o2"], buysDown:["a2"], decisionId:"d3", state:"delivered",
+     livesIn:"https://www.notion.so/tet/dpia-automatisert-behandling", owner:"Jonas", note:""},
+  ],
+
   radar: [
     {id:"r1", force:"The EU AI Act's high-risk classification is being interpreted by national supervisors — automated decisions affecting a child's schooling sit close to the line.",
      domain:"regulatory", horizon:"<1y", exposure:"high", movement:"accelerating",
@@ -1402,6 +1443,9 @@ const SYSTEMS_X = [
   {name:"Diagnoses", feeds:"Understand", reg:"Diagnoses",
    dies:"Strategy becomes a list of moves with no stated difficulty — and nobody can show it is wrong.",
    why:"The diagnosis sat buried inside the strategy artifact. As its own register it can be shared between strategies, and falsified: if it falls, everything answering it falls with it."},
+  {name:"Initiatives", feeds:"Develop", reg:"Initiatives",
+   dies:"The moves are prose in a document, and nothing says which bet the work buys down or where it actually is.",
+   why:"Only one of the ten even mentions Develop, and only as half of a pair. This is the seam: the Spine holds the claim about what the work is for, your delivery tool holds the work. One link out, and nothing that mirrors status back."},
 ];
 const SYSTEMS_ALL = [...SYSTEMS, ...SYSTEMS_X];
 const FAM = {
@@ -1437,6 +1481,9 @@ const SYS_X_NO = {
   "Outcomes":{name:"Utfall",
     dies:"Dere måler hva dere leverte i stedet for hva som endret seg — og kan levere alt som sto på planen uten at noe ble annerledes.",
     why:"Utfallet er den kausale broen mellom arbeidet og verdien. Uten det kan en strategi hevde en gevinst uten noen gang å si hva som endrer seg."},
+  "Initiatives":{name:"Initiativ",
+    dies:"Trekkene er prosa i et dokument, og ingenting sier hvilket bet arbeidet kjøper ned eller hvor det faktisk er.",
+    why:"Bare ett av de ti nevner Utvikle i det hele tatt, og da som halvdel av et par. Dette er sømmen: Spine holder påstanden om hva arbeidet er for, leveranseverktøyet holder arbeidet. Én lenke ut, og ingenting som speiler status tilbake."},
   "Diagnoses":{name:"Diagnoser",
     dies:"Strategien blir en liste med tiltak uten en erklært vanskelighet — og ingen kan vise at den er feil.",
     why:"Diagnosen lå gjemt inni strategiartefaktet. Som eget register kan den deles mellom strategier, og falsifiseres: faller den, faller alt som svarer på den."},
@@ -1510,7 +1557,7 @@ const T = {
     "cv.lede":"One canvas holding direction, strategies and registers side by side. Drag what belongs here in from the drawer; existing links draw themselves, and you declare new ones by dragging from the dot under a card to another card.",
     "cv.k.goal":"Goal", "cv.k.outcome":"Outcome", "cv.k.strategy":"Strategy",
     "cv.k.insight":"Insight", "cv.k.assumption":"Assumption", "cv.k.signal":"Signal", "cv.k.decision":"Decision",
-    "cv.k.value":"Value", "cv.k.right":"Decision class", "cv.k.force":"Force",
+    "cv.k.value":"Value", "cv.k.right":"Decision class", "cv.k.force":"Force", "cv.k.initiative":"Initiative",
     "cv.drawer.t":"The drawer", "cv.drawer.d":"Everything in Direction and the Registers. Drag onto the canvas — or click to place it.",
     "cv.search.ph":"Search elements…",
     "cv.suggested":"Suggested", "cv.ties":"connects to {n} on the canvas",
@@ -1525,6 +1572,7 @@ const T = {
     "cv.fit":"Fit to window", "cv.zoomin":"Zoom in", "cv.zoomout":"Zoom out",
     "cv.lg.declared":"declared", "cv.lg.derived":"derived", "cv.lg.state":"edge colour = state",
     "cv.target":"target:", "cv.conf":"confidence:", "cv.cons":"consequence:",
+    "rel.realises":"realises", "rel.buysdown":"buys down", "rel.authorised":"authorised by",
     "rel.serves":"serves", "rel.belongs":"belongs to", "rel.measures":"measures",
     "rel.carries":"carries", "rel.feeds":"feeds", "rel.watches":"watches", "rel.rests":"rests on",
     "rel.shares":"shares {n}",
@@ -1655,6 +1703,29 @@ const T = {
     "radar.stale.one":"force has gone unchecked past its horizon.","radar.stale.many":"forces have gone unchecked past their horizon.",
     "radar.allfresh":"Every force has been looked at recently.",
     "radar.note":"A radar written once and never revisited is not cover — it is the shift you will discover after it has cost you. How often each force is due follows how soon it bites.",
+    "nav.initiatives":"Initiatives","dr.eye.init":"Initiative",
+    "vh.init.t":"Initiatives",
+    "vh.init.d":"The seam. An initiative is work that got its own prioritisation and investment decision — anything smaller is a task, and tasks live in your delivery tool. The Spine holds the claim about what the work is for: which outcomes it realises, which bet it buys down, and one link out to where it actually is.",
+    "th.initiative":"Initiative","th.realises":"Realises","th.buysdown":"Buys down",
+    "init.livesin":"Lives in","init.realises":"Realises outcomes","init.buysdown":"Buys down bets",
+    "init.authby":"Authorised by","init.waits":"Waits for",
+    "init.waits.note":"Derived, not declared: the decision behind this rests on a bet those initiatives buy down. Sequencing itself belongs in your delivery tool.",
+    "init.none.out":"no outcome","init.none.bet":"no bet","init.none.link":"no link out","init.none.dec":"no decision — then it is a task",
+    "init.weak.outcome":"no outcome","init.weak.bet":"no bet","init.weak.link":"no link out","init.weak.decision":"no decision",
+    "init.weak.warn":"Cannot be followed yet —",
+    "init.brk.one":"initiative is still running against a bet that has already broken.",
+    "init.brk.many":"initiatives are still running against bets that have already broken.",
+    "init.noauth.one":"initiative is live with no decision behind it.",
+    "init.noauth.many":"initiatives are live with no decision behind them.",
+    "init.noout.one":"initiative realises no outcome.","init.noout.many":"initiatives realise no outcome.",
+    "init.nobet.one":"initiative buys down no bet.","init.nobet.many":"initiatives buy down no bet.",
+    "init.banner.note":"The membership test is the decision: work that never got its own prioritisation and investment call is a task, not an initiative. Paying to buy down a bet that already broke is the one the delivery tool cannot see.",
+    "init.idle.head":"Outcomes nobody is working on","init.idle.hint":"You are measuring a change no live initiative is trying to cause.",
+    "empty.init.t":"No initiatives yet.","empty.init.d":"Write the first one when a piece of work gets its own decision. Name what it realises, what it buys down, and where it lives.",
+    "sect.exec":"The handover to execution","sect.exec.h":"Read through the bets this strategy rests on — the work that buys them down, and where it actually is.",
+    "exec.empty.t":"Nothing has crossed yet.","exec.empty.d":"No initiative buys down a bet this strategy rests on. The moves in section 3 are still prose that points at nothing.",
+    "state.proposed":"Proposed","state.committed":"Committed","state.running":"Running",
+    "state.delivered":"Delivered","state.stopped":"Stopped",
     "state.claimed":"Claimed","state.partial":"Partly realised",
     "state.realised":"Realised","state.not-materialised":"Did not materialise",
     "vh.values.t":"Value","vh.values.d":"Why each outcome is worth reaching — who gains what, and whether the gain actually landed.",
@@ -1871,7 +1942,7 @@ const T = {
     "cv.lede":"Ett lerret som holder retning, strategier og registre side om side. Dra inn det som hører hjemme her fra skuffen; koblingene som finnes tegner seg selv, og nye erklærer du ved å dra fra prikken under et kort til et annet.",
     "cv.k.goal":"Mål", "cv.k.outcome":"Utfall", "cv.k.strategy":"Strategi",
     "cv.k.insight":"Innsikt", "cv.k.assumption":"Antakelse", "cv.k.signal":"Signal", "cv.k.decision":"Beslutning",
-    "cv.k.value":"Verdi", "cv.k.right":"Beslutningsklasse", "cv.k.force":"Kraft",
+    "cv.k.value":"Verdi", "cv.k.right":"Beslutningsklasse", "cv.k.force":"Kraft", "cv.k.initiative":"Initiativ",
     "cv.drawer.t":"Skuffen", "cv.drawer.d":"Alt som finnes i Retning og Registrene. Dra ut på lerretet — eller klikk for å plassere.",
     "cv.search.ph":"Søk i elementer…",
     "cv.suggested":"Foreslått", "cv.ties":"kobler til {n} på lerretet",
@@ -1886,6 +1957,7 @@ const T = {
     "cv.fit":"Tilpass til vinduet", "cv.zoomin":"Zoom inn", "cv.zoomout":"Zoom ut",
     "cv.lg.declared":"erklært", "cv.lg.derived":"avledet", "cv.lg.state":"farge på kant = tilstand",
     "cv.target":"mål:", "cv.conf":"tiltro:", "cv.cons":"konsekvens:",
+    "rel.realises":"realiserer", "rel.buysdown":"kjøper ned", "rel.authorised":"hjemlet i",
     "rel.serves":"tjener", "rel.belongs":"hører til", "rel.measures":"måler",
     "rel.carries":"bærer", "rel.feeds":"mater", "rel.watches":"overvåker", "rel.rests":"hviler på",
     "rel.shares":"deler {n}",
@@ -2016,6 +2088,29 @@ const T = {
     "radar.stale.one":"kraft har stått usett forbi sin horisont.","radar.stale.many":"krefter har stått usett forbi sin horisont.",
     "radar.allfresh":"Alle kreftene er sett på nylig.",
     "radar.note":"En radar skrevet én gang og aldri sett på igjen er ikke dekning — det er skiftet du oppdager etter at det har kostet deg. Hvor ofte hver kraft forfaller følger hvor fort den biter.",
+    "nav.initiatives":"Initiativ","dr.eye.init":"Initiativ",
+    "vh.init.t":"Initiativ",
+    "vh.init.d":"Sømmen. Et initiativ er arbeid som fikk sin egen prioriterings- og investeringsbeslutning — alt mindre er en oppgave, og oppgaver bor i leveranseverktøyet. Spine holder påstanden om hva arbeidet er for: hvilke utfall det realiserer, hvilket bet det kjøper ned, og én lenke ut til der det faktisk er.",
+    "th.initiative":"Initiativ","th.realises":"Realiserer","th.buysdown":"Kjøper ned",
+    "init.livesin":"Lever i","init.realises":"Realiserer utfall","init.buysdown":"Kjøper ned bets",
+    "init.authby":"Hjemlet i","init.waits":"Venter på",
+    "init.waits.note":"Utledet, ikke erklært: beslutningen bak dette hviler på et bet de initiativene kjøper ned. Selve sekvenseringen hører i leveranseverktøyet.",
+    "init.none.out":"ingen utfall","init.none.bet":"ingen bet","init.none.link":"ingen lenke ut","init.none.dec":"ingen beslutning — da er det en oppgave",
+    "init.weak.outcome":"mangler utfall","init.weak.bet":"mangler bet","init.weak.link":"mangler lenke ut","init.weak.decision":"mangler beslutning",
+    "init.weak.warn":"Kan ennå ikke følges —",
+    "init.brk.one":"initiativ løper fortsatt mot et bet som allerede er brutt.",
+    "init.brk.many":"initiativer løper fortsatt mot bets som allerede er brutt.",
+    "init.noauth.one":"initiativ er i gang uten en beslutning bak seg.",
+    "init.noauth.many":"initiativer er i gang uten en beslutning bak seg.",
+    "init.noout.one":"initiativ realiserer ingen utfall.","init.noout.many":"initiativer realiserer ingen utfall.",
+    "init.nobet.one":"initiativ kjøper ikke ned noe bet.","init.nobet.many":"initiativer kjøper ikke ned noe bet.",
+    "init.banner.note":"Medlemskapstesten er beslutningen: arbeid som aldri fikk sin egen prioriterings- og investeringsavgjørelse er en oppgave, ikke et initiativ. Å betale for å kjøpe ned et bet som allerede falt er den leveranseverktøyet ikke kan se.",
+    "init.idle.head":"Utfall ingen jobber mot","init.idle.hint":"Dere måler en endring ingen levende initiativ prøver å forårsake.",
+    "empty.init.t":"Ingen initiativer ennå.","empty.init.d":"Skriv det første når et arbeid får sin egen beslutning. Navngi hva det realiserer, hva det kjøper ned, og hvor det lever.",
+    "sect.exec":"Overgangen til eksekvering","sect.exec.h":"Lest gjennom bettene denne strategien hviler på — arbeidet som kjøper dem ned, og hvor det faktisk er.",
+    "exec.empty.t":"Ingenting har krysset ennå.","exec.empty.d":"Ingen initiativ kjøper ned et bet denne strategien hviler på. Trekkene i punkt 3 er fortsatt prosa som peker på ingenting.",
+    "state.proposed":"Foreslått","state.committed":"Besluttet","state.running":"Pågår",
+    "state.delivered":"Levert","state.stopped":"Stoppet",
     "state.claimed":"Påstått","state.partial":"Delvis realisert",
     "state.realised":"Realisert","state.not-materialised":"Uteble",
     "vh.values.t":"Verdi","vh.values.d":"Hvorfor hvert utfall er verdt å nå — hvem som får hva, og om gevinsten faktisk landet.",
@@ -2273,6 +2368,12 @@ const SEED_NO = {
     consulted:["Leveranseteamet","Drift, når det berører en løpende tjeneste"],
     informed:["Programledelsen"],
     basis:"Delegert i Partnerforum-mandatet §6", note:""},
+  in1:{name:"M1 — regelmotoren verifisert mot 30+ historiske klager",
+    note:"Trekket hele automatiseringsbegrunnelsen hviler på. Er motoren uenig med historikken, er a1 ikke vaklende — den er brutt."},
+  in2:{name:"TØFF-migreringen, inkrement T2", note:""},
+  in3:{name:"Selvbetjent onboarding for skoleadministratorer",
+    note:"Ingen kan peke på beslutningen som hjemlet dette, og ingen kan peke på hvor arbeidet er. Begge deler er funnet."},
+  in4:{name:"DPIA for automatisert behandling", note:""},
   r1:{force:"EU-forordningen om KI får høyrisiko-klassifiseringen tolket av nasjonale tilsyn — automatiserte vedtak som berører et barns skolegang ligger tett på grensen.",
     source:"Veiledningsrunde fra Datatilsynet, våren 2026",
     note:"Blir skoleskyss-saksbehandling klassifisert som høyrisiko, krever automatiseringsbettet en samsvarsvurdering vi ikke har budsjettert med."},
@@ -2385,7 +2486,7 @@ function trView(o){
   return out;
 }
 
-const COLLS=["strategies","insights","decisions","assumptions","signals","goals","outcomes","values","reviews","radar","rights","diagnoses","needs"];
+const COLLS=["strategies","insights","decisions","assumptions","signals","goals","outcomes","values","reviews","radar","rights","diagnoses","needs","initiatives"];
 function stratNames(){ return DB.strategies.map(s=>s.name); }
 function stratByName(n){ return DB.strategies.find(s=>s.name===n); }
 const STRAT_FW={kernel:"Strategy Kernel",cascade:"Playing-to-Win Cascade",wardley:"Wardley Map",premortem:"Pre-mortem","one-pager":"One-Page Strategy"};
@@ -2630,7 +2731,9 @@ const STATE_MAP = {
   aligned:["b-good","Mandate holds"], drifted:["b-warn","Practice has drifted"],
   unwritten:["b-mute","Unwritten"], contested:["b-bad","Contested"],
   wrong:["b-bad","Diagnosed wrong"], resolved:["b-mute","No longer the difficulty"],
-  assumed:["b-warn","Assumed"], heard:["b-good","Heard"], verified:["b-good","Verified"]
+  assumed:["b-warn","Assumed"], heard:["b-good","Heard"], verified:["b-good","Verified"],
+  proposed:["b-mute","Proposed"], committed:["b-acc","Committed"], running:["b-acc","Running"],
+  delivered:["b-good","Delivered"], stopped:["b-bad","Stopped"]
 };
 function stateBadge(s){ const m=STATE_MAP[s]||["b-mute",s]; const lab=T.en["state."+s]?t("state."+s):m[1]; return `<span class="badge ${m[0]}"><span class="dot"></span>${lab}</span>`; }
 function fwL(k){ return T.en["fw."+k]?t("fw."+k):(STRAT_FW[k]||k); }
@@ -2666,14 +2769,14 @@ function render(){
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active", n.dataset.view===view));
   // Styrer søkefelt og kolonnebredde — ikke hvilken nav-gruppe visningen
   // står i. Behov og Verdi ligger under Retning, men er lange lister.
-  const isRegister = ["needs","values","radar","rights","diagnoses","insights","decisions","assumptions","signals"].includes(view);
-  const showAdd = ["strategies","needs","radar","values","rights","diagnoses","insights","decisions","assumptions","signals","goals","outcomes","profile"].includes(view) && !currentStrategy;
+  const isRegister = ["needs","values","radar","rights","diagnoses","insights","decisions","assumptions","initiatives","signals"].includes(view);
+  const showAdd = ["strategies","needs","radar","values","rights","diagnoses","insights","decisions","assumptions","initiatives","signals","goals","outcomes","profile"].includes(view) && !currentStrategy;
   $("#addBtn").style.display = showAdd ? "inline-flex":"none";
   $("#searchField").style.display = isRegister ? "flex":"none";
   $("#addLabel").textContent = addLabelFor();
   updateCounts();
   const r = $("#root"); r.innerHTML="";
-  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,needs:vNeeds,goals:vGoals,outcomes:vOutcomes,values:vValues,radar:vRadar,rights:vRights,diagnoses:vDiagnoses,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,shares:vShares,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
+  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,needs:vNeeds,goals:vGoals,outcomes:vOutcomes,values:vValues,radar:vRadar,rights:vRights,diagnoses:vDiagnoses,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,initiatives:vInitiatives,signals:vSignals,review:vReview,shares:vShares,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
   flushScroll();
 }
 function reviewDueCount(){
@@ -3169,6 +3272,29 @@ function vStrategyDetail(id){
     e2.appendChild(go); mp.appendChild(e2);
   }
   w.appendChild(mp);
+
+  // overgangen til eksekvering — utledet gjennom bettene strategien hviler pa
+  const betIds=new Set(DB.assumptions.filter(a=>a.strategy===s.name).map(a=>a.id));
+  const inits=(DB.initiatives||[]).filter(i=>(i.buysDown||[]).some(a=>betIds.has(a)));
+  w.appendChild(el("div","sect-h",
+    `<h2>${esc(t("sect.exec"))}</h2><span class="hint">${esc(t("sect.exec.h"))}</span>`));
+  const ep=el("div","panel");
+  if(!inits.length){
+    ep.appendChild(el("div","empty",
+      `<span class="serif">${esc(t("exec.empty.t"))}</span>${esc(t("exec.empty.d"))}`));
+  }else{
+    inits.forEach(raw=>{
+      const iv=trView(raw), weak=initiativeWeak(raw);
+      const row=el("div","init-row");
+      row.innerHTML=`<div class="c"><div class="s">${esc(L(iv,"name"))}</div>
+          <div class="m">${initLink(raw.livesIn)||`<span class="init-none">${esc(t("init.none.link"))}</span>`}</div>
+          ${weak.length?`<div class="init-weak">${weak.map(k=>esc(t("init.weak."+k))).join(" · ")}</div>`:""}</div>
+        <div class="r">${stateBadge(raw.state)}</div>`;
+      clickable(row,()=>openInitiative(raw.id),openLbl("initiatives"));
+      ep.appendChild(row);
+    });
+  }
+  w.appendChild(ep);
 
   // linked registers
   w.appendChild(el("div","sect-h",`<h2>${esc(t("sect.rests"))}</h2><span class="hint">${esc(t("sect.rests.h"))}</span>`));
@@ -3883,20 +4009,20 @@ function stratObjectSet(s){
        og ligger i localStorage.
    ════════════════════════════════════════════════════════════════ */
 
-const CV_KINDS = ["need","goal","outcome","value","diagnosis","strategy","insight","assumption","signal","decision","right","force"];
+const CV_KINDS = ["need","goal","outcome","value","diagnosis","strategy","insight","assumption","signal","decision","right","force","initiative"];
 const CV_COLL = {need:"needs", goal:"goals", outcome:"outcomes", value:"values",
   diagnosis:"diagnoses", strategy:"strategies",
   insight:"insights", assumption:"assumptions", signal:"signals", decision:"decisions",
-  right:"rights", force:"radar"};
+  right:"rights", force:"radar", initiative:"initiatives"};
 const CV_GLYPH = {need:"N", goal:"M", outcome:"U", value:"V", diagnosis:"D", strategy:"S",
-  insight:"I", assumption:"A", signal:"G", decision:"B", right:"R", force:"K"};
+  insight:"I", assumption:"A", signal:"G", decision:"B", right:"R", force:"K", initiative:"T"};
 const CV_W = {strategy:212, diagnosis:212, need:190, goal:190, outcome:190, value:190,
-  insight:178, assumption:178, signal:178, decision:178, right:190, force:190};
+  insight:178, assumption:178, signal:178, decision:178, right:190, force:190, initiative:200};
 /* Fargetokenet per nodetype. Lå tidligere som en andre, håndholdt liste inne
    i lagbaren og gikk ut av takt hver gang en type kom til. */
 const CV_TOKEN = {need:"--need", goal:"--goal", outcome:"--outcome", value:"--val",
   diagnosis:"--diag", strategy:"--accent", insight:"--sense", assumption:"--align",
-  signal:"--feed", decision:"--mem", right:"--right", force:"--force"};
+  signal:"--feed", decision:"--mem", right:"--right", force:"--force", initiative:"--init"};
 /* Lagbaren følger navigasjonens egen inndeling, så de to leser likt. */
 /* Registrene står i ryggradens egen rekkefølge, ikke alfabetisk og ikke
    etter når de ble bygget: Forstå (innsikt → kraft → diagnose) · Utvikle
@@ -3905,7 +4031,7 @@ const CV_TOKEN = {need:"--need", goal:"--goal", outcome:"--outcome", value:"--va
 const CV_GROUPS = [
   {lbl:"grp.direction", kinds:["need","goal","outcome","value"]},
   {lbl:"",              kinds:["strategy"]},
-  {lbl:"grp.registers", kinds:["insight","force","diagnosis","assumption","decision","right","signal"]},
+  {lbl:"grp.registers", kinds:["insight","force","diagnosis","assumption","decision","right","initiative","signal"]},
 ];
 
 /* ---- ett oppslag over alt som kan ligge på lerretet ---- */
@@ -3922,7 +4048,7 @@ function cvTitle(k,o){
   return k==="goal"?L(o,"title") : k==="outcome"?L(o,"statement") : k==="strategy"?o.name
        : k==="insight"?L(o,"claim") : k==="assumption"?L(o,"statement")
        : k==="signal"?L(o,"signal") : k==="value"?L(o,"claim")
-       : k==="force"?L(o,"force") : k==="right"?L(o,"decision")
+       : k==="force"?L(o,"force") : k==="right"?L(o,"decision") : k==="initiative"?L(o,"name")
        : k==="need"?L(o,"need") : k==="diagnosis"?L(o,"statement") : L(o,"title");
 }
 function cvSub(k,o){
@@ -3938,6 +4064,7 @@ function cvSub(k,o){
   if(k==="right")     return rightHolderL(o)||t("rt.nobody");
   if(k==="need")      return L(o,"who")||t("nd.src."+(o.source||"unset"));
   if(k==="diagnosis") return L(o,"area")||"";
+  if(k==="initiative") return o.owner||t("state."+(o.state||"proposed"));
   return "";
 }
 /* hvilken strategi hører elementet til? brukes av det globale strategifilteret */
@@ -3954,6 +4081,7 @@ function cvStrat(k,o){
   if(k==="force"){ const a=(o.threatens||[]).map(id=>byId("assumptions",id)).find(Boolean); return a?a.strategy||"":""; }
   if(k==="right"){ const d=(DB.decisions||[]).find(x=>x.rightId===o.id); return d?d.strategy||"":""; }
   if(k==="diagnosis"){ const st=(DB.strategies||[]).find(x=>x.diagnosisId===o.id); return st?st.name:""; }
+  if(k==="initiative"){ const a=(o.buysDown||[]).map(id=>byId("assumptions",id)).find(Boolean); return a?a.strategy||"":""; }
   if(k==="need"){ const oc=(DB.outcomes||[]).find(x=>x.servesNeed===o.id); return oc?cvStrat("outcome",oc):""; }
   return "";
 }
@@ -3974,6 +4102,19 @@ function stratName(id){ const s=byId("strategies",id); return s?s.name:""; }
 function stratIdByName(n){ const s=DB.strategies.find(x=>x.name===n); return s?s.id:""; }
 
 const CV_LINKS = {
+  realises:{ from:"initiative", to:"outcome", rel:"rel.realises",
+    has:(i,o)=>(i.serves||[]).includes(o.id),
+    set:(i,o)=>{ (i.serves=i.serves||[]).push(o.id); return null; },
+    cut:(i,o)=>{ i.serves=(i.serves||[]).filter(x=>x!==o.id); } },
+  buys_down:{ from:"initiative", to:"assumption", rel:"rel.buysdown",
+    has:(i,a)=>(i.buysDown||[]).includes(a.id),
+    set:(i,a)=>{ (i.buysDown=i.buysDown||[]).push(a.id); return null; },
+    cut:(i,a)=>{ i.buysDown=(i.buysDown||[]).filter(x=>x!==a.id); } },
+  authorised:{ from:"initiative", to:"decision", rel:"rel.authorised", one:true,
+    has:(i,d)=>i.decisionId===d.id,
+    set:(i,d)=>{ const old=i.decisionId?byId("decisions",i.decisionId):null; i.decisionId=d.id;
+      return old?cvTitle("decision",old):null; },
+    cut:(i)=>{ i.decisionId=""; } },
   serves:{ from:"strategy", to:"goal", rel:"rel.serves",
     has:(s,g)=>(s.serves||[]).includes(g.id),
     set:(s,g)=>{ (s.serves=s.serves||[]).push(g.id); return null; },
@@ -4197,6 +4338,15 @@ function cvRelations(){
   });
   (DB.diagnoses||[]).forEach(d=>{
     (d.fromInsights||[]).forEach(i=>add(i,d.id,t("rel.informs"),"declared",d.state,"informs"));
+  });
+  // Sommen, tegnet: arbeidet realiserer utfall, kjoper ned bets, og er hjemlet
+  // i en beslutning. Tre kanter — og ingen som peker ut av appen, fordi det
+  // som ligger utenfor er en URL, ikke en node.
+  (DB.initiatives||[]).forEach(i=>{
+    (i.serves||[]).forEach(o=>add(i.id,o,t("rel.realises"),"declared",i.state,"realises"));
+    (i.buysDown||[]).forEach(a=>{ const b=byId("assumptions",a);
+      add(i.id,a,t("rel.buysdown"),"declared",b?b.state:"","buys_down"); });
+    if(i.decisionId) add(i.id,i.decisionId,t("rel.authorised"),"declared",i.state,"authorised");
   });
   (DB.radar||[]).forEach(r=>{
     (r.threatens||[]).forEach(a=>{ const ao=byId("assumptions",a);
@@ -4877,6 +5027,7 @@ function renderCanvas(host, opts={}){
     value:     ["state","currency","scope","owner"],
     diagnosis: ["state","area","owner"],
     right:     ["state","door","basis","lastUsed"],
+    initiative:["state","owner","livesIn"],
     force:     ["horizon","exposure","movement","checked"],
   };
   /* segment-valgene har egne oversettelser rundt om i appen — bruk dem */
@@ -4999,7 +5150,7 @@ function renderCanvas(host, opts={}){
   /* ---- Rydd opp: lag på lag, sortert etter naboen, brekt og sentrert ---- */
   function tidy(){
     const rows=[["need"],["goal"],["outcome"],["value"],["diagnosis"],["strategy"],["assumption"],
-                ["insight","signal","decision","right"],["force"]];
+                ["insight","signal","decision","right"],["initiative"],["force"]];
     const GAPX=40, GAPY=68, MAXW=1560;
     let y=40;
     const anchorX=id=>{ const ns=[...(NB[id]||[])].filter(x=>{const e=cvEntity(x);return e&&e.o.pos;});
@@ -5170,6 +5321,22 @@ function mdValue(v){
   const weak=valueWeak(v);
   return `---\ntype: value\nclaim: ${yamlStr(v.claim)}\nbeneficiary: ${yamlStr(v.beneficiary)}\ncurrency: ${v.currency||"time"}\nscope: ${v.scope||"direct"}\nstate: ${v.state||"claimed"}\nsize: ${yamlStr(v.size)}\nowner: ${yamlStr(v.owner)}\ntags: [value]\n---\n\n## …so that…\n${v.mechanism||"—"}\n\n## How we'd know it landed\n${v.evidence||"—"}\n\n## What we actually saw\n${v.observed||"— nobody has looked yet"}\n\n## The chain${chain}\n${weak.length?`\n> [!warning] Cannot be tested yet — ${weak.join(", ")}\n`:""}\n${v.note||""}\n`;
 }
+function mdInitiative(i){
+  const outs=(i.serves||[]).map(o=>byId("outcomes",o)).filter(Boolean)
+    .map(o=>`\n- Realises → ${mdLink("outcomes",o)} (${o.state||"—"})`).join("")||"\n- — no outcome; this work is unjustified";
+  const bets=(i.buysDown||[]).map(a=>byId("assumptions",a)).filter(Boolean)
+    .map(a=>`\n- Buys down → ${mdLink("assumptions",a)} (${a.state||"—"})`).join("")||"\n- — no bet; nobody said what this makes certain";
+  const d=i.decisionId?byId("decisions",i.decisionId):null;
+  const waits=initiativeWaitsFor(i).map(o=>`\n- Waits for → ${mdLink("initiatives",o)}`).join("");
+  const weak=initiativeWeak(i);
+  return `---\ntype: initiative\nname: ${yamlStr(i.name)}\nstate: ${i.state||"proposed"}\nowner: ${yamlStr(i.owner)}\nlives_in: ${yamlStr(i.livesIn)}\ntags: [initiative]\n---\n\n`
+    + `## Where the work lives\n${i.livesIn||"— nowhere stated; the claim cannot be followed to the work"}\n\n`
+    + `## The chain${outs}${bets}`
+    + (d?`\n- Authorised by → ${mdLink("decisions",d)}`:`\n- — no decision; then it is a task, not an initiative`)
+    + waits
+    + (weak.length?`\n\n> [!warning] Incomplete — ${weak.join(", ")}\n`:"")
+    + `\n${i.note||""}\n`;
+}
 function mdForce(r){
   const th=(r.threatens||[]).map(id=>{const a=byId("assumptions",id);return a?`\n- ${mdLink("assumptions",a)}`:"";}).join("");
   return `---\ntype: force\nforce: ${yamlStr(r.force)}\ndomain: ${r.domain||""}\nhorizon: ${r.horizon||""}\nexposure: ${r.exposure||""}\nmovement: ${r.movement||""}\nchecked: ${r.checked||""}\nsource: ${yamlStr(r.source)}\ntags: [force, radar]\n---\n\n## Would break these bets${th||"\n- —"}\n\n${r.note||""}\n`;
@@ -5188,9 +5355,10 @@ function mdRight(r){
   const taken=decisionsOfRight(r.id).map(d=>`\n- ${mdLink("decisions",d)}`).join("")||"\n- —";
   return `---\ntype: decision-right\nclass: ${yamlStr(r.decision)}\napplies: ${yamlStr(r.applies)}\ndoor: ${r.door||"two-way"}\ndecides_on_paper: ${yamlStr(r.decides)}\ndecides_in_practice: ${yamlStr(r.decidesReal||r.decides)}\nveto_on_paper: ${yamlStr(r.veto)}\nveto_in_practice: ${yamlStr(r.vetoReal||r.veto)}\nstate: ${r.state||"aligned"}\nbasis: ${yamlStr(r.basis)}\nlast_exercised: ${r.lastUsed||""}\ntags: [decision-right, governance]\n---\n\n## Must be consulted${li(r.consulted)}\n\n## Informed after${li(r.informed)}\n\n## Decisions taken under this class${taken}\n\n${r.note||""}\n`;
 }
-const MD_FN={insights:mdInsight,decisions:mdDecision,assumptions:mdAssumption,signals:mdSignal,values:mdValue,radar:mdForce,rights:mdRight,diagnoses:mdDiagnosis,needs:mdNeed};
+const MD_FN={initiatives:mdInitiative,insights:mdInsight,decisions:mdDecision,assumptions:mdAssumption,signals:mdSignal,values:mdValue,radar:mdForce,rights:mdRight,diagnoses:mdDiagnosis,needs:mdNeed};
 const mdT=(p,v)=>p+" — "+String(v==null?"":v).slice(0,46);
 const MD_TITLE={
+  initiatives:i=>mdT("Initiative",i.name),
   insights:x=>mdT("Insight",x.claim), decisions:d=>mdT("Decision",d.title),
   assumptions:a=>mdT("Assumption",a.statement), signals:s=>mdT("Signal",s.signal),
   values:v=>mdT("Value",v.claim), radar:r=>mdT("Force",r.force),
@@ -5209,7 +5377,7 @@ function exportRegister(coll){
   // insights carry no strategy field → always export all; others honour the strategy filter
   if(!MD_FN[coll] || !MD_TITLE[coll]){ alert(t("exp.nofmt")); return; }
   // Registre uten strategi-felt (insights, values, radar, rights) filtreres ikke på strategi.
-  const scoped = ["insights","values","radar","rights","diagnoses","needs"].includes(coll);
+  const scoped = ["insights","values","radar","rights","diagnoses","needs","initiatives"].includes(coll);
   const list = scoped ? (DB[coll]||[]).slice() : DB[coll].filter(x=>matchStrat(x.strategy));
   if(!list.length){ alert(t("exp.empty")); return; }
   const parts=list.map(x=>`> ${MD_TITLE[coll](x)}\n\n${MD_FN[coll](x)}`);
@@ -5729,6 +5897,101 @@ function openValue(id){
     ${weak.length?`<div class="val-warn">${esc(t("val.weak.warn"))} ${weak.map(k=>esc(t("val.weak."+k))).join(" · ")}</div>`:""}
     ${L(v,"note")?`<div class="lbl-mini">${esc(t("th.note"))}</div><p class="note">${esc(L(v,"note"))}</p>`:""}`;
   drawerFoot("values",id); openDrawer();
+}
+function initLink(url,max){
+  const u=String(url||"").trim();
+  if(!u) return "";
+  // Lenken gar UT av appen. rel="noopener" fordi den apnes i ny fane.
+  const safe = /^https?:\/\//i.test(u) ? u : "";
+  if(!safe) return `<span class="init-link none">${esc(u)}</span>`;
+  let label=safe.replace(/^https?:\/\//i,"").replace(/^www\./,"");
+  return `<a class="init-link" href="${esc(safe)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">`
+    + `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>`
+    + `${esc(trunc(label,max||42))}</a>`;
+}
+function vInitiatives(){
+  const w=el("div","view");
+  w.appendChild(headWithExport(t("vh.init.t"),t("vh.init.d"),"initiatives"));
+  const all=(DB.initiatives||[]).filter(x=>matchQ((x.name||"")+(x.owner||"")+(x.note||"")));
+  const brk=initiativesOnBrokenBet(), noauth=initiativesUnauthorised(),
+        nout=initiativesUnserved(), nobet=initiativesBlind(), idle=outcomesUnworked();
+  if(brk.length||noauth.length||nout.length||nobet.length){
+    const b=el("div","init-banner"+(brk.length?" hot":""));
+    b.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      <div>${brk.length?`<div><b>${brk.length}</b> ${esc(t(brk.length===1?"init.brk.one":"init.brk.many"))}</div>`:""}
+      ${noauth.length?`<div><b>${noauth.length}</b> ${esc(t(noauth.length===1?"init.noauth.one":"init.noauth.many"))}</div>`:""}
+      ${nout.length?`<div><b>${nout.length}</b> ${esc(t(nout.length===1?"init.noout.one":"init.noout.many"))}</div>`:""}
+      ${nobet.length?`<div><b>${nobet.length}</b> ${esc(t(nobet.length===1?"init.nobet.one":"init.nobet.many"))}</div>`:""}
+      <div class="sub">${esc(t("init.banner.note"))}</div></div>`;
+    w.appendChild(b);
+  }
+  const panel=el("div","panel");
+  if(!all.length) return emptyInto(w,panel,t("empty.init.t"),t("empty.init.d"));
+  const ord={running:0,committed:1,proposed:2,delivered:3,stopped:4};
+  const tb=el("table","tbl");
+  tb.innerHTML=`<thead><tr><th>${esc(t("th.initiative"))}</th><th>${esc(t("th.realises"))}</th><th>${esc(t("th.buysdown"))}</th><th>${esc(t("th.state"))}</th><th>${esc(t("init.livesin"))}</th></tr></thead>`;
+  const b2=el("tbody");
+  all.slice().sort((x,y)=>(ord[x.state]??9)-(ord[y.state]??9)).forEach(raw=>{
+    const i=trView(raw), weak=initiativeWeak(raw);
+    const outs=(raw.serves||[]).map(o=>byId("outcomes",o)).filter(Boolean);
+    const bets=(raw.buysDown||[]).map(a=>byId("assumptions",a)).filter(Boolean);
+    const tr=el("tr","row");
+    tr.innerHTML=`<td><div class="stmt">${esc(L(i,"name"))}</div>
+        <div class="meta">${esc(raw.owner||"")}</div>
+        ${weak.length?`<div class="init-weak">${weak.map(k=>esc(t("init.weak."+k))).join(" · ")}</div>`:""}</td>
+      <td>${outs.length?outs.map(o=>`<div class="meta">${esc(trunc(L(trView(o),"statement"),34))}</div>`).join(""):`<span class="init-none">${esc(t("init.none.out"))}</span>`}</td>
+      <td>${bets.length?bets.map(a=>`<div class="meta">${stateBadge(a.state)} ${esc(trunc(L(trView(a),"statement"),30))}</div>`).join(""):`<span class="init-none">${esc(t("init.none.bet"))}</span>`}</td>
+      <td>${stateBadge(raw.state)}</td>
+      <td>${initLink(raw.livesIn,30)||`<span class="init-none">${esc(t("init.none.link"))}</span>`}</td>`;
+    clickable(tr,()=>openInitiative(raw.id),openLbl("initiatives","")+": "+L(i,"name"));
+    b2.appendChild(tr);
+  });
+  tb.appendChild(b2); panel.appendChild(tb); w.appendChild(panel);
+
+  if(idle.length){
+    w.appendChild(el("div","sect-h",
+      `<h2>${esc(t("init.idle.head"))}</h2><span class="hint">${esc(t("init.idle.hint"))}</span>`));
+    const ip=el("div","panel");
+    idle.forEach(o=>{
+      const r=el("div","orph-row");
+      r.innerHTML=`<div class="s">${esc(L(trView(o),"statement"))}</div>${stateBadge(o.state)}`;
+      clickable(r,()=>openOutcome(o.id),openLbl("outcomes"));
+      ip.appendChild(r);
+    });
+    w.appendChild(ip);
+  }
+  return w;
+}
+function openInitiative(id){
+  const raw=byId("initiatives",id); if(!raw) return;
+  const i=trView(raw), weak=initiativeWeak(raw), waits=initiativeWaitsFor(raw);
+  const dec=raw.decisionId?byId("decisions",raw.decisionId):null;
+  const outs=(raw.serves||[]).map(o=>byId("outcomes",o)).filter(Boolean);
+  const bets=(raw.buysDown||[]).map(a=>byId("assumptions",a)).filter(Boolean);
+  drawerShell(t("dr.eye.init"), `<div style="margin-top:6px">${stateBadge(raw.state)}</div>`);
+  $("#drawerB").innerHTML=`<h3>${esc(L(i,"name"))}</h3>
+    <dl class="kv">
+      <dt>${esc(t("init.livesin"))}</dt><dd>${initLink(raw.livesIn)||`<span class="init-none">${esc(t("init.none.link"))}</span>`}</dd>
+      <dt>${esc(t("th.owner"))}</dt><dd>${esc(raw.owner||"—")}</dd>
+    </dl>
+    <div class="lbl-mini">${esc(t("init.realises"))}</div>
+    <div class="link-row">${outs.length?outs.map(o=>{const ov=trView(o);
+      return `<a class="linkc" onclick="openOutcome('${o.id}')"><span class="tk">${esc(t("state."+ov.state)||ov.state)}</span>${esc(trunc(L(ov,"statement"),36))}</a>`;}).join("")
+      :`<span class="badge b-warn"><span class="dot"></span>${esc(t("init.none.out"))}</span>`}</div>
+    <div class="lbl-mini" style="margin-top:14px">${esc(t("init.buysdown"))}</div>
+    <div class="link-row">${bets.length?bets.map(a=>{const av=trView(a);
+      return `<a class="linkc" onclick="openAssumption('${a.id}')"><span class="tk">${esc(t("state."+a.state)||a.state)} · ${esc(t("cm."+(COMMIT.includes(a.commitment)?a.commitment:"unset")))}</span>${esc(trunc(L(av,"statement"),34))}</a>`;}).join("")
+      :`<span class="badge b-warn"><span class="dot"></span>${esc(t("init.none.bet"))}</span>`}</div>
+    <div class="lbl-mini" style="margin-top:14px">${esc(t("init.authby"))}</div>
+    <div class="link-row">${dec
+      ? `<a class="linkc" onclick="openDecision('${dec.id}')"><span class="tk">${esc(t("door."+dec.door)||dec.door)}</span>${esc(trunc(L(trView(dec),"title"),38))}</a>`
+      : `<span class="badge b-bad"><span class="dot"></span>${esc(t("init.none.dec"))}</span>`}</div>
+    ${waits.length?`<div class="lbl-mini" style="margin-top:14px">${esc(t("init.waits"))}</div>
+      <div class="link-row">${waits.map(o=>`<a class="linkc" onclick="openInitiative('${o.id}')"><span class="tk">${esc(t("state."+o.state)||o.state)}</span>${esc(trunc(L(trView(o),"name"),34))}</a>`).join("")}</div>
+      <p class="note">${esc(t("init.waits.note"))}</p>`:""}
+    ${weak.length?`<div class="val-warn">${esc(t("init.weak.warn"))} ${weak.map(k=>esc(t("init.weak."+k))).join(" · ")}</div>`:""}
+    ${L(i,"note")?`<div class="lbl-mini">${esc(t("th.note"))}</div><p class="note">${esc(L(i,"note"))}</p>`:""}`;
+  drawerFoot("initiatives",id); openDrawer();
 }
 function vDiagnoses(){
   const w=el("div","view");
@@ -6552,6 +6815,16 @@ const FIELDS = {
     {k:"lastUsed",l:"Last exercised",t:"date"},
     {k:"note",l:"Note",t:"textarea"},
   ],
+  initiatives:[
+    {k:"name",l:"Initiative",t:"textarea",req:1,ph:"The piece of work that got its own prioritisation and investment decision"},
+    {k:"serves",l:"Realises outcomes",t:"multiref",ref:"outcomes"},
+    {k:"buysDown",l:"Buys down bets",t:"multiref",ref:"assumptions"},
+    {k:"decisionId",l:"Authorised by decision",t:"ref",ref:"decisions"},
+    {k:"state",l:"State",t:"seg",opts:["proposed","committed","running","delivered","stopped"]},
+    {k:"livesIn",l:"Lives in",t:"text",ph:"One link to where the work actually is — Notion, Jira, a board"},
+    {k:"owner",l:"Owner",t:"text"},
+    {k:"note",l:"Note",t:"textarea"},
+  ],
   values:[
     {k:"claim",l:"Value",t:"textarea",req:1,ph:"Who gains what — «foresatte bruker mindre tid», not «bedre brukeropplevelse»"},
     {k:"beneficiary",l:"Who gains",t:"text",ph:"The party that actually feels it — a person or a body, not «virksomheten»"},
@@ -6611,8 +6884,8 @@ const FIELDS = {
     {k:"note",l:"Note",t:"textarea"},
   ],
 };
-const SING = {values:"Value",radar:"Force",rights:"Decision class",diagnoses:"Diagnosis",needs:"Need",strategies:"Strategy",insights:"Insight",decisions:"Decision",assumptions:"Assumption",signals:"Signal",goals:"Goal",outcomes:"Outcome",org:"Organisation"};
-const SING_NO = {values:"Verdi",radar:"Kraft",rights:"Beslutningsklasse",diagnoses:"Diagnose",needs:"Behov",strategies:"Strategi",insights:"Innsikt",decisions:"Beslutning",assumptions:"Antakelse",signals:"Signal",goals:"Mål",outcomes:"Resultat",org:"Organisasjon"};
+const SING = {initiatives:"Initiative",values:"Value",radar:"Force",rights:"Decision class",diagnoses:"Diagnosis",needs:"Need",strategies:"Strategy",insights:"Insight",decisions:"Decision",assumptions:"Assumption",signals:"Signal",goals:"Goal",outcomes:"Outcome",org:"Organisation"};
+const SING_NO = {initiatives:"Initiativ",values:"Verdi",radar:"Kraft",rights:"Beslutningsklasse",diagnoses:"Diagnose",needs:"Behov",strategies:"Strategi",insights:"Innsikt",decisions:"Beslutning",assumptions:"Antakelse",signals:"Signal",goals:"Mål",outcomes:"Resultat",org:"Organisasjon"};
 // Norsk overlay for redigeringsskjemaet: [etikett, plassholder].
 // FIELDS er kilden for engelsk — mangler en nøkkel her, faller den tilbake dit.
 const FLD_NO = {
@@ -6647,6 +6920,13 @@ const FLD_NO = {
     basis:["Hjemmel","Mandatet, loven eller rutinen den hviler på — eller «ingenting skrevet»"],
     lastUsed:["Sist utøvd",""],
     note:["Notat",""],
+  },
+  initiatives:{
+    name:["Initiativ","Arbeidet som fikk sin egen prioriterings- og investeringsbeslutning"],
+    serves:["Realiserer utfall",""], buysDown:["Kjøper ned bets",""],
+    decisionId:["Hjemlet i beslutning",""], state:["Tilstand",""],
+    livesIn:["Lever i","Én lenke til der arbeidet faktisk er — Notion, Jira, en tavle"],
+    owner:["Eier",""], note:["Notat",""],
   },
   values:{
     claim:["Verdi","Hvem som får hva — «foresatte bruker mindre tid», ikke «bedre brukeropplevelse»"],
@@ -6844,6 +7124,61 @@ function valueChain(v){
   const sig=o&&o.measuredBy ? byId("signals",o.measuredBy) : null;
   return {goal:g, outcome:o, signal:sig, value:v};
 }
+// ── Initiativ: overgangen til eksekvering ────────────────────────────────
+// Kanten star: Spine holder pastanden om hva arbeidet er FOR. Notion holder
+// arbeidet. Derfor ett felt med en URL, og null felt som prover a speile
+// status derfra — et statusfelt her ville vaert en kopi som rakner stille.
+//
+// Medlemskapstesten er Ardoqs, og den er god fordi den er falsifiserbar:
+// et initiativ er noe som har sin egen prioriterings- og investeringsbeslutning.
+// Finnes ikke beslutningen, er det ikke et initiativ — det er en oppgave.
+const INIT_LIVE = ["committed","running"];
+
+function initiativesOfBet(aid){ return (DB.initiatives||[]).filter(i=>(i.buysDown||[]).includes(aid)); }
+function initiativesOfOutcome(oid){ return (DB.initiatives||[]).filter(i=>(i.serves||[]).includes(oid)); }
+function liveInitiatives(){ return (DB.initiatives||[]).filter(i=>INIT_LIVE.includes(i.state)); }
+
+// Arbeid uten et utfall er en leveranse ingen har begrunnet.
+function initiativesUnserved(){
+  return (DB.initiatives||[]).filter(i=>i.state!=="stopped" && !(i.serves||[]).length);
+}
+// Arbeid som ikke kjoper ned noe: ingen vet hva det skulle gjore sikrere.
+function initiativesBlind(){
+  return (DB.initiatives||[]).filter(i=>i.state!=="stopped" && !(i.buysDown||[]).length);
+}
+// Medlemskapstesten, handhevet: lopende arbeid uten en beslutning bak seg.
+function initiativesUnauthorised(){
+  return liveInitiatives().filter(i=>!i.decisionId || !byId("decisions",i.decisionId));
+}
+// Den skarpeste: dere betaler fortsatt for a kjope ned noe som allerede falt.
+function initiativesOnBrokenBet(){
+  return liveInitiatives().filter(i=>(i.buysDown||[]).some(a=>{
+    const b=byId("assumptions",a); return b && b.state==="broken";
+  }));
+}
+// Den andre enden: et utfall ingen jobber mot.
+function outcomesUnworked(){
+  return (DB.outcomes||[]).filter(o=>!initiativesOfOutcome(o.id).some(i=>i.state!=="stopped"));
+}
+// Avhengighet UTLEDES, den erklaeres ikke. B venter pa A naar beslutningen bak
+// B hviler pa et bet A kjoper ned. Et erklart avhengighetsfelt ville vaert et
+// veikart, og veikartet bor i verktoyet.
+function initiativeWaitsFor(i){
+  const d=i&&i.decisionId?byId("decisions",i.decisionId):null;
+  const rests=new Set(d?(d.rests||[]):[]);
+  if(!rests.size) return [];
+  return (DB.initiatives||[]).filter(o=>o.id!==i.id && (o.buysDown||[]).some(a=>rests.has(a)));
+}
+// Uten lenken ut er kanten bare en pastand: ingen kan folge den til arbeidet.
+function initiativeWeak(i){
+  const miss=[];
+  if(!(i&&(i.serves||[]).length)) miss.push("outcome");
+  if(!(i&&(i.buysDown||[]).length)) miss.push("bet");
+  if(!String(i&&i.livesIn||"").trim()) miss.push("link");
+  if(!(i&&i.decisionId)) miss.push("decision");
+  return miss;
+}
+
 // ── Ressursallokering ────────────────────────────────────────────────────
 // Jira vet hva folk gjør. Jira vet ikke hvilken antakelse arbeidet kjøper
 // ned — det er en vurdering, ikke en registrering, og derfor kan den bare
@@ -7583,6 +7918,11 @@ function delEntry(coll,id){
   (DB.values||[]).forEach(v=>{ if(v.fromOutcome===id) v.fromOutcome=""; });
   (DB.decisions||[]).forEach(d=>{ if(d.rightId===id) d.rightId=""; });
   (DB.strategies||[]).forEach(st=>{ if(st.diagnosisId===id) st.diagnosisId=""; });
+  (DB.initiatives||[]).forEach(x=>{
+    if(x.decisionId===id) x.decisionId="";
+    if(x.serves) x.serves=x.serves.filter(o=>o!==id);
+    if(x.buysDown) x.buysDown=x.buysDown.filter(a=>a!==id);
+  });
   (DB.diagnoses||[]).forEach(d=>{ if(d.fromInsights) d.fromInsights=d.fromInsights.filter(x=>x!==id); });
   (DB.radar||[]).forEach(r=>{ if(r.threatens) r.threatens=r.threatens.filter(x=>x!==id); });
   if(coll==="strategies"){
