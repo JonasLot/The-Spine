@@ -438,6 +438,7 @@ a{color:inherit}
 .init-link svg{width:13px;height:13px;flex:none}
 .init-link.none{color:var(--ink-3);font-style:italic}
 .init-none{font-size:12px;color:var(--warn);font-style:italic}
+.init-copyhint{font-size:11.5px;color:var(--ink-3);margin-top:8px;line-height:1.5;text-wrap:pretty}
 .init-weak{font-size:11.5px;color:var(--warn);font-weight:600;margin-top:5px}
 .init-row{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;
   padding:14px 18px;border-bottom:1px solid var(--line-2);cursor:pointer}
@@ -1713,6 +1714,10 @@ const T = {
     "init.none.out":"no outcome","init.none.bet":"no bet","init.none.link":"no link out","init.none.dec":"no decision — then it is a task",
     "init.weak.outcome":"no outcome","init.weak.bet":"no bet","init.weak.link":"no link out","init.weak.decision":"no decision",
     "init.weak.warn":"Cannot be followed yet —",
+    "init.copy":"Copy for Notion","init.copied":"✓ Copied",
+    "init.copy.hint":"Paste into a page in your Notion database. The claim travels to where the work happens; nothing comes back.",
+    "init.spineid":"Spine ID","init.openin":"Open in The Spine",
+    "init.notion.foot":"_The Spine holds the claim about what this work is for. This page holds the work._",
     "init.brk.one":"initiative is still running against a bet that has already broken.",
     "init.brk.many":"initiatives are still running against bets that have already broken.",
     "init.noauth.one":"initiative is live with no decision behind it.",
@@ -2098,6 +2103,10 @@ const T = {
     "init.none.out":"ingen utfall","init.none.bet":"ingen bet","init.none.link":"ingen lenke ut","init.none.dec":"ingen beslutning — da er det en oppgave",
     "init.weak.outcome":"mangler utfall","init.weak.bet":"mangler bet","init.weak.link":"mangler lenke ut","init.weak.decision":"mangler beslutning",
     "init.weak.warn":"Kan ennå ikke følges —",
+    "init.copy":"Kopier for Notion","init.copied":"✓ Kopiert",
+    "init.copy.hint":"Lim inn i en side i Notion-databasen din. Påstanden følger arbeidet dit arbeidet gjøres; ingenting kommer tilbake.",
+    "init.spineid":"Spine-ID","init.openin":"Åpne i The Spine",
+    "init.notion.foot":"_The Spine holder påstanden om hva dette arbeidet er for. Denne siden holder arbeidet._",
     "init.brk.one":"initiativ løper fortsatt mot et bet som allerede er brutt.",
     "init.brk.many":"initiativer løper fortsatt mot bets som allerede er brutt.",
     "init.noauth.one":"initiativ er i gang uten en beslutning bak seg.",
@@ -4515,12 +4524,8 @@ function renderCanvas(host, opts={}){
 
   function cvOpen(n){
     if(n.kind==="strategy"){ currentStrategy=n.id; view_go("strategies"); return; }
-    if(n.kind==="insight") openInsight(n.id);
-    else if(n.kind==="decision") openDecision(n.id);
-    else if(n.kind==="assumption") openAssumption(n.id);
-    else if(n.kind==="signal") openSignal(n.id);
-    else if(n.kind==="goal") openGoal(n.id);
-    else if(n.kind==="outcome") openOutcome(n.id);
+    const coll=CV_COLL[n.kind];
+    if(coll && OPENERS[coll]) OPENERS[coll](n.id);
   }
   function view_go(v){ view=v; mapFocus=null; render(); }
 
@@ -5909,6 +5914,44 @@ function initLink(url,max){
     + `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>`
     + `${esc(trunc(label,max||42))}</a>`;
 }
+function notionBlock(raw){
+  const i=trView(raw);
+  const outs=(raw.serves||[]).map(o=>byId("outcomes",o)).filter(Boolean);
+  const bets=(raw.buysDown||[]).map(a=>byId("assumptions",a)).filter(Boolean);
+  const d=raw.decisionId?byId("decisions",raw.decisionId):null;
+  const st=x=>t("state."+x)||x;
+  const li=(arr,fn)=>arr.length?arr.map(fn).join("\n"):"- "+t("init.none.bet");
+  return `# ${L(i,"name")}\n\n`
+    + `> **${t("init.spineid")}** \`${raw.id}\` · [${t("init.openin")}](${deepLink("initiatives",raw.id)})\n\n`
+    + `## ${t("init.realises")}\n`
+    + (outs.length?outs.map(o=>{const ov=trView(o);
+        return `- ${L(ov,"statement")} *(${st(o.state)})*`;}).join("\n")
+      :`- ${t("init.none.out")}`)
+    + `\n\n## ${t("init.buysdown")}\n`
+    + li(bets,a=>{const av=trView(a); return `- ${L(av,"statement")} *(${st(a.state)})*`;})
+    + `\n\n## ${t("init.authby")}\n`
+    + (d?`- ${L(trView(d),"title")} *(${t("door."+d.door)||d.door}${d.decided?", "+d.decided:""})*`
+        :`- ${t("init.none.dec")}`)
+    + (L(i,"note")?`\n\n## ${t("th.note")}\n${L(i,"note")}`:"")
+    + `\n\n---\n${t("init.notion.foot")}\n`;
+}
+async function copyNotion(id,btn){
+  const raw=byId("initiatives",id); if(!raw) return;
+  const txt=notionBlock(raw);
+  const done=()=>{ if(!btn) return;
+    const was=btn.textContent; btn.textContent=t("init.copied");
+    setTimeout(()=>{ btn.textContent=was; },1600); };
+  try{ await navigator.clipboard.writeText(txt); done(); }
+  catch(e){
+    // Utklippstavlen kan vaere blokkert. Da skal teksten fortsatt vaere
+    // tilgjengelig — et stille avbrutt kopi er verre enn ingen knapp.
+    const ta=el("textarea"); ta.value=txt;
+    ta.style.cssText="position:fixed;left:8px;bottom:8px;width:min(560px,92vw);height:220px;z-index:80";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); done(); }catch(x){}
+    setTimeout(()=>ta.remove(),4000);
+  }
+}
 function vInitiatives(){
   const w=el("div","view");
   w.appendChild(headWithExport(t("vh.init.t"),t("vh.init.d"),"initiatives"));
@@ -5991,6 +6034,12 @@ function openInitiative(id){
       <p class="note">${esc(t("init.waits.note"))}</p>`:""}
     ${weak.length?`<div class="val-warn">${esc(t("init.weak.warn"))} ${weak.map(k=>esc(t("init.weak."+k))).join(" · ")}</div>`:""}
     ${L(i,"note")?`<div class="lbl-mini">${esc(t("th.note"))}</div><p class="note">${esc(L(i,"note"))}</p>`:""}`;
+  const nb=el("button","btn",esc(t("init.copy")));
+  nb.style.marginTop="16px";
+  nb.onclick=()=>copyNotion(id,nb);
+  $("#drawerB").appendChild(nb);
+  const hint=el("div","init-copyhint",esc(t("init.copy.hint")));
+  $("#drawerB").appendChild(hint);
   drawerFoot("initiatives",id); openDrawer();
 }
 function vDiagnoses(){
@@ -7717,6 +7766,25 @@ const LABEL_F = {
   needs:"need", diagnoses:"statement", insights:"claim", decisions:"title",
   assumptions:"statement", signals:"signal", radar:"force", rights:"decision",
 };
+const OPENERS = {
+  insights:openInsight, decisions:openDecision, assumptions:openAssumption,
+  signals:openSignal, goals:openGoal, outcomes:openOutcome, values:openValue,
+  needs:openNeed, diagnoses:openDiagnosis, rights:openRight, radar:openRadar,
+  initiatives:openInitiative,
+};
+// Strategien er den ene som ikke bor i en skuff — den har sin egen side.
+function openAny(coll,id){
+  if(coll==="strategies"){ currentStrategy=id; view="strategies"; render(); return true; }
+  const fn=OPENERS[coll];
+  if(!fn || !byId(coll,id)) return false;
+  if(view!==coll && VIEW_OF_COLL[coll]){ view=VIEW_OF_COLL[coll]; render(); }
+  fn(id); return true;
+}
+// Kollesjonen heter det samme som visningen for alle unntatt radar.
+const VIEW_OF_COLL = {radar:"radar", initiatives:"initiatives", values:"values",
+  needs:"needs", diagnoses:"diagnoses", rights:"rights", insights:"insights",
+  decisions:"decisions", assumptions:"assumptions", signals:"signals",
+  goals:"goals", outcomes:"outcomes"};
 function openLbl(coll,txt){ return t("a11y.open")+" "+singL(coll).toLowerCase()+(txt?": "+txt:""); }
 function entityLabel(coll,o){
   if(!o) return "";
@@ -8029,7 +8097,7 @@ async function boot(){
   if(typeof supabase==="undefined" || !configReady()){ showSetupNeeded(); return; }
   SB = supabase.createClient(window.SPINE_CONFIG.SUPABASE_URL, window.SPINE_CONFIG.SUPABASE_ANON_KEY);
   const { data:{ session } } = await SB.auth.getSession();
-  if(!session){ location.replace(LOGIN_PAGE); return; }
+  if(!session){ stashHash(); location.replace(LOGIN_PAGE); return; }
   USER = session.user;
   PROFILE.full_name = USER.user_metadata?.full_name || "";
   PROFILE.organizations = USER.user_metadata?.organizations || [];
@@ -8043,6 +8111,32 @@ async function boot(){
   await loadShares();
   syncStrategyFilter();
   render();
+  openFromHash(takeStashedHash());
+}
+// #<kollesjon>/<id> — sa en lenke utenfra kan peke pa EN sak, ikke bare appen.
+// Uten dette hadde «Spine-lenke» i Notion bare vaert en lenke til forsiden.
+const HASH_RE=/^#([a-z]+)\/([A-Za-z0-9_-]+)$/;
+const HASH_KEY="spine.hash";
+function openFromHash(fallback){
+  const m=HASH_RE.exec(location.hash||"") || HASH_RE.exec(fallback||"");
+  if(!m) return false;
+  return openAny(m[1], m[2]);
+}
+// Legges til side FOR omdirigeringen til login, og hentes etter at appen
+// har lastet data. sessionStorage overlever navigeringen i samme fane.
+function stashHash(){
+  try{ if(HASH_RE.test(location.hash||"")) sessionStorage.setItem(HASH_KEY, location.hash); }catch(e){}
+}
+function takeStashedHash(){
+  try{ const v=sessionStorage.getItem(HASH_KEY); if(v) sessionStorage.removeItem(HASH_KEY); return v; }
+  catch(e){ return null; }
+}
+// Ikke inne i boot(): en hash-endring skal rute uansett, og openAny sier
+// pent nei hvis dataene ikke finnes.
+window.addEventListener("hashchange", ()=>openFromHash());
+function deepLink(coll,id){
+  const base=location.href.split("#")[0];
+  return `${base}#${coll}/${id}`;
 }
 boot();
 </script>

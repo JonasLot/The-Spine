@@ -290,6 +290,7 @@ console.log("initiativ - sommen mot eksekvering");
   const d = app.drawerBody().deepText || "";
   ok(d.includes(app.T.en["init.none.dec"]), "skuffen sier at in3 ikke er hjemlet i noen beslutning");
   ok(d.includes(app.T.en["init.weak.warn"]), "og at den ikke kan folges enda");
+  ok(d.includes(app.T.en["init.copy"]), "og skuffen har knappen som sender pastanden til Notion");
   app.closeDrawer();
 }
 

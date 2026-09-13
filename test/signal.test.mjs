@@ -84,7 +84,11 @@ const harness = [
   func("initiativesOfBet"), func("initiativesOfOutcome"), func("liveInitiatives"),
   func("initiativesUnserved"), func("initiativesBlind"), func("initiativesUnauthorised"),
   func("initiativesOnBrokenBet"), func("outcomesUnworked"), func("initiativeWaitsFor"),
-  func("initiativeWeak"), func("mdInitiative"), func("mdInsight"), func("mdDecision"), func("mdAssumption"),
+  func("initiativeWeak"), func("mdInitiative"), func("mdInsight"),
+  "function deepLink(c,i){return \"https://x/app.html#\"+c+\"/\"+i}",
+  // trView legger den norske overlayen over seed; i testen holder identitet.
+  "function trView(o){return o}",
+  func("notionBlock"), func("mdDecision"), func("mdAssumption"),
   func("mdSignal"), func("mdValue"), func("mdForce"), func("mdRight"),
   func("mdDiagnosis"), func("mdNeed"), decl("MD_FN"),
   oneLine(/const mdT\s*=/), decl("MD_TITLE"), func("mdLink"),
@@ -139,7 +143,7 @@ const harness = [
   "valuesOf,outcomesWithoutValue,valueGap,valueWeak,valueChain," +
   "valuesOfGoal,outcomesUnvaluedOfGoal,valuesOfStrategy,outcomesUnvaluedFor," +
   "mdValue,MD_FN,MD_TITLE,mdLink,mdAssumption,mdInitiative," +
-  "INIT_LIVE,initiativesOfBet,initiativesOfOutcome,liveInitiatives," +
+  "INIT_LIVE,initiativesOfBet,initiativesOfOutcome,liveInitiatives,notionBlock," +
   "initiativesUnserved,initiativesBlind,initiativesUnauthorised," +
   "initiativesOnBrokenBet,outcomesUnworked,initiativeWaitsFor,initiativeWeak," +
   "rightHolder,rightVetoHolder,rightsDrift,decisionsOfRight,rightUnexercised," +
@@ -176,7 +180,7 @@ const {
   valuesOf, outcomesWithoutValue, valueGap, valueWeak, valueChain,
   valuesOfGoal, outcomesUnvaluedOfGoal, valuesOfStrategy, outcomesUnvaluedFor,
   mdValue, MD_FN, MD_TITLE, mdLink, mdAssumption, mdInitiative,
-  INIT_LIVE, initiativesOfBet, initiativesOfOutcome, liveInitiatives,
+  INIT_LIVE, initiativesOfBet, initiativesOfOutcome, liveInitiatives, notionBlock,
   initiativesUnserved, initiativesBlind, initiativesUnauthorised,
   initiativesOnBrokenBet, outcomesUnworked, initiativeWaitsFor, initiativeWeak,
   rightHolder, rightVetoHolder, rightsDrift, decisionsOfRight, rightUnexercised,
@@ -1850,6 +1854,76 @@ ok(liveInitiatives().map(i => i.id).sort().join(",") === "in1,in2,in3",
 ["proposed","committed","running","delivered","stopped"].forEach(k =>
   ok(T.en["state."+k] !== undefined && T.no["state."+k] !== undefined && STATE_MAP[k],
      "tilstanden " + k + " er oversatt og har en merkelapp"));
+fullDB();
+
+group("Notion-blokken - pastanden folger arbeidet ut");
+setDB({ ...SEED, reviews: [] });
+{
+  const b = notionBlock(byId("initiatives","in1"));
+  ok(b.startsWith("# "), "blokken er en Notion-side, ikke en tabellrad");
+  ok(b.includes("`in1`"), "Spine-ID-en folger med — det er den som knytter de to");
+  ok(/\(https?:\/\/[^)]*#initiatives\/in1\)/.test(b),
+     "og en dyplenke til NOYAKTIG dette initiativet, ikke til forsiden");
+  ok(b.includes("## ") && b.split("## ").length >= 4,
+     "realiserer, kjoper ned og hjemlet i star som egne avsnitt");
+  // Kanten, skrevet ned for den som leser den i Notion.
+  ok(b.includes("holds the claim") || b.includes("holder pastanden") || b.includes("holder påstanden"),
+     "blokken sier selv hvor grensen gaar");
+  // Og det som IKKE skal folge med.
+  ok(!/progress|prosent|%\s*ferdig|budsjett|budget|deadline/i.test(b),
+     "ingen fremdrift, ingen budsjett, ingen frist — Spine har dem ikke a gi");
+  const tom = notionBlock({id:"iT", name:"uten noe"});
+  ok(tom.includes("# uten noe"), "et tomt initiativ gir fortsatt en blokk");
+  ok(tom.includes("`iT`"), "med sin egen id");
+}
+["init.copy","init.copied","init.copy.hint","init.spineid","init.openin","init.notion.foot"].forEach(k =>
+  ok(T.en[k] !== undefined && T.no[k] !== undefined, k + " finnes i begge sprak"));
+
+group("apnere - ett kart, ikke en handskrevet kjede");
+// cvOpen dekket 7 av 13 nodetyper. A klikke en verdi eller et initiativ pa
+// lerretet gjorde ingenting, og ingen test leste den kjeden.
+{
+  const m = /const OPENERS = \{([\s\S]*?)\};/.exec(src);
+  ok(m, "OPENERS-kartet finnes");
+  const dekket = new Set([...(m ? m[1].matchAll(/(\w+):\s*open/g) : [])].map(x => x[1]));
+  // Strategien apnes ikke i en skuff — den har sin egen side.
+  const skalDekkes = COLLS.filter(c => c !== "strategies" && c !== "reviews");
+  const mangler = skalDekkes.filter(c => !dekket.has(c));
+  ok(mangler.length === 0,
+     "hver kollesjon med en skuff har en apner" + (mangler.length ? ": " + mangler.join(", ") : ""));
+  // Og lerretet MA ga gjennom kartet, ikke gjenta det.
+  const cv = /function cvOpen\(n\)\{([\s\S]*?)\n  \}/.exec(src);
+  ok(cv && /OPENERS\[/.test(cv[1]),
+     "cvOpen slar opp i kartet i stedet for a fore sin egen liste");
+  ok(cv && (cv[1].match(/else if/g) || []).length === 0,
+     "og har ingen handskrevet if/else-kjede igjen a drive fra");
+  // Hver nodetype pa lerretet ma kunne apnes.
+  const cvcMiss = CV_KINDS.filter(k => k !== "strategy" && !dekket.has(CV_COLL[k]));
+  ok(cvcMiss.length === 0,
+     "hver nodetype pa lerretet kan apnes" + (cvcMiss.length ? ": " + cvcMiss.join(", ") : ""));
+}
+// Dyplenken ma kjenne igjen sin egen form.
+{
+  const re = /\^#\(\[a-z\]\+\)\\\/\(\[A-Za-z0-9_-\]\+\)\$/;
+  ok(src.includes("openFromHash"), "hash-ruteren finnes");
+  // deepLink stubbes i selen over, sa les den EKTE fra kilden — ellers kunne
+  // den degradert til forsiden uten at noe sa fra.
+  const dl = /function deepLink\(coll,id\)\{([\s\S]*?)\n\}/.exec(src);
+  ok(dl && /#\$\{coll\}\/\$\{id\}/.test(dl[1]),
+     "deepLink bygger faktisk #kollesjon/id, ikke bare en lenke til appen");
+  ok(/window\.addEventListener\("hashchange", \(\)=>openFromHash\(\)\)/.test(src),
+     "og lytter pa senere endringer, ikke bare ved oppstart");
+  // Lytteren MA staa utenfor boot(): ellers ruter ingenting hvis boot faller.
+  const bootFn = /async function boot\(\)\{([\s\S]*?)\n\}/.exec(src);
+  ok(bootFn && !/addEventListener\("hashchange"/.test(bootFn[1]),
+     "hash-lytteren henger ikke av at boot lyktes");
+  // Og hashen ma overleve innloggingen — ellers mister vi nettopp den
+  // brukeren som kom fra lenken i Notion.
+  ok(/stashHash\(\); location\.replace\(LOGIN_PAGE\)/.test(src),
+     "hashen legges til side for omdirigeringen til login");
+  ok(/openFromHash\(takeStashedHash\(\)\)/.test(src),
+     "og hentes fram igjen nar appen har lastet");
+}
 fullDB();
 
 group("bakoverkompatibilitet");
