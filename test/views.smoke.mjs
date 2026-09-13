@@ -103,7 +103,7 @@ try {
     ;return {ctx:{${VIEWS.join(",")}}, setLang:v=>{LANG=v}, setStrat:v=>{stratF=v},
              setDB:v=>{DB=v}, setCur:v=>{currentStrategy=v},
              vStrategyDetail:typeof vStrategyDetail==="function"?vStrategyDetail:null,
-             SEED, SYSTEMS, T, FIELDS, FORM_TABS, buildForm, saveForm,
+             SEED, SYSTEMS, SYSTEMS_X, SYSTEMS_ALL, T, FIELDS, FORM_TABS, buildForm, saveForm,
              setEditing:v=>{editing=v}, getEditing:()=>editing,
              drawerBody:()=>document.querySelector("#drawerB"),
              CV_LINKS, CV_COLL, CV_KINDS, cvRelations, openGoal, openValue,
@@ -252,6 +252,34 @@ console.log("skuff og modal - bare ett lag eier skjermen");
   ok(!app.modalOpen(),
      "og veiviseren lukket seg — ellers ligger den usynlig over og sluker klikkene");
   app.closeDrawer(); app.closeModal();
+}
+
+console.log("de tre utenfor de ti star pa staaende systemer");
+{
+  for (const lang of ["en", "no"]) {
+    app.setLang(lang);
+    const v = app.ctx.vSystems().deepText || "";
+    ok(v.includes(app.T[lang]["sys.x.head"]), `seksjonen for de tre finnes (${lang})`);
+    ok(v.includes(app.T[lang]["sys.x.why"]), `hvert kort sier hvorfor det star utenfor (${lang})`);
+    for (const s of app.SYSTEMS_X) {
+      const navn = lang === "no"
+        ? ({Needs:"Behov", Diagnoses:"Diagnoser", Value:"Verdi"})[s.name]
+        : s.name;
+      ok(v.includes(navn), `${navn} star som kort (${lang})`);
+    }
+    // Badgen skal ikke gjenta kortnavnet. Pa de ti baerer den ny informasjon
+    // (Innsiktsrepositorium -> Innsikter); pa de tre ville den vaert stoy.
+    const verdi = lang === "no" ? "Verdi" : "Value";
+    ok(v.split(verdi).length - 1 <= 2,
+       `«${verdi}» gjentas ikke som badge pa sitt eget kort (${lang})`);
+    // Ingen tom chip der familien mangler: de tre horer ikke til en familie.
+    ok(!v.includes('class="chip" style="margin-left:auto"></span>'),
+       `ingen tom chip pa kortene uten familie (${lang})`);
+    // De ti skal fortsatt staa der, uendret.
+    ok(v.includes(lang === "no" ? "Beslutningsrettigheter" : "Decision Rights"),
+       `de ti er urort (${lang})`);
+  }
+  app.setLang("en");
 }
 
 console.log("radaren snakker norsk");
@@ -430,7 +458,9 @@ console.log("hver koblingsregel tegner faktisk en kant");
 console.log("stående systemer peker på visninger som finnes");
 {
   const views = new Set(Object.keys(app.ctx).map(n => n.slice(1).toLowerCase()));
-  for (const s of app.SYSTEMS) {
+  // SYSTEMS_ALL, ikke SYSTEMS: de tre utenfor de ti apner registre pa samme
+  // mate, og et kort som peker pa en visning som ikke finnes krasjer likt.
+  for (const s of app.SYSTEMS_ALL) {
     if (!s.reg) continue;
     const v = s.reg.toLowerCase();
     ok(views.has(v), `SYSTEMS "${s.name}" peker på visningen ${v}, som må finnes`);

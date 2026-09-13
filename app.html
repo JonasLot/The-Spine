@@ -292,10 +292,16 @@ a{color:inherit}
 /* systems ref cards */
 .sys-grid{grid-template-columns:1fr 1fr}
 .sys-card{padding:18px}
+.sys-card[role=button]{cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.sys-card[role=button]:hover{border-color:var(--ink-3)}
+.sys-card[role=button]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .sys-card .top{display:flex;align-items:center;gap:9px;margin-bottom:8px}
 .sys-card .top .nm{font-weight:700;font-size:15px}
 .sys-card .dies{font-size:12.5px;color:var(--ink-2);text-wrap:pretty}
 .sys-card .feeds{font-size:11px;color:var(--ink-3);margin-top:9px}
+.sys-card.outside{border-color:var(--val);border-style:dashed}
+.sys-card .why{font-size:12px;color:var(--ink-3);margin-top:9px;padding-top:9px;
+  border-top:1px dashed var(--line);text-wrap:pretty;line-height:1.5}
 
 .wheel-loop{display:flex;flex-direction:column;gap:10px}
 .loop-step{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-sm)}
@@ -1359,6 +1365,20 @@ const SYSTEMS = [
   {name:"Resource Allocation", fam:"Feedback", feeds:"Track", reg:"Assumptions", dies:"A strategy no budget moves toward — a wishlist."},
   {name:"Learning Loop", fam:"Feedback", feeds:"Track → Understand", reg:"Review", dies:"Every strategy starts from zero; the org never compounds."},
 ];
+// Tre registre rammeverket aldri navnga. De star for seg selv nettopp fordi
+// de star utenfor kanonen — samme kortform, egen seksjon, egen farge.
+const SYSTEMS_X = [
+  {name:"Needs", feeds:"Understand", reg:"Needs",
+   dies:"You build for a user nobody has spoken to, and find out only when nothing is adopted.",
+   why:"The framework assumes the need is known. The register separates assumed, heard and verified — a register full of «assumed» is a diagnosis of the organisation, not of the people it serves."},
+  {name:"Diagnoses", feeds:"Understand", reg:"Diagnoses",
+   dies:"Strategy becomes a list of moves with no stated difficulty — and nobody can show it is wrong.",
+   why:"The diagnosis sat buried inside the strategy artifact. As its own register it can be shared between strategies, and falsified: if it falls, everything answering it falls with it."},
+  {name:"Value", feeds:"Track → Understand", reg:"Values",
+   dies:"You hit the number and nobody is better off — and the gain counted in the business case is never checked.",
+   why:"The framework stops at the outcome. Value asks the last question: was it worth reaching, and did the gain ever land?"},
+];
+const SYSTEMS_ALL = [...SYSTEMS, ...SYSTEMS_X];
 const FAM = {
   Sensing:{c:"var(--sense)", bg:"var(--sense-bg)", feeds:"feeds Understand"},
   Memory:{c:"var(--mem)", bg:"var(--mem-bg)", feeds:"spans the loop"},
@@ -1378,10 +1398,22 @@ const SYS_NO = {
   "Resource Allocation":{name:"Ressursallokering",dies:"En strategi ingen budsjett beveger seg mot — en ønskeliste."},
   "Learning Loop":{name:"Læringsløkke",dies:"Hver strategi starter fra null; organisasjonen akkumulerer aldri."},
 };
+const SYS_X_NO = {
+  "Needs":{name:"Behov",
+    dies:"Dere bygger for en bruker ingen har snakket med, og oppdager det først når ingenting tas i bruk.",
+    why:"Rammeverket antar at behovet er kjent. Registeret skiller mellom antatt, hørt og verifisert — et register fullt av «antatt» er en diagnose av organisasjonen, ikke av dem den tjener."},
+  "Diagnoses":{name:"Diagnoser",
+    dies:"Strategien blir en liste med tiltak uten en erklært vanskelighet — og ingen kan vise at den er feil.",
+    why:"Diagnosen lå gjemt inni strategiartefaktet. Som eget register kan den deles mellom strategier, og falsifiseres: faller den, faller alt som svarer på den."},
+  "Value":{name:"Verdi",
+    dies:"Dere treffer tallet og ingen får det bedre — og gevinsten som ble talt i business-casen blir aldri sjekket.",
+    why:"Rammeverket stopper ved utfallet. Verdi stiller det siste spørsmålet: var det verdt å nå, og landet gevinsten?"},
+};
 const FAM_NO = { Sensing:{label:"Sansing",feeds:"mater Forstå"}, Memory:{label:"Hukommelse",feeds:"spenner over løkken"}, Alignment:{label:"Samordning",feeds:"mater Kommuniser"}, Feedback:{label:"Tilbakekobling",feeds:"Spor → Forstå"} };
 const FEEDS_NO = {"Understand":"Forstå","Whole loop":"Hele løkken","Develop ↔ Track":"Utvikle ↔ Spor","Communicate":"Kommuniser","Track":"Spor","Track → Understand":"Spor → Forstå"};
-function sysName(s){ return LANG==="no"&&SYS_NO[s.name]?SYS_NO[s.name].name:s.name; }
-function sysDies(s){ return LANG==="no"&&SYS_NO[s.name]?SYS_NO[s.name].dies:s.dies; }
+function sysName(s){ const o=LANG==="no"&&(SYS_NO[s.name]||SYS_X_NO[s.name]); return o?o.name:s.name; }
+function sysDies(s){ const o=LANG==="no"&&(SYS_NO[s.name]||SYS_X_NO[s.name]); return o?o.dies:s.dies; }
+function sysWhy(s){ const o=LANG==="no"&&SYS_X_NO[s.name]; return o?o.why:(s.why||""); }
 function famLabel(fk){ return LANG==="no"&&FAM_NO[fk]?FAM_NO[fk].label:fk; }
 function famFeeds(fk){ return LANG==="no"&&FAM_NO[fk]?FAM_NO[fk].feeds:(FAM[fk]?FAM[fk].feeds:fk); }
 function feedsL(x){ return LANG==="no"&&FEEDS_NO[x]?FEEDS_NO[x]:x; }
@@ -1539,7 +1571,10 @@ const T = {
     "vh.strategies":`<div><h1>Strategies</h1><p>The canonical artifacts — the single authoritative statement of each strategy that everything else points to. Each one carries a one-page kernel and owns its bets, signals and decisions. This is what the registers orbit.</p></div>`,
     "vh.review":`<h1>Operating Rhythm</h1><p>The heartbeat. Read the signals, re-rate the bets, ask whether the gain landed, and end in a decision — otherwise the review is theatre. Everything you change here is logged.</p>`,
     "vh.flywheel":`<h1>The Flywheel</h1><p>The spine is flow — done once per strategy. The standing systems are reservoirs and loops: they accumulate and feed back, so the organisation gets smarter on every pass instead of starting cold.</p>`,
-    "vh.systems":`<h1>Standing Systems</h1><p>The ten systems that make strategy repeatable. All ten are now instrumented — every card below opens the register that carries it, and each one names what dies without it. Three registers sit outside the ten, because the framework never named them: Needs (who we serve, and whether we heard it or assumed it), Diagnoses (the difficulty each strategy answers) and Value (why an outcome was worth reaching).</p>`,
+    "vh.systems":`<h1>Standing Systems</h1><p>The ten systems that make strategy repeatable. All ten are instrumented — every card opens the register that carries it, and names what dies without it. Three more sit outside the ten, below.</p>`,
+    "sys.x.head":"The three outside the ten",
+    "sys.x.hint":"The framework never named these. The Spine does, because the chain breaks without them.",
+    "sys.x.why":"Why it sits outside:",
     "vh.profile":`<h1>Profile</h1><p>Your account details and the organisations you belong to.</p>`,
     "vh.insights.t":"Insights", "vh.insights.d":"The stock of what's true. Each claim carries its evidence and a confidence — so strategy rests on what's known, not on whoever shouted loudest. A falsified bet downgrades the insight it rested on.",
     "vh.decisions.t":"Decisions", "vh.decisions.d":"Append-only memory. Every decision records the options rejected and the assumptions it rests on — so nobody re-litigates, and a broken bet tells you which decision to revisit.",
@@ -1895,7 +1930,10 @@ const T = {
     "vh.strategies":`<div><h1>Strategier</h1><p>De kanoniske artefaktene — den ene autoritative formuleringen av hver strategi som alt annet peker mot. Hver bærer en énsides kjerne og eier sine bets, signaler og beslutninger. Det er dette registrene kretser rundt.</p></div>`,
     "vh.review":`<h1>Driftsrytme</h1><p>Hjerteslaget. Les signalene, revurder bettene, spør om gevinsten landet, og avslutt med en beslutning — ellers er gjennomgangen teater. Alt du endrer her blir logget.</p>`,
     "vh.flywheel":`<h1>Svinghjulet</h1><p>Ryggraden er flyt — gjøres én gang per strategi. De stående systemene er reservoarer og løkker: de akkumulerer og gir tilbakekobling, så organisasjonen blir smartere for hver runde i stedet for å starte kaldt.</p>`,
-    "vh.systems":`<h1>Stående systemer</h1><p>De ti systemene som gjør strategi repeterbar. Alle ti er nå instrumentert — hvert kort under åpner registeret som bærer det, og navngir hva som dør uten det. Tre registre står utenfor de ti, fordi rammeverket aldri navnga dem: Behov (hvem vi tjener, og om vi hørte det eller antok det), Diagnoser (vanskeligheten hver strategi svarer på) og Verdi (hvorfor utfallet var verdt å nå).</p>`,
+    "vh.systems":`<h1>Stående systemer</h1><p>De ti systemene som gjør strategi repeterbar. Alle ti er instrumentert — hvert kort åpner registeret som bærer det, og navngir hva som dør uten det. Tre til står utenfor de ti, lenger ned.</p>`,
+    "sys.x.head":"De tre utenfor de ti",
+    "sys.x.hint":"Rammeverket navnga dem aldri. Spine gjør det, fordi kjeden ryker uten dem.",
+    "sys.x.why":"Hvorfor det står utenfor:",
     "vh.profile":`<h1>Profil</h1><p>Kontodetaljene dine og organisasjonene du tilhører.</p>`,
     "vh.insights.t":"Innsikter", "vh.insights.d":"Beholdningen av det som er sant. Hver påstand bærer sitt bevis og en konfidens — så strategien hviler på det som er kjent, ikke på den som ropte høyest. Et falsifisert bet nedgraderer innsikten det hvilte på.",
     "vh.decisions.t":"Beslutninger", "vh.decisions.d":"Append-only-hukommelse. Hver beslutning registrerer alternativene som ble forkastet og antakelsene den hviler på — så ingen re-litigerer, og et brutt bet forteller deg hvilken beslutning du bør se på igjen.",
@@ -6105,17 +6143,37 @@ function vFlywheel(){
 function vSystems(){
   const w = el("div","view");
   w.innerHTML = `<div class="view-head">${t("vh.systems")}</div>`;
-  const grid = el("div","grid sys-grid");
-  SYSTEMS.forEach(s=>{
-    const f = FAM[s.fam];
-    const c = el("div","panel sys-card");
-    c.innerHTML = `<div class="top"><span class="dotm" style="background:${f.c}"></span><span class="nm">${esc(sysName(s))}</span>${s.reg?`<span class="badge b-acc" style="margin-left:auto"><span class="dot"></span>${esc(t("nav."+s.reg.toLowerCase()))}</span>`:`<span class="chip" style="margin-left:auto">${esc(famLabel(s.fam))}</span>`}</div>
+  const sysCard = (s,outside)=>{
+    const f = outside ? {c:"var(--val)"} : FAM[s.fam];
+    const c = el("div","panel sys-card"+(outside?" outside":""));
+    c.innerHTML = `<div class="top"><span class="dotm" style="background:${f.c}"></span><span class="nm">${esc(sysName(s))}</span>${(()=>{
+        // Badgen sier «apner dette registeret». Pa de tre er registernavnet
+        // det samme som kortnavnet, sa da gjentar den bare seg selv.
+        const reg=s.reg?t("nav."+s.reg.toLowerCase()):"";
+        if(reg && reg!==sysName(s))
+          return `<span class="badge b-acc" style="margin-left:auto"><span class="dot"></span>${esc(reg)}</span>`;
+        // Familien finnes bare pa de ti. Uten den skal det ikke sta en tom chip.
+        return s.fam?`<span class="chip" style="margin-left:auto">${esc(famLabel(s.fam))}</span>`:"";
+      })()}</div>
       <div class="dies"><b style="color:var(--bad)">${esc(t("sys.without"))}</b> ${esc(sysDies(s))}</div>
-      <div class="feeds">${esc(t("sys.family"))} ${esc(famLabel(s.fam))} · ${esc(t("sys.feeds"))} ${esc(feedsL(s.feeds))}</div>`;
+      <div class="feeds">${outside
+        ? esc(t("sys.feeds"))+" "+esc(feedsL(s.feeds))
+        : esc(t("sys.family"))+" "+esc(famLabel(s.fam))+" · "+esc(t("sys.feeds"))+" "+esc(feedsL(s.feeds))}</div>`
+      + (outside?`<div class="why">${esc(t("sys.x.why"))} ${esc(sysWhy(s))}</div>`:"");
     if(s.reg){ clickable(c,()=>{ view = s.reg.toLowerCase(); render(); },"Open "+s.reg+" register"); }
-    grid.appendChild(c);
-  });
+    return c;
+  };
+  const grid = el("div","grid sys-grid");
+  SYSTEMS.forEach(s=>grid.appendChild(sysCard(s,false)));
   w.appendChild(grid);
+
+  // De tre utenfor de ti. Egen seksjon, ikke system 11-13: rammeverket har
+  // ti, og a stokke disse inn ville skjult hvor de kom fra.
+  w.appendChild(el("div","sect-h",
+    `<h2>${esc(t("sys.x.head"))}</h2><span class="hint">${esc(t("sys.x.hint"))}</span>`));
+  const gx = el("div","grid sys-grid");
+  SYSTEMS_X.forEach(s=>gx.appendChild(sysCard(s,true)));
+  w.appendChild(gx);
   return w;
 }
 

@@ -68,6 +68,7 @@ const harness = [
   func("outcomesOfNeed"), func("needOf"), func("outcomesWithoutNeed"), func("needsUnserved"),
   func("needsAssumedButLoadBearing"), func("needStale"), func("needsStale"),
   func("needWeak"), func("needSrcCounts"),
+  decl("SYSTEMS"), decl("SYSTEMS_X"), decl("SYS_NO"), decl("SYS_X_NO"),
   decl("CV_KINDS"), decl("CV_COLL"), decl("CV_GLYPH"), decl("CV_W"), decl("COLLS"),
   decl("CV_TOKEN"), decl("CV_GROUPS"), decl("CV_QUICK"),
   decl("COMMIT"), decl("COMMIT_W"), oneLine(/const COMMIT_STALE_REVIEWS\s*=/),
@@ -126,6 +127,7 @@ const harness = [
   "strategiesOnVoidDiagnosis,diagnosisWeak," +
   "NEED_SRC,NEED_RANK,NEED_STALE_DAYS,outcomesOfNeed,needOf,outcomesWithoutNeed," +
   "needsUnserved,needsAssumedButLoadBearing,needStale,needsStale,needWeak,needSrcCounts," +
+  "SYSTEMS,SYSTEMS_X,SYS_NO,SYS_X_NO," +
   "CV_KINDS,CV_COLL,CV_GLYPH,CV_W,COLLS,CV_TOKEN,CV_GROUPS,CV_QUICK," +
   "COMMIT,COMMIT_STALE_REVIEWS,liveBets,betsUnfunded,betsFundedBroken,betMovedIn," +
   "recentReviews,betFundedStuck,betsFundedStuck,nothingStarved,commitCounts," +
@@ -157,6 +159,7 @@ const {
   strategiesOnVoidDiagnosis, diagnosisWeak,
   NEED_SRC, NEED_RANK, NEED_STALE_DAYS, outcomesOfNeed, needOf, outcomesWithoutNeed,
   needsUnserved, needsAssumedButLoadBearing, needStale, needsStale, needWeak, needSrcCounts,
+  SYSTEMS, SYSTEMS_X, SYS_NO, SYS_X_NO,
   CV_KINDS, CV_COLL, CV_GLYPH, CV_W, COLLS, CV_TOKEN, CV_GROUPS, CV_QUICK,
   COMMIT, COMMIT_STALE_REVIEWS, liveBets, betsUnfunded, betsFundedBroken, betMovedIn,
   recentReviews, betFundedStuck, betsFundedStuck, nothingStarved, commitCounts,
@@ -1664,6 +1667,33 @@ group("skuff og modal - lagreglene star i kilden");
   ok(order.every((v, i) => i === 0 || v > order[i - 1]),
      "og prover dem ovenfra og ned, sa ett trykk lukker ett lag");
 }
+
+group("de tre utenfor de ti");
+// Poenget er at de star UTENFOR. Blir de stokket inn blant de ti, forsvinner
+// bade tallet og opplysningen om hvor de kom fra.
+ok(SYSTEMS.length === 10, "de ti er fortsatt ti (" + SYSTEMS.length + ")");
+ok(SYSTEMS_X.length === 3, "og de tre er tre");
+{
+  const tiRegs = new Set(SYSTEMS.map(s => s.reg));
+  ok(SYSTEMS_X.every(s => !tiRegs.has(s.reg)),
+     "ingen av de tre dublerer et register de ti allerede eier");
+  ok(SYSTEMS_X.map(s => s.reg).sort().join(",") === "Diagnoses,Needs,Values",
+     "det er Behov, Diagnoser og Verdi");
+  ok(SYSTEMS_X.every(s => s.dies && s.why && s.feeds),
+     "hvert av de tre sier hva som dor uten det, hvorfor det star utenfor, og hvor det mater inn");
+  ok(SYSTEMS_X.every(s => !s.fam),
+     "ingen av dem paastar a hore til en av de fire familiene — de er utenfor rammeverket");
+  ok(SYSTEMS_X.every(s => SYS_X_NO[s.name] && SYS_X_NO[s.name].name && SYS_X_NO[s.name].dies && SYS_X_NO[s.name].why),
+     "alle tre er fullt oversatt, felt for felt");
+  ok(SYSTEMS.every(s => SYS_NO[s.name]), "og de ti er fortsatt fullt oversatt");
+}
+["sys.x.head","sys.x.hint","sys.x.why"].forEach(k =>
+  ok(T.en[k] !== undefined && T.no[k] !== undefined, k + " finnes i begge sprak"));
+// Introen skal ikke lenger ramse dem opp — kortene sier det, og to steder
+// som sier det samme driver fra hverandre.
+["Needs (who we serve", "Behov (hvem vi tjener"].forEach(frag =>
+  ok(!T.en["vh.systems"].includes(frag) && !T.no["vh.systems"].includes(frag),
+     "introen gjentar ikke det kortene sier"));
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,
