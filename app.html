@@ -426,6 +426,20 @@ a{color:inherit}
 .dg-banner .sub{font-size:12.5px;color:var(--ink-2);margin-top:6px;max-width:78ch;line-height:1.5}
 .op-diag{margin-top:9px}
 .op-diag.none{font-size:12.5px;color:var(--warn);font-style:italic}
+.sys-landed{animation:sysLand 1.6s ease-out}
+@keyframes sysLand{0%,60%{background:var(--accent-soft)}100%{background:transparent}}
+.cm-dist{margin-bottom:16px}
+.cm-bar{display:flex;gap:2px;height:10px;border-radius:5px;overflow:hidden;background:var(--line-2)}
+.cm-bar .seg{display:block;min-width:3px}
+.cm-bar .seg.cm-heavy{background:var(--mem)} .cm-bar .seg.cm-some{background:var(--sense)}
+.cm-bar .seg.cm-none{background:var(--mute)} .cm-bar .seg.cm-unset{background:var(--line)}
+.cm-key{display:flex;gap:16px;flex-wrap:wrap;margin-top:11px;font-size:12px;color:var(--ink-2)}
+.cm-key .li{display:inline-flex;align-items:center;gap:6px}
+.cm-key .d{width:9px;height:9px;border-radius:50%;display:inline-block}
+.cm-key .d.cm-heavy{background:var(--mem)} .cm-key .d.cm-some{background:var(--sense)}
+.cm-key .d.cm-none{background:var(--mute)}
+.cm-key .d.cm-unset{background:transparent;box-shadow:inset 0 0 0 1.5px var(--ink-3)}
+.cm-key b{color:var(--ink);font-variant-numeric:tabular-nums}
 .cm-banner{display:flex;gap:13px;align-items:flex-start;padding:15px 18px;border-radius:var(--r-md);
   background:var(--mem-bg);border:1px solid transparent;margin-bottom:16px;color:var(--mem)}
 .cm-banner svg{width:19px;height:19px;flex:none;margin-top:1px}
@@ -1362,8 +1376,12 @@ const SYSTEMS = [
   {name:"Operating Rhythm", fam:"Alignment", feeds:"Communicate", reg:"Review", dies:"Strategy is set, then quietly drifts, unexamined."},
   {name:"Decision Rights", fam:"Alignment", feeds:"Communicate", reg:"Rights", dies:"Strategy stalls in execution on 'who decides this?'"},
   {name:"Signals Ledger", fam:"Feedback", feeds:"Track", reg:"Signals", dies:"The signals you designed are never actually watched."},
-  {name:"Resource Allocation", fam:"Feedback", feeds:"Track", reg:"Assumptions", dies:"A strategy no budget moves toward — a wishlist."},
-  {name:"Learning Loop", fam:"Feedback", feeds:"Track → Understand", reg:"Review", dies:"Every strategy starts from zero; the org never compounds."},
+  {name:"Resource Allocation", fam:"Feedback", feeds:"Track", reg:"Assumptions", at:"alloc",
+   hosts:"Lives in Bets, as the commitment band on each one — and the distribution across them.",
+   dies:"A strategy no budget moves toward — a wishlist."},
+  {name:"Learning Loop", fam:"Feedback", feeds:"Track → Understand", reg:"Review", at:"learn",
+   hosts:"Lives in Operating Rhythm, as the archive every closed review writes to.",
+   dies:"Every strategy starts from zero; the org never compounds."},
 ];
 // Registrene rammeverket aldri navnga. Rekkefolgen er kjeden: behov gir mal,
 // mal baerer utfall, utfall baerer verdi — og diagnosen til slutt, fordi den
@@ -1402,8 +1420,12 @@ const SYS_NO = {
   "Operating Rhythm":{name:"Driftsrytme",dies:"Strategien settes, og driver så stille, uexaminert."},
   "Decision Rights":{name:"Beslutningsrettigheter",dies:"Strategien stopper i gjennomføring på «hvem bestemmer dette?»."},
   "Signals Ledger":{name:"Signalregister",dies:"Signalene du designet, blir aldri faktisk overvåket."},
-  "Resource Allocation":{name:"Ressursallokering",dies:"En strategi ingen budsjett beveger seg mot — en ønskeliste."},
-  "Learning Loop":{name:"Læringsløkke",dies:"Hver strategi starter fra null; organisasjonen akkumulerer aldri."},
+  "Resource Allocation":{name:"Ressursallokering",
+    hosts:"Bor i Antakelser, som forpliktelsesbåndet på hvert bet — og fordelingen mellom dem.",
+    dies:"En strategi ingen budsjett beveger seg mot — en ønskeliste."},
+  "Learning Loop":{name:"Læringsløkke",
+    hosts:"Bor i Driftsrytme, som arkivet hver avsluttet gjennomgang skriver til.",
+    dies:"Hver strategi starter fra null; organisasjonen akkumulerer aldri."},
 };
 const SYS_X_NO = {
   "Needs":{name:"Behov",
@@ -1427,6 +1449,7 @@ const FEEDS_NO = {"Understand":"Forstå","Whole loop":"Hele løkken","Develop �
 function sysName(s){ const o=LANG==="no"&&(SYS_NO[s.name]||SYS_X_NO[s.name]); return o?o.name:s.name; }
 function sysDies(s){ const o=LANG==="no"&&(SYS_NO[s.name]||SYS_X_NO[s.name]); return o?o.dies:s.dies; }
 function sysWhy(s){ const o=LANG==="no"&&SYS_X_NO[s.name]; return o?o.why:(s.why||""); }
+function sysHosts(s){ const o=LANG==="no"&&(SYS_NO[s.name]||SYS_X_NO[s.name]); return (o&&o.hosts)||s.hosts||""; }
 function famLabel(fk){ return LANG==="no"&&FAM_NO[fk]?FAM_NO[fk].label:fk; }
 function famFeeds(fk){ return LANG==="no"&&FAM_NO[fk]?FAM_NO[fk].feeds:(FAM[fk]?FAM[fk].feeds:fk); }
 function feedsL(x){ return LANG==="no"&&FEEDS_NO[x]?FEEDS_NO[x]:x; }
@@ -1515,6 +1538,8 @@ const T = {
     "add.goals":"New goal", "add.outcomes":"New outcome",
     "mx.cons":"Consequence","mx.conf":"Confidence","mx.riskiest":"riskiest",
     "mx.danger":"danger zone — fund a signal here first","mx.watch":"watch","mx.safer":"safer",
+    "sect.alloc":"Resource allocation","sect.alloc.h":"Not hours — which bet the work buys down. Allocation is only real if something is starved.",
+    "cm.nobets":"No live bets to allocate against yet.",
     "cm.lbl":"What we are putting behind it",
     "cm.none":"Nothing","cm.some":"Some","cm.heavy":"Heavy","cm.unset":"not set",
     "sect.allbets":"All bets","sect.allbets.h":"Riskiest first",
@@ -1874,6 +1899,8 @@ const T = {
     "add.goals":"Nytt mål", "add.outcomes":"Nytt utfall",
     "mx.cons":"Konsekvens","mx.conf":"Konfidens","mx.riskiest":"mest risikabel",
     "mx.danger":"faresonen — sett et signal her først","mx.watch":"følg med","mx.safer":"tryggere",
+    "sect.alloc":"Ressursallokering","sect.alloc.h":"Ikke timer — hvilket bet arbeidet kjøper ned. Allokering er bare ekte hvis noe sultes.",
+    "cm.nobets":"Ingen levende bets å allokere mot ennå.",
     "cm.lbl":"Hva vi setter bak det",
     "cm.none":"Ingenting","cm.some":"Litt","cm.heavy":"Mye","cm.unset":"ikke satt",
     "sect.allbets":"Alle bets","sect.allbets.h":"Mest risikable først",
@@ -2616,6 +2643,24 @@ function matchQ(txt){ return !q || (txt||"").toLowerCase().includes(q); }
 function byId(coll,id){ return (DB[coll]||[]).find(x=>x.id===id); }
 
 /* ============================================================ VIEWS */
+// Et kort som lover «apner registeret som baerer det» ma lande pa DELEN som
+// baerer det. To av de ti bor inne i et annet registers visning; uten dette
+// landet du bare et sted pa siden og matte lete.
+let SCROLL_TO = null;
+function goToSystem(s){
+  view = s.reg.toLowerCase();
+  SCROLL_TO = s.at || null;
+  render();
+}
+function flushScroll(){
+  if(!SCROLL_TO) return;
+  const target = SCROLL_TO; SCROLL_TO = null;
+  const n = $("#root").querySelector(`[data-sys="${target}"]`);
+  if(!n) return;
+  n.scrollIntoView({behavior:"smooth", block:"start"});
+  n.classList.add("sys-landed");
+  setTimeout(()=>n.classList.remove("sys-landed"), 1600);
+}
 function render(){
   $("#crumb").textContent = t("nav."+view);
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active", n.dataset.view===view));
@@ -2629,6 +2674,7 @@ function render(){
   updateCounts();
   const r = $("#root"); r.innerHTML="";
   r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,needs:vNeeds,goals:vGoals,outcomes:vOutcomes,values:vValues,radar:vRadar,rights:vRights,diagnoses:vDiagnoses,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,signals:vSignals,review:vReview,shares:vShares,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
+  flushScroll();
 }
 function reviewDueCount(){
   return DB.signals.filter(s=>s.state==="disagreeing"||s.state==="drifting"||suggestSignalState(s)).length
@@ -3299,6 +3345,23 @@ function vAssumptions(){
   const all = DB.assumptions.filter(x=>matchStrat(x.strategy)).filter(x=>matchQ(x.statement+x.kill_signal));
   // Ressursallokering, lest som en linse på bettene — ikke et eget lag.
   const unf=betsUnfunded(), fbr=betsFundedBroken(), stuck=betsFundedStuck(), flat=nothingStarved();
+  const sh=el("div","sect-h",
+    `<h2>${esc(t("sect.alloc"))}</h2><span class="hint">${esc(t("sect.alloc.h"))}</span>`);
+  sh.setAttribute("data-sys","alloc");
+  w.appendChild(sh);
+  const cc=commitCounts();
+  const tot=COMMIT.concat("unset").reduce((n,k)=>n+cc[k],0);
+  const bar=el("div","panel panel-pad cm-dist");
+  bar.innerHTML = tot
+    ? `<div class="cm-bar">`
+      + ["heavy","some","none","unset"].filter(k=>cc[k])
+          .map(k=>`<span class="seg cm-${k}" style="flex:${cc[k]}" title="${esc(t("cm."+k))}"></span>`).join("")
+      + `</div><div class="cm-key">`
+      + ["heavy","some","none","unset"].map(k=>
+          `<span class="li"><i class="d cm-${k}"></i>${esc(t("cm."+k))} <b>${cc[k]}</b></span>`).join("")
+      + `</div>`
+    : `<div class="mini-empty">${esc(t("cm.nobets"))}</div>`;
+  w.appendChild(bar);
   if(unf.length||fbr.length||stuck.length||flat){
     const bn=el("div","cm-banner");
     bn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 20h4V10H3zM10 20h4V4h-4zM17 20h4v-7h-4z"/></svg>
@@ -3530,8 +3593,10 @@ function vReview(){
   // ── arkivet: hva forrige gjennomganger faktisk produserte ──
   const past=(DB.reviews||[]).filter(r=>!r.strategy||matchStrat(r.strategy))
     .slice().sort((a,b)=>(b.date||"").localeCompare(a.date||""));
-  w.appendChild(el("div","sect-h",
-    `<h2>${esc(t("rev.arch"))}</h2><span class="hint">${esc(t("rev.arch.h"))}</span>`));
+  const archH=el("div","sect-h",
+    `<h2>${esc(t("rev.arch"))}</h2><span class="hint">${esc(t("rev.arch.h"))}</span>`);
+  archH.setAttribute("data-sys","learn");
+  w.appendChild(archH);
   const ap2=el("div","panel");
   if(!past.length){
     ap2.innerHTML=`<div class="empty"><span class="serif">${esc(t("rev.arch.empty.t"))}</span>${esc(t("rev.arch.empty.d"))}</div>`;
@@ -6172,8 +6237,9 @@ function vSystems(){
       <div class="feeds">${outside
         ? esc(t("sys.feeds"))+" "+esc(feedsL(s.feeds))
         : esc(t("sys.family"))+" "+esc(famLabel(s.fam))+" · "+esc(t("sys.feeds"))+" "+esc(feedsL(s.feeds))}</div>`
-      + (outside?`<div class="why">${esc(t("sys.x.why"))} ${esc(sysWhy(s))}</div>`:"");
-    if(s.reg){ clickable(c,()=>{ view = s.reg.toLowerCase(); render(); },"Open "+s.reg+" register"); }
+      + (outside?`<div class="why">${esc(t("sys.x.why"))} ${esc(sysWhy(s))}</div>`
+               : sysHosts(s)?`<div class="why">${esc(sysHosts(s))}</div>`:"");
+    if(s.reg){ clickable(c,()=>goToSystem(s),"Open "+s.reg+" register"); }
     return c;
   };
   const grid = el("div","grid sys-grid");

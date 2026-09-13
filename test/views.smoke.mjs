@@ -120,6 +120,13 @@ try {
 let pass = 0; const failures = [];
 const ok = (c, m) => c ? pass++ : failures.push(m);
 
+// Ankere settes med setAttribute, sa de ligger ikke i deepText. Gaa treet.
+function hasAttr(node, attr, val){
+  if(!node) return false;
+  if(node.getAttribute && node.getAttribute(attr) === val) return true;
+  return (node.children || []).some(c => hasAttr(c, attr, val));
+}
+
 function runView(name, fn, label){
   try {
     const node = fn();
@@ -252,6 +259,35 @@ console.log("skuff og modal - bare ett lag eier skjermen");
   ok(!app.modalOpen(),
      "og veiviseren lukket seg — ellers ligger den usynlig over og sluker klikkene");
   app.closeDrawer(); app.closeModal();
+}
+
+console.log("systemer som deler register lander pa sin egen del");
+{
+  for (const lang of ["en", "no"]) {
+    app.setLang(lang);
+    // Ressursallokering skal ha et hjem som finnes UANSETT om en alarm gaar.
+    const a = app.ctx.vAssumptions().deepText || "";
+    ok(a.includes(app.T[lang]["sect.alloc"]), `allokeringsseksjonen finnes (${lang})`);
+    ok(hasAttr(app.ctx.vAssumptions(), "data-sys", "alloc"),
+       `og baerer ankeret kortet peker pa (${lang})`);
+    const r = app.ctx.vReview().deepText || "";
+    ok(r.includes(app.T[lang]["rev.arch"]), `arkivet finnes (${lang})`);
+    ok(hasAttr(app.ctx.vReview(), "data-sys", "learn"),
+       `og arkivet baerer Laeringslokkens anker (${lang})`);
+    // Kortene sier hvor de bor.
+    const v = app.ctx.vSystems().deepText || "";
+    const vert = lang === "no" ? "Bor i Antakelser" : "Lives in Bets";
+    ok(v.includes(vert), `Ressursallokering sier hvor den bor (${lang})`);
+  }
+  app.setLang("en");
+  // Tom database: seksjonen skal fortsatt staa, med sin egen tomtilstand.
+  const db = structuredClone(app.SEED);
+  db.assumptions = [];
+  app.setDB(db);
+  const tom = app.ctx.vAssumptions().deepText || "";
+  ok(tom.includes(app.T.en["sect.alloc"]) || tom.includes(app.T.en["empty.assumptions.t"]),
+     "uten bets sier visningen fra, den kaster ikke");
+  app.setDB(structuredClone(app.SEED));
 }
 
 console.log("registrene rammeverket ikke navnga star pa staaende systemer");

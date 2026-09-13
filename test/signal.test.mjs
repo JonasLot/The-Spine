@@ -68,7 +68,7 @@ const harness = [
   func("outcomesOfNeed"), func("needOf"), func("outcomesWithoutNeed"), func("needsUnserved"),
   func("needsAssumedButLoadBearing"), func("needStale"), func("needsStale"),
   func("needWeak"), func("needSrcCounts"),
-  decl("SYSTEMS"), decl("SYSTEMS_X"), decl("SYS_NO"), decl("SYS_X_NO"),
+  decl("SYSTEMS"), decl("SYSTEMS_X"), decl("SYSTEMS_ALL"), decl("SYS_NO"), decl("SYS_X_NO"),
   decl("CV_KINDS"), decl("CV_COLL"), decl("CV_GLYPH"), decl("CV_W"), decl("COLLS"),
   decl("CV_TOKEN"), decl("CV_GROUPS"), decl("CV_QUICK"),
   decl("COMMIT"), decl("COMMIT_W"), oneLine(/const COMMIT_STALE_REVIEWS\s*=/),
@@ -127,7 +127,7 @@ const harness = [
   "strategiesOnVoidDiagnosis,diagnosisWeak," +
   "NEED_SRC,NEED_RANK,NEED_STALE_DAYS,outcomesOfNeed,needOf,outcomesWithoutNeed," +
   "needsUnserved,needsAssumedButLoadBearing,needStale,needsStale,needWeak,needSrcCounts," +
-  "SYSTEMS,SYSTEMS_X,SYS_NO,SYS_X_NO," +
+  "SYSTEMS,SYSTEMS_X,SYSTEMS_ALL,SYS_NO,SYS_X_NO," +
   "CV_KINDS,CV_COLL,CV_GLYPH,CV_W,COLLS,CV_TOKEN,CV_GROUPS,CV_QUICK," +
   "COMMIT,COMMIT_STALE_REVIEWS,liveBets,betsUnfunded,betsFundedBroken,betMovedIn," +
   "recentReviews,betFundedStuck,betsFundedStuck,nothingStarved,commitCounts," +
@@ -159,7 +159,7 @@ const {
   strategiesOnVoidDiagnosis, diagnosisWeak,
   NEED_SRC, NEED_RANK, NEED_STALE_DAYS, outcomesOfNeed, needOf, outcomesWithoutNeed,
   needsUnserved, needsAssumedButLoadBearing, needStale, needsStale, needWeak, needSrcCounts,
-  SYSTEMS, SYSTEMS_X, SYS_NO, SYS_X_NO,
+  SYSTEMS, SYSTEMS_X, SYSTEMS_ALL, SYS_NO, SYS_X_NO,
   CV_KINDS, CV_COLL, CV_GLYPH, CV_W, COLLS, CV_TOKEN, CV_GROUPS, CV_QUICK,
   COMMIT, COMMIT_STALE_REVIEWS, liveBets, betsUnfunded, betsFundedBroken, betMovedIn,
   recentReviews, betFundedStuck, betsFundedStuck, nothingStarved, commitCounts,
@@ -1705,6 +1705,39 @@ ok(SYSTEMS.length === 10, "de ti er fortsatt ti (" + SYSTEMS.length + ")");
 ["Needs (who we serve", "Behov (hvem vi tjener"].forEach(frag =>
   ok(!T.en["vh.systems"].includes(frag) && !T.no["vh.systems"].includes(frag),
      "introen gjentar ikke det kortene sier"));
+
+group("systemer som deler register");
+// To av de ti bor inne i et annet registers visning. Da ma kortet si hvor,
+// og klikket ma lande der — ikke bare «et sted pa siden».
+{
+  const byReg = {};
+  SYSTEMS_ALL.forEach(s => { if(s.reg) (byReg[s.reg] = byReg[s.reg] || []).push(s); });
+  const delt = Object.values(byReg).filter(a => a.length > 1).flat();
+  ok(delt.length === 4,
+     "fire kort deler to registre (" + delt.map(s => s.name).join(", ") + ")");
+  // Den som deler MA peke pa sin egen del, og MA si hvor den bor.
+  const uten = delt.filter(s => !s.at && !s.hosts);
+  const vert = delt.filter(s => s.at);
+  ok(vert.length === 2, "de to gjestene peker pa hver sin del av vertens visning");
+  ok(vert.every(s => s.hosts), "og begge sier hvor i registeret de bor");
+  ok(uten.length === 2, "vertene selv trenger ingen av delene");
+  ok(SYSTEMS_ALL.filter(s => s.at).map(s => s.at).sort().join(",") === "alloc,learn",
+     "det er Ressursallokering og Laeringslokke");
+  // Ankeret ma finnes i kilden, ellers scroller vi mot ingenting.
+  SYSTEMS_ALL.filter(s => s.at).forEach(s =>
+    ok(src.includes(`"data-sys","${s.at}"`),
+       `ankeret data-sys="${s.at}" settes faktisk i en visning`));
+  ok(/flushScroll\(\);\n\}/.test(src) || src.includes("flushScroll();"),
+     "render() toemmer scroll-koen, ellers henger den til neste gang");
+  ok(SYS_NO["Resource Allocation"].hosts && SYS_NO["Learning Loop"].hosts,
+     "begge er oversatt");
+}
+// commitCounts() var bygget og testet, men ble aldri vist noe sted — derfor
+// landet Ressursallokering i ingenting naar ingen alarm gikk.
+ok(src.includes("commitCounts()") && src.split("commitCounts()").length > 2,
+   "commitCounts() brukes faktisk i en visning, ikke bare i testene");
+["sect.alloc","sect.alloc.h","cm.nobets"].forEach(k =>
+  ok(T.en[k] !== undefined && T.no[k] !== undefined, k + " finnes i begge sprak"));
 
 group("bakoverkompatibilitet");
 ok(S("s2").unit === undefined && S("s2").thresh === undefined,
