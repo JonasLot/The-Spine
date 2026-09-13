@@ -1069,9 +1069,6 @@ kbd.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:
     <a class="nav-item" data-view="decisions">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
       <span>Decisions</span><span class="ct" data-count="decisions">0</span></a>
-    <a class="nav-item" data-view="rights">
-      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v18M6 7l-3 6h6l-3-6ZM18 7l-3 6h6l-3-6Z"/><path d="M5 21h14M8 5h8"/></svg>
-      <span>Decision Rights</span><span class="ct" data-count="rights">0</span></a>
     <a class="nav-item" data-view="initiatives">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h9"/><path d="M11 7l5 5-5 5"/><path d="M19 4v16"/></svg>
       <span>Initiatives</span><span class="ct" data-count="initiatives">0</span></a>
@@ -1081,6 +1078,9 @@ kbd.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:
       <span>Signals</span><span class="ct" data-count="signals">0</span></a>
 
     <div class="nav-grp" data-grp="apparatus">Apparatus</div>
+    <a class="nav-item" data-view="rights">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v18M6 7l-3 6h6l-3-6ZM18 7l-3 6h6l-3-6Z"/><path d="M5 21h14M8 5h8"/></svg>
+      <span>Decision Rights</span><span class="ct" data-count="rights">0</span></a>
     <a class="nav-item" data-view="review">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
       <span>Operating Rhythm</span><span class="ct" id="reviewCt">0</span></a>
@@ -4040,7 +4040,8 @@ const CV_TOKEN = {need:"--need", goal:"--goal", outcome:"--outcome", value:"--va
 const CV_GROUPS = [
   {lbl:"grp.direction", kinds:["need","goal","outcome","value"]},
   {lbl:"",              kinds:["strategy"]},
-  {lbl:"grp.registers", kinds:["insight","force","diagnosis","assumption","decision","right","initiative","signal"]},
+  {lbl:"grp.registers", kinds:["insight","force","diagnosis","assumption","decision","initiative","signal"]},
+  {lbl:"grp.apparatus",  kinds:["right"]},
 ];
 
 /* ---- ett oppslag over alt som kan ligge på lerretet ---- */

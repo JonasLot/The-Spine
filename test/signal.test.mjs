@@ -1112,6 +1112,15 @@ group("navigasjonen og lerretet står i samme rekkefølge");
   };
   ok(navOrder("direction").join() === cvOrder("grp.direction").join(),
      "Retning: " + navOrder("direction").join(" → ") + "  vs  " + cvOrder("grp.direction").join(" → "));
+  {
+    // Apparat inneholder ogsa visninger som ikke er nodetyper (rytmen,
+    // artefaktet, svinghjulet). Derfor delmengde, men i samme rekkefolge.
+    const navApp = navOrder("apparatus"), cvApp = cvOrder("grp.apparatus");
+    ok(cvApp.every(c => navApp.includes(c)),
+       "hver nodetype i lagbarens Apparat finnes i navigasjonens Apparat");
+    ok(cvApp.join() === navApp.filter(c => cvApp.includes(c)).join(),
+       "Apparat: " + cvApp.join(" → ") + "  vs  " + navApp.join(" → "));
+  }
   ok(navOrder("registers").join() === cvOrder("grp.registers").join(),
      "Registre: " + navOrder("registers").join(" → ") + "  vs  " + cvOrder("grp.registers").join(" → "));
   // Ryggradens logikk, eksplisitt: forstå før du utvikler, utvikle før du
@@ -1122,7 +1131,15 @@ group("navigasjonen og lerretet står i samme rekkefølge");
   ok(pos("radar") < pos("diagnoses"), "radaren kommer før diagnosen den mater");
   ok(pos("diagnoses") < pos("assumptions"), "diagnosen kommer før bettene den produserer");
   ok(pos("assumptions") < pos("decisions"), "bettene kommer før beslutningene som hviler på dem");
-  ok(pos("decisions") < pos("rights"), "beslutningen kommer før retten som skulle dekket den");
+  // Rettighetene bor i Apparat, ikke i Registre — de er rammen løkken kjører
+  // inne i, ikke noe løkken resonnerer FRA. Påstanden holder fortsatt, men
+  // må leses på tvers av gruppene.
+  const heleNav = [...src.matchAll(/data-view="(\w+)"/g)].map(m => m[1]);
+  ok(heleNav.indexOf("decisions") < heleNav.indexOf("rights"),
+     "beslutningen kommer før retten som skulle dekket den");
+  ok(!reg.includes("rights"), "rettighetene står ikke lenger blant registrene");
+  ok(heleNav.indexOf("rights") > heleNav.indexOf("signals"),
+     "og de står i Apparat, etter at registrene er ferdige");
   ok(pos("signals") === reg.length - 1, "signalene står sist — det er der virkeligheten svarer");
 }
 
