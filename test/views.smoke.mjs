@@ -254,7 +254,7 @@ console.log("skuff og modal - bare ett lag eier skjermen");
   app.closeDrawer(); app.closeModal();
 }
 
-console.log("de tre utenfor de ti star pa staaende systemer");
+console.log("registrene rammeverket ikke navnga star pa staaende systemer");
 {
   for (const lang of ["en", "no"]) {
     app.setLang(lang);
@@ -263,7 +263,7 @@ console.log("de tre utenfor de ti star pa staaende systemer");
     ok(v.includes(app.T[lang]["sys.x.why"]), `hvert kort sier hvorfor det star utenfor (${lang})`);
     for (const s of app.SYSTEMS_X) {
       const navn = lang === "no"
-        ? ({Needs:"Behov", Diagnoses:"Diagnoser", Value:"Verdi"})[s.name]
+        ? ({Needs:"Behov", Goals:"Mål", Outcomes:"Utfall", Value:"Verdi", Diagnoses:"Diagnoser"})[s.name]
         : s.name;
       ok(v.includes(navn), `${navn} star som kort (${lang})`);
     }

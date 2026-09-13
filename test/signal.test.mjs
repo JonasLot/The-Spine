@@ -1668,29 +1668,40 @@ group("skuff og modal - lagreglene star i kilden");
      "og prover dem ovenfra og ned, sa ett trykk lukker ett lag");
 }
 
-group("de tre utenfor de ti");
-// Poenget er at de star UTENFOR. Blir de stokket inn blant de ti, forsvinner
-// bade tallet og opplysningen om hvor de kom fra.
+group("registrene rammeverket ikke navnga");
+// De star for seg selv nettopp fordi de star utenfor kanonen. Blir de stokket
+// inn blant de ti, forsvinner opplysningen om hvor de kom fra.
 ok(SYSTEMS.length === 10, "de ti er fortsatt ti (" + SYSTEMS.length + ")");
-ok(SYSTEMS_X.length === 3, "og de tre er tre");
 {
   const tiRegs = new Set(SYSTEMS.map(s => s.reg));
   ok(SYSTEMS_X.every(s => !tiRegs.has(s.reg)),
-     "ingen av de tre dublerer et register de ti allerede eier");
-  ok(SYSTEMS_X.map(s => s.reg).sort().join(",") === "Diagnoses,Needs,Values",
-     "det er Behov, Diagnoser og Verdi");
+     "ingen av dem dublerer et register de ti allerede eier");
+  // Rekkefolgen ER kjeden. Sorteres den bort, mister seksjonen poenget sitt.
+  ok(SYSTEMS_X.map(s => s.reg).join(",") === "Needs,Goals,Outcomes,Values,Diagnoses",
+     "retningen star i kjederekkefolge, og diagnosen sist (fikk: " +
+     SYSTEMS_X.map(s => s.reg).join(",") + ")");
   ok(SYSTEMS_X.every(s => s.dies && s.why && s.feeds),
-     "hvert av de tre sier hva som dor uten det, hvorfor det star utenfor, og hvor det mater inn");
+     "hvert kort sier hva som dor uten det, hvorfor det star utenfor, og hvor det mater inn");
   ok(SYSTEMS_X.every(s => !s.fam),
      "ingen av dem paastar a hore til en av de fire familiene — de er utenfor rammeverket");
   ok(SYSTEMS_X.every(s => SYS_X_NO[s.name] && SYS_X_NO[s.name].name && SYS_X_NO[s.name].dies && SYS_X_NO[s.name].why),
-     "alle tre er fullt oversatt, felt for felt");
+     "alle er fullt oversatt, felt for felt");
   ok(SYSTEMS.every(s => SYS_NO[s.name]), "og de ti er fortsatt fullt oversatt");
+  // Retningskjeden i appen er behov -> mal -> utfall -> verdi. Seksjonen ma
+  // vise NOYAKTIG den, ellers beskriver siden en annen modell enn appen.
+  const dir = CV_GROUPS.find(g => g.lbl === "grp.direction").kinds;
+  ok(SYSTEMS_X.slice(0, 4).map(s => s.reg.toLowerCase().replace(/s$/, "")).join(",")
+     === dir.join(","),
+     "de fire forste er retningskjeden slik lerretet grupperer den (" + dir.join(",") + ")");
 }
 ["sys.x.head","sys.x.hint","sys.x.why"].forEach(k =>
   ok(T.en[k] !== undefined && T.no[k] !== undefined, k + " finnes i begge sprak"));
-// Introen skal ikke lenger ramse dem opp — kortene sier det, og to steder
-// som sier det samme driver fra hverandre.
+// Overskriften skal ikke telle. Antallet endret seg en gang allerede.
+[T.en["sys.x.head"], T.no["sys.x.head"], T.en["vh.systems"], T.no["vh.systems"]].forEach(s =>
+  ok(!/\b(three|tre|five|fem)\b/i.test(s),
+     "hverken overskriften eller introen teller registrene: «" + s.slice(0, 60) + "…»"));
+// Introen skal ikke ramse dem opp — kortene sier det, og to steder som sier
+// det samme driver fra hverandre.
 ["Needs (who we serve", "Behov (hvem vi tjener"].forEach(frag =>
   ok(!T.en["vh.systems"].includes(frag) && !T.no["vh.systems"].includes(frag),
      "introen gjentar ikke det kortene sier"));
