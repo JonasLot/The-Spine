@@ -91,7 +91,7 @@ global.d3 = undefined;                            // kartet skal degradere pent
 
 // ── last appen ───────────────────────────────────────────────────────────
 const VIEWS = ["vDashboard","vStrategies","vMap","vNeeds","vGoals","vOutcomes","vValues","vRadar","vRights","vDiagnoses","vInsights","vInitiatives",
-               "vDecisions","vAssumptions","vSignals","vReview","vShares",
+               "vDecisions","vAssumptions","vSignals","vEscalations","vReview","vShares",
                "vFlywheel","vSystems","vProfile"];
 let app;
 try {
@@ -109,7 +109,9 @@ try {
              CV_LINKS, CV_COLL, CV_KINDS, cvRelations, openGoal, openValue, openInitiative,
              openDrawer, closeDrawer, openModal, closeModal, modalOpen, drawerOpen,
              openRadarImport:typeof openRadarImport==="function"?openRadarImport:null,
-             startImportReview, normalizeEntity};
+             startImportReview, normalizeEntity,
+             openEscalation, raiseEscalation, editStrategyInherit,
+             getDB:()=>DB, setView:v=>{view=v}};
   `)();
 } catch (err) {
   console.log("  ✗ app.html lastet ikke i det hele tatt");
@@ -361,7 +363,7 @@ console.log("registrene rammeverket ikke navnga star pa staaende systemer");
     for (const s of app.SYSTEMS_X) {
       const navn = lang === "no"
         ? ({Needs:"Behov", Goals:"Mål", Outcomes:"Utfall", Value:"Verdi",
-            Initiatives:"Initiativ", Diagnoses:"Diagnoser"})[s.name]
+            Initiatives:"Initiativ", Diagnoses:"Diagnoser", Escalations:"Eskaleringer"})[s.name]
         : s.name;
       ok(v.includes(navn), `${navn} star som kort (${lang})`);
     }
@@ -553,6 +555,57 @@ console.log("hver koblingsregel tegner faktisk en kant");
   app.setDB(structuredClone(app.SEED));
 }
 
+
+console.log("arv ned og eskalering");
+{
+  const txt = id => { const n = app.vStrategyDetail(id); return n ? (n.deepText || "") : ""; };
+  for (const lang of ["en", "no"]) {
+    app.setLang(lang);
+    const T = app.T[lang];
+    const t2 = txt("st2");
+    ok(t2.includes(T["inh.head"]), `barnet viser arvepanelet (${lang})`);
+    ok(t2.includes("Tet Vedtak"), `med forelderens navn (${lang})`);
+    ok(t2.includes(T["inh.f.nonChoices"]) && t2.includes(T["inh.src.parent"]), `feltene er merket med kilde (${lang})`);
+    ok(t2.includes(lang === "no" ? "DPIA-porten" : "The DPIA gate"), `rammene står på språket som er valgt (${lang})`);
+    ok(t2.includes(T["inh.sent"]), `det som er sendt opp herfra vises (${lang})`);
+    const t1 = txt("st1");
+    ok(t1.includes(T["kids.head"]), `forelderen viser innboksen (${lang})`);
+    ok(!t1.includes(T["inh.head"]), `toppnivået har ingen arvepanel (${lang})`);
+    const t3 = txt("st3");
+    ok(t3.includes(T["inh.none.t"]), `produkt uten forelder får beskjed (${lang})`);
+    const r = app.ctx.vReview().deepText || "";
+    ok(r.includes(T["rev.e"]), `gjennomgangen har svarplikt-steget (${lang})`);
+    ok(r.includes(lang === "no" ? "Skyggekjøringen trenger" : "The shadow run needs"), `e1 står som kort (${lang})`);
+    const v = app.ctx.vEscalations().deepText || "";
+    ok(v.includes(T["esc.banner.note"]), `registeret forklarer seg (${lang})`);
+    app.openEscalation("e1");
+    const d = app.drawerBody().deepText || "";
+    ok(d.includes(T["esc.threshold"]) && d.includes("TØFF"), `skuffen viser terskel og rute (${lang})`);
+  }
+  app.setLang("en");
+  // Et funn på strategikortet åpner skjemaet ferdig utfylt.
+  app.raiseEscalation("st2", "nonChoices");
+  const ed = app.getEditing();
+  ok(ed && ed.coll === "escalations" && ed.data.fromStrategy === "st2" && ed.data.field === "nonChoices"
+     && ed.data.kind === "nonchoice-cost" && ed.data.response === "open", "eskaler fra et felt forhåndsutfyller skjemaet");
+  ed.data.observation = "Test";
+  app.saveForm();
+  const db = app.getDB();
+  ok(db.escalations.length === 2 && db.escalations.some(e => e.observation === "Test"), "og lagres i registeret");
+  app.editStrategyInherit("st3");
+  ok(app.getEditing().coll === "strategies", "«sett forelder» åpner strategiskjemaet");
+  ok((app.drawerBody().deepText || "").length > 0, "på arvefanen");
+  app.setEditing(null);
+  // Tom og halv data kaster ikke.
+  const half = structuredClone(app.SEED);
+  half.escalations = [{ id: "h1" }, { id: "h2", fromStrategy: "finnes-ikke", response: "parked" }];
+  half.strategies[1].parentId = "finnes-ikke";
+  app.setDB(half);
+  runView("vEscalations", app.ctx.vEscalations, "vEscalations (halve rader)");
+  runView("vReview", app.ctx.vReview, "vReview (halve eskaleringer)");
+  runView("vStrategyDetail", () => app.vStrategyDetail("st2"), "vStrategyDetail(st2, forelder finnes ikke)");
+  app.setDB(structuredClone(app.SEED));
+}
 console.log("stående systemer peker på visninger som finnes");
 {
   const views = new Set(Object.keys(app.ctx).map(n => n.slice(1).toLowerCase()));

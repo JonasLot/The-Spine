@@ -851,6 +851,36 @@ a{color:inherit}
 .bind-row .a.as-confirmed{color:var(--good,var(--accent-ink))}
 .bind-warn{padding:14px 18px;border-bottom:1px solid var(--line-2);color:var(--warn);font-size:13px}
 .bind-warn .sub{font-size:12.5px;color:var(--ink-2);margin-top:6px;max-width:76ch;line-height:1.5}
+/* arv ned — utledet fra forelderen, og merket som utledet */
+.inh-parent{display:flex;flex-direction:column;gap:3px;padding:14px 18px;border-bottom:1px solid var(--line-2)}
+.inh-parent:hover{background:var(--bg-2)}
+.inh-parent .tk{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.inh-parent .n{font-size:14.5px;font-weight:600}
+.inh-row{display:grid;grid-template-columns:minmax(170px,230px) 1fr;gap:18px;padding:14px 18px;border-bottom:1px solid var(--line-2)}
+.inh-row.empty{background:color-mix(in srgb,var(--warn-bg) 45%,transparent)}
+.inh-l .k{font-size:13.5px;font-weight:600;display:flex;gap:8px;align-items:baseline}
+.inh-l .ix{font-size:11px;color:var(--ink-3);font-weight:600;min-width:12px}
+.inh-l .d{font-size:12px;color:var(--ink-3);margin-top:3px;line-height:1.45;padding-left:20px}
+.inh-l .src{display:inline-block;margin:7px 0 0 20px;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+.inh-l .src-parent{color:var(--accent-ink)}
+.inh-l .src-child{color:var(--ink-2)}
+.inh-b{min-width:0;display:flex;flex-direction:column;gap:8px;font-size:13.5px}
+.inh-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;text-wrap:pretty}
+.inh-item{border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 11px;text-wrap:pretty}
+.inh-item:hover{border-color:var(--ink-3)}
+.inh-sub{font-size:12px;color:var(--ink-2);margin-top:5px;line-height:1.5}
+.inh-asm{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.inh-asm .r{flex:none}
+.inh-find{color:var(--warn);font-size:13px;font-weight:500;text-wrap:pretty}
+.inh-acts{display:flex;gap:8px;flex-wrap:wrap}
+.inh-test{padding:12px 18px;font-size:12.5px;color:var(--ink-2);border-bottom:1px solid var(--line-2)}
+.inh-sent{padding:4px 18px 16px;display:flex;flex-direction:column;gap:8px}
+.inh-sent .lbl-mini{margin-top:10px}
+.esc-arr{color:var(--ink-3);margin:0 4px;align-self:center}
+.inh-dir{margin:0;text-wrap:pretty;line-height:1.55}
+.rev-err{font-size:12.5px;color:var(--bad);min-height:0}
+.rev-err:empty{display:none}
+@media (max-width:720px){ .inh-row{grid-template-columns:1fr;gap:8px} .inh-l .d,.inh-l .src{padding-left:0;margin-left:0} }
 .rung-banner{display:flex;gap:13px;align-items:flex-start;padding:15px 18px;border-radius:var(--r-md);
   background:var(--warn-bg);border:1px solid transparent;margin-bottom:16px;color:var(--warn)}
 .rung-banner svg{width:19px;height:19px;flex:none;margin-top:1px}
@@ -1107,6 +1137,9 @@ kbd.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:
     <a class="nav-item" data-view="rights">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v18M6 7l-3 6h6l-3-6ZM18 7l-3 6h6l-3-6Z"/><path d="M5 21h14M8 5h8"/></svg>
       <span>Decision Rights</span><span class="ct" data-count="rights">0</span></a>
+    <a class="nav-item" data-view="escalations">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20V6"/><path d="M6 11l6-6 6 6"/><path d="M5 20h14" opacity=".5"/></svg>
+      <span>Escalations</span><span class="ct" data-count="escalations">0</span></a>
     <a class="nav-item" data-view="review">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
       <span>Operating Rhythm</span><span class="ct" id="reviewCt">0</span></a>
@@ -1352,6 +1385,14 @@ const SEED = {
      note:"Never properly examined. If review capacity is the constraint, automation quality matters more, not less."},
   ],
 
+  escalations: [
+    {id:"e1", fromStrategy:"st2", field:"constraints", kind:"constraint-blocks", assumptionId:"",
+     observation:"The shadow run needs production-like tenant data, but the inherited DPIA gate keeps real case data out of any automated flow until Gate 1. Statutory flows cannot be validated before cutover inside both constraints.",
+     evidence:"pattern", loops:2, owner:"Jonas", raised:"2026-09-02",
+     consequence:"Decide at portfolio level whether the shadow run counts as automated processing under the DPIA — or accept a cutover without full shadow validation, and say so.",
+     response:"open", reason:"", revisit:"", answered:""},
+  ],
+
   strategies: [
     {id:"st1", name:"Tet Vedtak — Case Platform", framework:"kernel", status:"committed", owner:"Jonas", review:"2026-07-15", version:3, alt:"portfolio", serves:["g1","g2"], diagnosisId:"dg1",
       binds:[{who:"Ruter",assent:"confirmed"},{who:"Skyss",assent:"confirmed"},{who:"AKT",assent:"heard"},{who:"AtB",assent:"assumed"}],
@@ -1362,6 +1403,10 @@ const SEED = {
       howKnow:["Appeal-overturn rate falls as the pilot rolls out","≥60% of ordinary cases fully automated at quality","Zero statutory-deadline breaches"]},
     {id:"st2", name:"TØFF Migration", framework:"premortem", status:"reviewed", owner:"Jonas", review:"2026-09-01", version:1, alt:"product", serves:["g1"], diagnosisId:"dg2",
       relations:[{to:"st1", type:"enables"}],
+      parentId:"st1",
+      constraints:["Fixed window: CMP is decommissioned on 31.12.2026","The DPIA gate: no real case data in an automated flow before Gate 1","Per-tenant configuration, never per-tenant code"],
+      freedoms:["How the cutover is sequenced, and the rollback design","Tooling for the shadow run"],
+      watches:["a3"],
       challenge:"CMP is decommissioned on 31.12.2026; the TØFF migration must complete inside a fixed window with no break in statutory service delivery.",
       approach:"Sequence the migration into increment T2 with a clean rollback path, validating statutory flows in a shadow run before cutover.",
       moves:["Establish a pre-migration baseline","Stage the cutover with a tested rollback","Validate statutory deadlines in a shadow run"],
@@ -1474,6 +1519,9 @@ const SYSTEMS_X = [
   {name:"Initiatives", feeds:"Develop", reg:"Initiatives",
    dies:"The moves are prose in a document, and nothing says which bet the work buys down or where it actually is.",
    why:"Only one of the ten even mentions Develop, and only as half of a pair. This is the seam: the Spine holds the claim about what the work is for, your delivery tool holds the work. One link out, and nothing that mirrors status back."},
+  {name:"Escalations", feeds:"Track → Understand", reg:"Escalations",
+   dies:"The product learns the strategy above it is wrong, and nobody up there hears it — or hears it and never answers.",
+   why:"The ten assume one strategy. Once strategies nest, the loop runs at two speeds, and the fast one needs a way to reach the slow one. The register holds the threshold for what goes up, and the duty to answer what arrives."},
 ];
 const SYSTEMS_ALL = [...SYSTEMS, ...SYSTEMS_X];
 const FAM = {
@@ -1512,6 +1560,9 @@ const SYS_X_NO = {
   "Initiatives":{name:"Initiativ",
     dies:"Trekkene er prosa i et dokument, og ingenting sier hvilket bet arbeidet kjøper ned eller hvor det faktisk er.",
     why:"Bare ett av de ti nevner Utvikle i det hele tatt, og da som halvdel av et par. Dette er sømmen: Spine holder påstanden om hva arbeidet er for, leveranseverktøyet holder arbeidet. Én lenke ut, og ingenting som speiler status tilbake."},
+  "Escalations":{name:"Eskaleringer",
+    dies:"Produktet lærer at strategien over tar feil, og ingen der oppe hører det — eller hører det og svarer aldri.",
+    why:"De ti forutsetter én strategi. Når strategier nøstes, går løkken i to hastigheter, og den raske trenger en vei til den langsomme. Registeret holder terskelen for hva som går opp, og svarplikten for det som kommer fram."},
   "Diagnoses":{name:"Diagnoser",
     dies:"Strategien blir en liste med tiltak uten en erklært vanskelighet — og ingen kan vise at den er feil.",
     why:"Diagnosen lå gjemt inni strategiartefaktet. Som eget register kan den deles mellom strategier, og falsifiseres: faller den, faller alt som svarer på den."},
@@ -1808,6 +1859,114 @@ const T = {
     "gv.unval.many":"outcomes under this goal carry no value claim.",
     "vh.rights.t":"Decision Rights","vh.rights.d":"Who can say yes, who can say no, and who must be heard first — set against who actually decided.",
     "nav.rights":"Decision Rights","dr.eye.right":"Decision class",
+    "nav.escalations":"Escalations",
+    "vh.escalations.t":"Escalations",
+    "vh.escalations.d":"What the strategies below have learned that would change what they inherit. Every one is owed an answer: taken in, parked or rejected — with a reason.",
+    "empty.escalations.t":"Nothing sent up yet.",
+    "empty.escalations.d":"An escalation starts on a strategy that inherits from another: when something it learned would change its direction, outcome, non-choices, constraints or the assumptions it watches. Raise one from the strategy card, where the finding is.",
+    "dr.eye.esc":"Escalation",
+    "form.tab.inherit":"Inherits",
+    "form.tab.raise":"What was seen",
+    "form.tab.answer":"Answer",
+    "state.open":"Awaiting answer",
+    "state.taken-in":"Taken in",
+    "state.parked":"Parked",
+    "state.rejected":"Rejected",
+    "inh.f.direction":"Direction",
+    "inh.f.outcome":"Outcome",
+    "inh.f.nonChoices":"Non-choices",
+    "inh.f.constraints":"Constraints",
+    "inh.f.freedoms":"Degrees of freedom",
+    "inh.f.watches":"Assumptions on watch",
+    "inh.d.direction":"The guiding policy it serves",
+    "inh.d.outcome":"The parent's goals it contributes to",
+    "inh.d.nonChoices":"What the parent has said no to. Not this strategy's to reopen.",
+    "inh.d.constraints":"Capacity, budget, platform, regulation, architecture",
+    "inh.d.freedoms":"What it may settle without asking",
+    "inh.d.watches":"The parent's assumptions it is best placed to test",
+    "inh.src.parent":"From the parent",
+    "inh.src.child":"Written here",
+    "inh.head":"Inherits from",
+    "inh.hint":"Read before the strategy's own diagnosis. An empty field is a finding.",
+    "inh.parent":"Parent",
+    "inh.empty":"Empty — a finding, not a gap to guess past.",
+    "inh.escalate":"Escalate",
+    "inh.fill":"Fill in",
+    "inh.none.t":"No parent set.",
+    "inh.none.d":"There is a strategy higher up, but this one inherits nothing from it. A strategy that reads nothing from above drifts, and nobody notices until it has to deliver.",
+    "inh.set":"Set parent",
+    "inh.misplaced":"The parent sits at the same height or lower. That is a sideways link, not inheritance.",
+    "inh.outcome.none-above":"The parent serves no goal, so there is nothing to contribute to.",
+    "inh.outcome.none-shared":"This strategy serves none of the parent's goals. It can succeed without anything above it moving.",
+    "inh.foreign":"Not one of the parent's assumptions, so it does not test the diagnosis above.",
+    "inh.broken":"Broken — send it up",
+    "inh.test":"{n} of {m} fields filled. The test: every choice in Develop should point to one of them.",
+    "inh.sent":"Sent up from here",
+    "kids.head":"What the strategies below send up",
+    "kids.hint":"Each one inherits from this. Their escalations wait for an answer here.",
+    "kids.open":"{n} waiting",
+    "kids.quiet":"nothing sent up",
+    "esc.kind.assumption-broken":"Assumption broken",
+    "esc.kind.constraint-blocks":"Constraint blocks outcome",
+    "esc.kind.nonchoice-cost":"Non-choice has a cost",
+    "esc.kind.cross-product":"Pattern across products",
+    "esc.ev.anecdote":"Anecdote",
+    "esc.ev.pattern":"Pattern",
+    "esc.ev.measured":"Measured",
+    "esc.b.open.one":"escalation is waiting for an answer.",
+    "esc.b.open.many":"escalations are waiting for an answer.",
+    "esc.b.due.one":"parked escalation has reached its date.",
+    "esc.b.due.many":"parked escalations have reached their date.",
+    "esc.b.noreason.one":"was answered without a reason.",
+    "esc.b.noreason.many":"were answered without a reason.",
+    "esc.b.below.one":"is still below the threshold.",
+    "esc.b.below.many":"are still below the threshold.",
+    "esc.banner.note":"Learning that changes how a product works stays in the product. Learning that would change what it inherits comes here. Without a duty to answer, teams stop sending within a couple of cycles.",
+    "esc.below":"Below threshold",
+    "esc.due":"Due again",
+    "esc.th.always":"An assumption on watch has broken. That always goes up.",
+    "esc.th.loops.met":"Has held for {n} product loops, past the threshold of {m}.",
+    "esc.th.loops.below":"Has held for {n} of {m} product loops. One bad loop is not a pattern, so it waits until it has held.",
+    "esc.th.sib.met":"{n} products report the same field. That is the pattern.",
+    "esc.th.sib.below":"Only one product so far. A pattern needs a second before it goes up.",
+    "esc.weak":"Missing",
+    "esc.weak.nofrom":"no sender",
+    "esc.weak.noparent":"the sender has no parent, so nobody owes an answer",
+    "esc.weak.nofield":"no inherited field",
+    "esc.weak.noreason":"answered without a reason",
+    "esc.weak.nodate":"parked without a date",
+    "esc.nobody":"Nobody — no parent set",
+    "esc.field":"Would change",
+    "esc.kind":"Kind",
+    "esc.ev":"Evidence",
+    "esc.loops":"Loops held",
+    "esc.sender":"Sender",
+    "esc.raised":"Raised",
+    "esc.threshold":"Threshold",
+    "esc.asm":"Breaks assumption",
+    "esc.cons":"Proposed consequence",
+    "esc.answer":"Answer",
+    "esc.waiting":"Not answered yet. It is owed one at the next review.",
+    "esc.noreason":"Answered, but no reason was written.",
+    "esc.revisit":"Look again on",
+    "esc.taken.diag":"Diagnosis reopened",
+    "th.esc.obs":"What was seen",
+    "th.esc.field":"Would change",
+    "th.esc.ev":"Evidence",
+    "th.esc.answer":"Answer",
+    "rev.b.esc":"escalation waiting",
+    "rev.b.escs":"escalations waiting",
+    "rev.e":"Answer what was sent up",
+    "rev.e.h":"Every escalation gets taken in, parked or rejected, with a reason the sender can read.",
+    "rev.empty.esc.t":"Nothing sent up.",
+    "rev.empty.esc.d":"No strategy below has raised anything that would change what it inherits. Either the fields hold, or nobody is watching them.",
+    "rev.e.reason":"Reason, written to the sender…",
+    "rev.e.revisit":"Revisit YYYY-MM-DD",
+    "rev.e.log":"Answer",
+    "rev.e.needpick":"Pick an answer first.",
+    "rev.e.need":"Write a reason. An answer without one teaches the sender nothing.",
+    "rev.e.needdate":"A parked escalation needs a date to be looked at again.",
+    "rev.e.taken":"Taking it in reopens the diagnosis above:",
     "th.class":"Decision class","th.saysyes":"Says yes","th.saysno":"Can say no","th.consulted":"Consulted",
     "rt.saysyes":"Who says yes","rt.saysno":"Who can say no",
     "rt.paper":"On paper","rt.practice":"In practice","rt.both":"Mandate and practice agree",
@@ -2212,6 +2371,114 @@ const T = {
     "gv.unval.many":"utfall under dette målet bærer ingen verdipåstand.",
     "vh.rights.t":"Beslutningsrettigheter","vh.rights.d":"Hvem som kan si ja, hvem som kan si nei, og hvem som må høres først — holdt opp mot hvem som faktisk bestemte.",
     "nav.rights":"Beslutningsrettigheter","dr.eye.right":"Beslutningsklasse",
+    "nav.escalations":"Eskaleringer",
+    "vh.escalations.t":"Eskaleringer",
+    "vh.escalations.d":"Det strategiene under har lært som ville endret det de arver. Hver eneste har krav på et svar: tatt inn, parkert eller avvist — med begrunnelse.",
+    "empty.escalations.t":"Ingenting sendt opp ennå.",
+    "empty.escalations.d":"En eskalering starter på en strategi som arver fra en annen: når noe den har lært ville endret retningen, utfallet, ikke-valgene, rammene eller antakelsene den overvåker. Send den fra strategikortet, der funnet står.",
+    "dr.eye.esc":"Eskalering",
+    "form.tab.inherit":"Arver",
+    "form.tab.raise":"Hva vi så",
+    "form.tab.answer":"Svar",
+    "state.open":"Venter på svar",
+    "state.taken-in":"Tatt inn",
+    "state.parked":"Parkert",
+    "state.rejected":"Avvist",
+    "inh.f.direction":"Retning",
+    "inh.f.outcome":"Utfall",
+    "inh.f.nonChoices":"Ikke-valg",
+    "inh.f.constraints":"Rammer",
+    "inh.f.freedoms":"Frihetsgrader",
+    "inh.f.watches":"Antakelser på vakt",
+    "inh.d.direction":"Den styrende policyen den tjener",
+    "inh.d.outcome":"Forelderens mål den bidrar til",
+    "inh.d.nonChoices":"Det forelderen har sagt nei til. Ikke denne strategiens å åpne igjen.",
+    "inh.d.constraints":"Kapasitet, budsjett, plattform, regulering, arkitektur",
+    "inh.d.freedoms":"Det den kan avgjøre uten å spørre",
+    "inh.d.watches":"Forelderens antakelser den er best plassert til å teste",
+    "inh.src.parent":"Fra forelderen",
+    "inh.src.child":"Skrevet her",
+    "inh.head":"Arver fra",
+    "inh.hint":"Leses før strategiens egen diagnose. Et tomt felt er et funn.",
+    "inh.parent":"Forelder",
+    "inh.empty":"Tomt — et funn, ikke et hull å gjette seg forbi.",
+    "inh.escalate":"Eskaler",
+    "inh.fill":"Fyll ut",
+    "inh.none.t":"Ingen forelder satt.",
+    "inh.none.d":"Det finnes en strategi høyere opp, men denne arver ingenting fra den. En strategi som ikke leser noe ovenfra, driver av — og ingen merker det før den må levere.",
+    "inh.set":"Sett forelder",
+    "inh.misplaced":"Forelderen står på samme høyde eller lavere. Det er en sidelengs lenke, ikke arv.",
+    "inh.outcome.none-above":"Forelderen tjener ingen mål, så det finnes ingenting å bidra til.",
+    "inh.outcome.none-shared":"Denne strategien tjener ingen av forelderens mål. Den kan lykkes uten at noe over den flytter seg.",
+    "inh.foreign":"Ikke en av forelderens antakelser, så den tester ikke diagnosen over.",
+    "inh.broken":"Brutt — send den opp",
+    "inh.test":"{n} av {m} felt fylt. Testen: hvert valg i Utvikle skal kunne peke på ett av dem.",
+    "inh.sent":"Sendt opp herfra",
+    "kids.head":"Det strategiene under sender opp",
+    "kids.hint":"Hver av dem arver herfra. Eskaleringene deres venter på svar her.",
+    "kids.open":"{n} venter",
+    "kids.quiet":"ingenting sendt opp",
+    "esc.kind.assumption-broken":"Antakelse brutt",
+    "esc.kind.constraint-blocks":"Ramme blokkerer utfall",
+    "esc.kind.nonchoice-cost":"Ikke-valg koster",
+    "esc.kind.cross-product":"Mønster på tvers",
+    "esc.ev.anecdote":"Anekdote",
+    "esc.ev.pattern":"Mønster",
+    "esc.ev.measured":"Målt",
+    "esc.b.open.one":"eskalering venter på svar.",
+    "esc.b.open.many":"eskaleringer venter på svar.",
+    "esc.b.due.one":"parkert eskalering har nådd datoen sin.",
+    "esc.b.due.many":"parkerte eskaleringer har nådd datoen sin.",
+    "esc.b.noreason.one":"ble besvart uten begrunnelse.",
+    "esc.b.noreason.many":"ble besvart uten begrunnelse.",
+    "esc.b.below.one":"er fortsatt under terskelen.",
+    "esc.b.below.many":"er fortsatt under terskelen.",
+    "esc.banner.note":"Læring som endrer hvordan et produkt jobber, blir i produktet. Læring som ville endret det det arver, kommer hit. Uten svarplikt slutter teamene å sende i løpet av et par sykluser.",
+    "esc.below":"Under terskel",
+    "esc.due":"Til ny vurdering",
+    "esc.th.always":"En antakelse på vakt har røket. Det går alltid opp.",
+    "esc.th.loops.met":"Har holdt seg i {n} produktløkker, over terskelen på {m}.",
+    "esc.th.loops.below":"Har holdt seg i {n} av {m} produktløkker. Én dårlig løkke er ikke et mønster, så den venter til den har holdt.",
+    "esc.th.sib.met":"{n} produkter melder om samme felt. Det er mønsteret.",
+    "esc.th.sib.below":"Bare ett produkt så langt. Et mønster trenger et til før det går opp.",
+    "esc.weak":"Mangler",
+    "esc.weak.nofrom":"ingen avsender",
+    "esc.weak.noparent":"avsenderen har ingen forelder, så ingen skylder et svar",
+    "esc.weak.nofield":"ingen arvefelt",
+    "esc.weak.noreason":"besvart uten begrunnelse",
+    "esc.weak.nodate":"parkert uten dato",
+    "esc.nobody":"Ingen — forelder ikke satt",
+    "esc.field":"Ville endret",
+    "esc.kind":"Type",
+    "esc.ev":"Evidens",
+    "esc.loops":"Løkker holdt",
+    "esc.sender":"Avsender",
+    "esc.raised":"Sendt",
+    "esc.threshold":"Terskel",
+    "esc.asm":"Bryter antakelse",
+    "esc.cons":"Foreslått konsekvens",
+    "esc.answer":"Svar",
+    "esc.waiting":"Ikke besvart ennå. Den har krav på et svar på neste gjennomgang.",
+    "esc.noreason":"Besvart, men ingen begrunnelse er skrevet.",
+    "esc.revisit":"Se på igjen",
+    "esc.taken.diag":"Diagnosen er åpnet igjen",
+    "th.esc.obs":"Hva vi så",
+    "th.esc.field":"Ville endret",
+    "th.esc.ev":"Evidens",
+    "th.esc.answer":"Svar",
+    "rev.b.esc":"eskalering venter",
+    "rev.b.escs":"eskaleringer venter",
+    "rev.e":"Svar på det som ble sendt opp",
+    "rev.e.h":"Hver eskalering blir tatt inn, parkert eller avvist, med en begrunnelse avsenderen kan lese.",
+    "rev.empty.esc.t":"Ingenting sendt opp.",
+    "rev.empty.esc.d":"Ingen strategi under har meldt noe som ville endret det den arver. Enten holder feltene, eller så er det ingen som overvåker dem.",
+    "rev.e.reason":"Begrunnelse, skrevet til avsenderen…",
+    "rev.e.revisit":"Se igjen ÅÅÅÅ-MM-DD",
+    "rev.e.log":"Svar",
+    "rev.e.needpick":"Velg et svar først.",
+    "rev.e.need":"Skriv en begrunnelse. Et svar uten begrunnelse lærer avsenderen ingenting.",
+    "rev.e.needdate":"En parkert eskalering trenger en dato for når den skal vurderes igjen.",
+    "rev.e.taken":"Å ta den inn åpner diagnosen over igjen:",
     "th.class":"Beslutningsklasse","th.saysyes":"Sier ja","th.saysno":"Kan si nei","th.consulted":"Konsulteres",
     "rt.saysyes":"Hvem sier ja","rt.saysno":"Hvem kan si nei",
     "rt.paper":"På papiret","rt.practice":"I praksis","rt.both":"Mandat og praksis er enige",
@@ -2462,7 +2729,12 @@ const SEED_NO = {
     approach:"Sekvensér migreringen inn i inkrement T2 med en ren rollback-sti, og valider lovpålagte flyter i en skyggekjøring før cutover.",
     moves:["Etabler en baseline før migrering","Iscenesett cutover med en testet rollback","Valider lovbestemte frister i en skyggekjøring"],
     notDoing:["Utsette til T3","En big-bang-cutover uten fallback"],
-    howKnow:["Ingen målbart tjenesteavbrudd i vinduet","Alle lovbestemte frister overholdt under cutover"]},
+    howKnow:["Ingen målbart tjenesteavbrudd i vinduet","Alle lovbestemte frister overholdt under cutover"],
+    constraints:["Fast vindu: CMP legges ned 31.12.2026","DPIA-porten: ingen ekte saksdata i en automatisert flyt før Gate 1","Konfigurasjon per tenant, aldri kode per tenant"],
+    freedoms:["Hvordan cutover sekvenseres, og rollback-designet","Verktøy for skyggekjøringen"]},
+  e1:{
+    observation:"Skyggekjøringen trenger produksjonslike tenant-data, men den arvede DPIA-porten holder ekte saksdata ute av enhver automatisert flyt til Gate 1. Lovpålagte flyter kan ikke valideres før cutover innenfor begge rammene.",
+    consequence:"Avgjør på porteføljenivå om skyggekjøringen regnes som automatisert behandling etter DPIA-en — eller godta en cutover uten full skyggevalidering, og si det høyt."},
   st3:{
     challenge:"Skoleadministratorer faller fra under onboarding og lener seg på supporttelefoner, noe som begrenser hvor raskt on-demand-planlegging kan skaleres.",
     approach:"Gjør onboarding fullt selvbetjent med guidet oppsett, så en ny administrator når første verdi uten en supporttelefon.",
@@ -2552,7 +2824,7 @@ function trView(o){
   return out;
 }
 
-const COLLS=["strategies","insights","decisions","assumptions","signals","goals","outcomes","values","reviews","radar","rights","diagnoses","needs","initiatives"];
+const COLLS=["strategies","insights","decisions","assumptions","signals","goals","outcomes","values","reviews","radar","rights","diagnoses","needs","initiatives","escalations"];
 function stratNames(){ return DB.strategies.map(s=>s.name); }
 function stratByName(n){ return DB.strategies.find(s=>s.name===n); }
 const STRAT_FW={kernel:"Strategy Kernel",cascade:"Playing-to-Win Cascade",wardley:"Wardley Map",premortem:"Pre-mortem","one-pager":"One-Page Strategy"};
@@ -2754,7 +3026,7 @@ async function pushAll(){
   if(_pushAgain){ _pushAgain=false; pushAll(); }
 }
 async function loadAll(){
-  const out={strategies:[],insights:[],decisions:[],assumptions:[],signals:[],goals:[],outcomes:[],values:[],reviews:[],radar:[],rights:[],diagnoses:[],needs:[]};
+  const out={strategies:[],insights:[],decisions:[],assumptions:[],signals:[],goals:[],outcomes:[],values:[],reviews:[],radar:[],rights:[],diagnoses:[],needs:[],initiatives:[],escalations:[]};
   // Per-table isolation: a missing table degrades to an empty collection instead of killing the whole load.
   const failed=[];
   for(const coll of COLLS){
@@ -2799,7 +3071,9 @@ const STATE_MAP = {
   wrong:["b-bad","Diagnosed wrong"], resolved:["b-mute","No longer the difficulty"],
   assumed:["b-warn","Assumed"], heard:["b-good","Heard"], verified:["b-good","Verified"],
   proposed:["b-mute","Proposed"], committed:["b-acc","Committed"], running:["b-acc","Running"],
-  delivered:["b-good","Delivered"], stopped:["b-bad","Stopped"]
+  delivered:["b-good","Delivered"], stopped:["b-bad","Stopped"],
+  open:["b-warn","Awaiting answer"], "taken-in":["b-good","Taken in"],
+  parked:["b-mute","Parked"], rejected:["b-bad","Rejected"]
 };
 function stateBadge(s){ const m=STATE_MAP[s]||["b-mute",s]; const lab=T.en["state."+s]?t("state."+s):m[1]; return `<span class="badge ${m[0]}"><span class="dot"></span>${lab}</span>`; }
 function fwL(k){ return T.en["fw."+k]?t("fw."+k):(STRAT_FW[k]||k); }
@@ -2835,22 +3109,23 @@ function render(){
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active", n.dataset.view===view));
   // Styrer søkefelt og kolonnebredde — ikke hvilken nav-gruppe visningen
   // står i. Behov og Verdi ligger under Retning, men er lange lister.
-  const isRegister = ["needs","values","radar","rights","diagnoses","insights","decisions","assumptions","initiatives","signals"].includes(view);
-  const showAdd = ["strategies","needs","radar","values","rights","diagnoses","insights","decisions","assumptions","initiatives","signals","goals","outcomes","profile"].includes(view) && !currentStrategy;
+  const isRegister = ["needs","values","radar","rights","diagnoses","insights","decisions","assumptions","initiatives","signals","escalations"].includes(view);
+  const showAdd = ["strategies","needs","radar","values","rights","diagnoses","insights","decisions","assumptions","initiatives","signals","escalations","goals","outcomes","profile"].includes(view) && !currentStrategy;
   $("#addBtn").style.display = showAdd ? "inline-flex":"none";
   $("#searchField").style.display = isRegister ? "flex":"none";
   $("#addLabel").textContent = addLabelFor();
   updateCounts();
   const r = $("#root"); r.innerHTML="";
-  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,needs:vNeeds,goals:vGoals,outcomes:vOutcomes,values:vValues,radar:vRadar,rights:vRights,diagnoses:vDiagnoses,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,initiatives:vInitiatives,signals:vSignals,review:vReview,shares:vShares,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
+  r.appendChild(({dashboard:vDashboard,strategies:vStrategies,map:vMap,needs:vNeeds,goals:vGoals,outcomes:vOutcomes,values:vValues,radar:vRadar,rights:vRights,diagnoses:vDiagnoses,insights:vInsights,decisions:vDecisions,assumptions:vAssumptions,initiatives:vInitiatives,signals:vSignals,escalations:vEscalations,review:vReview,shares:vShares,flywheel:vFlywheel,systems:vSystems,profile:vProfile}[view])());
   flushScroll();
 }
 function reviewDueCount(){
   return DB.signals.filter(s=>s.state==="disagreeing"||s.state==="drifting"||suggestSignalState(s)).length
-       + DB.assumptions.filter(a=>a.state==="shaky"||a.state==="broken"||assumptionFollowUp(a)).length;
+       + DB.assumptions.filter(a=>a.state==="shaky"||a.state==="broken"||assumptionFollowUp(a)).length
+       + escalationsDue().length;
 }
 function updateCounts(){
-  document.querySelectorAll("[data-count]").forEach(n=>{ n.textContent = DB[n.dataset.count].length; });
+  document.querySelectorAll("[data-count]").forEach(n=>{ n.textContent = (DB[n.dataset.count]||[]).length; });
   const rc=$("#reviewCt"); if(rc) rc.textContent = reviewDueCount();
   const sc=$("#stratCt"); if(sc) sc.textContent = DB.strategies.length;
   const shc=$("#sharesCt"); if(shc) shc.textContent = SHARES.length;
@@ -3163,6 +3438,10 @@ function vStrategyDetail(id){
     ${opSection(t("op.5"),opList(L(s,"howKnow"),"ul"))}`;
   w.appendChild(op);
 
+  // arv ned og det som går opp igjen — begge utledet fra forelder-lenken
+  inheritPanel(s).forEach(n=>w.appendChild(n));
+  childrenPanel(s).forEach(n=>w.appendChild(n));
+
   // hvem avtalen binder — bare der noen faktisk er ført opp
   const bd=bindsOf(s);
   if(bd.length){
@@ -3420,7 +3699,20 @@ function miniList(title,rows,mapper){
 }
 function exportStrategy(s){
   const md=`---\ntype: strategy\nstrategy: ${yamlStr(s.name)}\nframework: ${s.framework}\nstatus: ${s.status}\nowner: ${yamlStr(s.owner)}\nreview: ${s.review||""}\nversion: ${s.version||1}\ncanonical: true\ntags: [strategy]\n---\n\n# ${s.name}\n**Version:** ${s.version||1} · **Owner:** ${s.owner||"—"} · **Review:** ${s.review||"—"}\n\n## 1 · The challenge\n${s.challenge||""}\n\n## 2 · Our approach\n${s.approach||""}\n\n## 3 · The big moves\n${(s.moves||[]).map((m,i)=>`${i+1}. ${m}`).join("\n")}\n\n## 4 · What we are NOT doing\n${(s.notDoing||[]).map(m=>`- ${m}`).join("\n")}\n\n## 5 · How we'll know it's working\n${(s.howKnow||[]).map(m=>`- ${m}`).join("\n")}\n`;
-  downloadFile(`${MD_TITLE.strategies(s)}.md`, md + strategyValueMd(s));
+  downloadFile(`${MD_TITLE.strategies(s)}.md`, md + strategyInheritMd(s) + strategyValueMd(s));
+}
+// Arven er utledet fra forelderen, og merkes slik i eksporten også.
+function strategyInheritMd(s){
+  const inh=inheritanceOf(s);
+  if(!inh) return "";
+  const f=inh.fields, li=a=>a.length?a.map(x=>`- ${x}`).join("\n"):"- — *(empty: a finding)*";
+  return `\n\n## Inherits from\n_Derived from ${mdLink("strategies",inh.parent)} — see ${VAULT_NOTE("Inheritance Schema")}._\n\n`
+    + `### 1 · Direction\n${li(f.direction.items)}\n\n`
+    + `### 2 · Outcome\n${li(f.outcome.items.map(g=>mdLink("goals",g)))}\n\n`
+    + `### 3 · Non-choices\n${li(f.nonChoices.items)}\n\n`
+    + `### 4 · Constraints\n${li(f.constraints.items)}\n\n`
+    + `### 5 · Degrees of freedom\n${li(f.freedoms.items)}\n\n`
+    + `### 6 · Assumptions on watch\n${li(f.watches.items.map(a=>mdLink("assumptions",a)))}\n`;
 }
 // Utledet, og merket som utledet: leseren skal se at ingen har skrevet dette.
 function strategyValueMd(s){
@@ -3721,7 +4013,7 @@ function matrixPanel(rows){
 // gjør Operating Rhythm til et register og Learning Loop til noe synlig.
 let REVIEW_SESSION = null;
 function reviewSessionStart(){
-  if(!REVIEW_SESSION) REVIEW_SESSION={started:new Date().toISOString(), strategy:stratF, signals:[], bets:[], values:[]};
+  if(!REVIEW_SESSION) REVIEW_SESSION={started:new Date().toISOString(), strategy:stratF, signals:[], bets:[], values:[], escalations:[]};
   return REVIEW_SESSION;
 }
 function reviewNoteSignal(s, from, reading){
@@ -3743,19 +4035,26 @@ function reviewNoteValue(v, fromState, observed){
   if(prev){ prev.to=v.state; if(observed) prev.observed=observed; return; }
   r.values.push({id:v.id, claim:L(v,"claim"), from:fromState, to:v.state, observed:observed||""});
 }
+function reviewNoteEscalation(e, from){
+  const r=reviewSessionStart();
+  const prev=(r.escalations=r.escalations||[]).find(x=>x.id===e.id);
+  if(prev){ prev.to=e.response; prev.reason=e.reason||""; return; }
+  r.escalations.push({id:e.id, observation:L(e,"observation"), from, to:e.response, reason:e.reason||""});
+}
 // Endret noe seg? "Hvis ingenting endret seg, var det teater."
 function reviewChanged(){
   const r=REVIEW_SESSION; if(!r) return 0;
   return r.signals.filter(x=>x.from!==x.to||x.reading).length
        + r.bets.filter(x=>x.from!==x.to||x.confFrom!==x.confTo).length
-       + (r.values||[]).filter(x=>x.from!==x.to||x.observed).length;
+       + (r.values||[]).filter(x=>x.from!==x.to||x.observed).length
+       + (r.escalations||[]).filter(x=>x.from!==x.to).length;
 }
 function closeReview(decisionId){
   const r=REVIEW_SESSION; if(!r) return null;
   const rec={
     id:uid("rv"), date:new Date().toISOString().slice(0,10),
     strategy:r.strategy==="*"?"":r.strategy,
-    signals:r.signals, bets:r.bets, values:r.values||[],
+    signals:r.signals, bets:r.bets, values:r.values||[], escalations:r.escalations||[],
     decision:decisionId||"",
     betsBroken:r.bets.filter(b=>b.to==="broken"&&b.from!=="broken").length,
     gainsMissed:(r.values||[]).filter(v=>v.to==="not-materialised"&&v.from!=="not-materialised").length,
@@ -3777,12 +4076,13 @@ function vReview(){
   // temporal dead zone, og hele visningen kastet og rendret tomt.
   // test/views.smoke.mjs fanger den klassen nå.
   const vals=valuesDue();
+  const escs=escalationsDue().filter(escalationInView);
   const sugCount=sigs.filter(s=>suggestSignalState(s)).length
                 + asmp.filter(a=>assumptionFollowUp(a)).length;
 
   const banner=el("div","rev-banner");
   banner.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-    <div><b>${sigs.length}</b> ${esc(t(sigs.length===1?"rev.b.sig":"rev.b.sigs"))} · <b>${asmp.length}</b> ${esc(t(asmp.length===1?"rev.b.bet":"rev.b.bets"))}${vals.length?` · <b>${vals.length}</b> ${esc(t(vals.length===1?"rev.b.val":"rev.b.vals"))}`:""}${sugCount?` · <b>${sugCount}</b> ${esc(t("rev.b.sug"))}`:""}${stratF!=="*"?` · ${esc(t("rev.b.in"))} <b>${esc(stratF)}</b>`:""}.
+    <div><b>${sigs.length}</b> ${esc(t(sigs.length===1?"rev.b.sig":"rev.b.sigs"))} · <b>${asmp.length}</b> ${esc(t(asmp.length===1?"rev.b.bet":"rev.b.bets"))}${vals.length?` · <b>${vals.length}</b> ${esc(t(vals.length===1?"rev.b.val":"rev.b.vals"))}`:""}${escs.length?` · <b>${escs.length}</b> ${esc(t(escs.length===1?"rev.b.esc":"rev.b.escs"))}`:""}${sugCount?` · <b>${sugCount}</b> ${esc(t("rev.b.sug"))}`:""}${stratF!=="*"?` · ${esc(t("rev.b.in"))} <b>${esc(stratF)}</b>`:""}.
     <div style="font-size:12.5px;color:var(--accent-ink);margin-top:3px">${esc(t("rev.b.note"))}</div></div>`;
   w.appendChild(banner);
 
@@ -3808,8 +4108,15 @@ function vReview(){
   vals.forEach(v=>vpn.appendChild(reviewValueCard(v)));
   w.appendChild(vpn);
 
-  // Step 4 — end in a decision
-  w.appendChild(el("div","rev-step",`<span class="num">4</span><h2>${esc(t("rev.3"))}</h2><span class="hint">${esc(t("rev.3.h"))}</span>`));
+  // Step 4 — svarplikten: det produktene sendte opp, får et svar med begrunnelse.
+  w.appendChild(el("div","rev-step",`<span class="num">4</span><h2>${esc(t("rev.e"))}</h2><span class="hint">${esc(t("rev.e.h"))}</span>`));
+  const epn=el("div","grid"); epn.style.gap="12px";
+  if(!escs.length){ epn.appendChild(el("div","panel",`<div class="empty"><span class="serif">${esc(t("rev.empty.esc.t"))}</span>${esc(t("rev.empty.esc.d"))}</div>`)); }
+  escs.forEach(e=>epn.appendChild(reviewEscalationCard(e)));
+  w.appendChild(epn);
+
+  // Step 5 — end in a decision
+  w.appendChild(el("div","rev-step",`<span class="num">5</span><h2>${esc(t("rev.3"))}</h2><span class="hint">${esc(t("rev.3.h"))}</span>`));
   const dp=el("div","panel panel-pad");
   dp.style.display="flex"; dp.style.justifyContent="space-between"; dp.style.alignItems="center"; dp.style.gap="16px"; dp.style.flexWrap="wrap";
   const changed=reviewChanged();
@@ -3853,6 +4160,8 @@ function vReview(){
           ${(()=>{ const mv=(r.values||[]).filter(v=>v.from!==v.to); return mv.length
             ? `<div class="mv">${mv.map(v=>`<span class="chg">${esc(trunc(v.claim,44))} <b>${esc(t("state."+v.from)||v.from)} → ${esc(t("state."+v.to)||v.to)}</b></span>`).join("")}</div>`
             : ""; })()}
+          ${(r.escalations||[]).filter(x=>x.from!==x.to).length?`<div class="mv">${(r.escalations||[]).filter(x=>x.from!==x.to).map(x=>
+            `<span class="chg">${esc(trunc(x.observation,44))} <b>${esc(t("state."+x.to)||x.to)}</b></span>`).join("")}</div>`:""}
           ${dec?`<div class="dec">${esc(t("rev.arch.dec"))}: ${esc(trunc(L(dec,"title"),60))}</div>`:""}
         </div>
         ${r.betsBroken?`<span class="badge b-bad"><span class="dot"></span>${r.betsBroken} ${esc(t("rev.arch.broke"))}</span>`:""}
@@ -3942,6 +4251,52 @@ function reviewValueCard(raw){
   };
   ctrl.appendChild(inp); ctrl.appendChild(seg); ctrl.appendChild(sv); ctrl.appendChild(flash);
   c.appendChild(ctrl);
+  return c;
+}
+function reviewEscalationCard(raw){
+  const e=trView(raw), th=escalationThreshold(raw);
+  const to=escalationTo(raw), diag=to?diagnosisOf(to):null;
+  const c=el("div","panel rev-card");
+  c.innerHTML=`<div class="rh"><div class="stmt">${esc(L(e,"observation"))}</div>${stateBadge(raw.response||"open")}</div>
+    <div style="font-size:12.5px;color:var(--ink-2)">${escRoute(raw)}${raw.field?` · ${esc(t("inh.f."+raw.field))}`:""}${raw.kind?` · ${esc(t("esc.kind."+raw.kind))}`:""}${raw.evidence?` · ${esc(t("esc.ev."+raw.evidence))}`:""}</div>
+    ${L(e,"consequence")?`<div style="font-size:12.5px;color:var(--ink-3)">${esc(t("esc.cons"))}: ${esc(trunc(L(e,"consequence"),140))}</div>`:""}`;
+  if(!th.met){
+    const n=el("div","sug-note");
+    n.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16v-4M12 8h.01"/><circle cx="12" cy="12" r="9"/></svg><div>${esc(escThresholdText(raw))}</div>`;
+    c.appendChild(n);
+  }
+  const ctrl=el("div","ctrl");
+  const seg=el("div","seg");
+  const pick=escalationOpen(raw)?"":raw.response;
+  ["taken-in","parked","rejected"].forEach(o=>{
+    const b=el("button",o===pick?"on":""); b.type="button"; b.textContent=t("state."+o);
+    b.onclick=()=>{ seg.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); seg.dataset.val=o;
+      dt.style.display=o==="parked"?"":"none"; tk.style.display=o==="taken-in"&&diag?"":"none"; };
+    seg.appendChild(b);
+  });
+  seg.dataset.val=pick;
+  const inp=el("input"); inp.placeholder=t("rev.e.reason"); inp.value=raw.reason||"";
+  const dt=el("input"); dt.placeholder=t("rev.e.revisit"); dt.value=raw.revisit||""; dt.style.maxWidth="210px"; dt.style.minWidth="190px"; dt.title=t("esc.revisit");
+  dt.style.display=pick==="parked"?"":"none";
+  const tk=el("div","sug-note");
+  tk.innerHTML=diag?`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg><div>${esc(t("rev.e.taken"))} <b>${esc(trunc(L(trView(diag),"statement"),80))}</b></div>`:"";
+  tk.style.display=pick==="taken-in"&&diag?"":"none";
+  const err=el("span","rev-err");
+  const sv=el("button","btn pri",t("rev.e.log"));
+  const flash=el("span","saved-flash",t("rev.logged"));
+  sv.onclick=()=>{
+    const v=seg.dataset.val, why=inp.value.trim(), when=dt.value.trim();
+    if(!v){ err.textContent=t("rev.e.needpick"); return; }
+    if(!why){ err.textContent=t("rev.e.need"); inp.focus(); return; }
+    if(v==="parked" && !/^\d{4}-\d{2}-\d{2}$/.test(when)){ err.textContent=t("rev.e.needdate"); dt.focus(); return; }
+    const was=raw.response||"open";
+    raw.response=v; raw.reason=why; raw.answered=todayISO();
+    raw.revisit = v==="parked" ? when : "";
+    reviewNoteEscalation(raw, was);
+    saveData(); err.textContent=""; flash.classList.add("on"); setTimeout(()=>{ render(); },650);
+  };
+  ctrl.appendChild(seg); ctrl.appendChild(inp); ctrl.appendChild(dt); ctrl.appendChild(sv); ctrl.appendChild(flash);
+  c.appendChild(tk); c.appendChild(ctrl); c.appendChild(err);
   return c;
 }
 function reviewAssumptionCard(a){
@@ -5507,7 +5862,14 @@ function mdRight(r){
   const taken=decisionsOfRight(r.id).map(d=>`\n- ${mdLink("decisions",d)}`).join("")||"\n- —";
   return `---\ntype: decision-right\nclass: ${yamlStr(r.decision)}\napplies: ${yamlStr(r.applies)}\ndoor: ${r.door||"two-way"}\ndecides_on_paper: ${yamlStr(r.decides)}\ndecides_in_practice: ${yamlStr(r.decidesReal||r.decides)}\nveto_on_paper: ${yamlStr(r.veto)}\nveto_in_practice: ${yamlStr(r.vetoReal||r.veto)}\nstate: ${r.state||"aligned"}\nbasis: ${yamlStr(r.basis)}\nlast_exercised: ${r.lastUsed||""}\ntags: [decision-right, governance]\n---\n\n## Must be consulted${li(r.consulted)}\n\n## Informed after${li(r.informed)}\n\n## Decisions taken under this class${taken}\n\n${r.note||""}\n`;
 }
-const MD_FN={initiatives:mdInitiative,insights:mdInsight,decisions:mdDecision,assumptions:mdAssumption,signals:mdSignal,values:mdValue,radar:mdForce,rights:mdRight,diagnoses:mdDiagnosis,needs:mdNeed};
+// Lenker til rammeverkets egne notater i vaulten — ikke til en oppføring.
+// Oppføringer lenkes alltid med mdLink, så tittel og lenke ikke kan skli fra hverandre.
+const VAULT_NOTE = n => "[["+n+"]]";
+function mdEscalation(e){
+  const f=escalationFrom(e), to=escalationTo(e), a=e.assumptionId?byId("assumptions",e.assumptionId):null;
+  return `---\ntype: escalation\nobservation: ${yamlStr(e.observation)}\nfield: ${e.field||""}\nkind: ${e.kind||""}\nevidence: ${e.evidence||""}\nloops: ${e.loops===""||e.loops==null?"":e.loops}\nresponse: ${e.response||"open"}\nraised: ${e.raised||""}\nanswered: ${e.answered||""}\nrevisit: ${e.revisit||""}\nsender: ${yamlStr(e.owner)}\ntags: [escalation]\n---\n\n## Route\n- From: ${f?mdLink("strategies",f):"—"}\n- To: ${to?mdLink("strategies",to):"—"}\n${a?`- Breaks: ${mdLink("assumptions",a)}\n`:""}\n## Threshold\n${escThresholdText(e)}\n\n## Proposed consequence\n${e.consequence||"—"}\n\n## Answer\n${escalationOpen(e)?"Not answered yet.":(e.reason||"No reason written.")}\n\nPart of ${VAULT_NOTE("Signal Card")} · ${VAULT_NOTE("Product Layer Nesting")}\n`;
+}
+const MD_FN={escalations:mdEscalation,initiatives:mdInitiative,insights:mdInsight,decisions:mdDecision,assumptions:mdAssumption,signals:mdSignal,values:mdValue,radar:mdForce,rights:mdRight,diagnoses:mdDiagnosis,needs:mdNeed};
 const mdT=(p,v)=>p+" — "+String(v==null?"":v).slice(0,46);
 const MD_TITLE={
   initiatives:i=>mdT("Initiative",i.name),
@@ -5515,7 +5877,7 @@ const MD_TITLE={
   assumptions:a=>mdT("Assumption",a.statement), signals:s=>mdT("Signal",s.signal),
   values:v=>mdT("Value",v.claim), radar:r=>mdT("Force",r.force),
   rights:r=>mdT("Decision right",r.decision), diagnoses:d=>mdT("Diagnosis",d.statement),
-  needs:n=>mdT("Need",n.need),
+  needs:n=>mdT("Need",n.need), escalations:e=>mdT("Escalation",e.observation),
   // Ikke egne eksportfiler, men lenkbare: kjeden gar gjennom dem.
   goals:g=>mdT("Goal",g.title), outcomes:o=>mdT("Outcome",o.statement),
   // Strategieksporten navngir filen med hele navnet, uten kutt.
@@ -5529,7 +5891,7 @@ function exportRegister(coll){
   // insights carry no strategy field → always export all; others honour the strategy filter
   if(!MD_FN[coll] || !MD_TITLE[coll]){ alert(t("exp.nofmt")); return; }
   // Registre uten strategi-felt (insights, values, radar, rights) filtreres ikke på strategi.
-  const scoped = ["insights","values","radar","rights","diagnoses","needs","initiatives"].includes(coll);
+  const scoped = ["insights","values","radar","rights","diagnoses","needs","initiatives","escalations"].includes(coll);
   const list = scoped ? (DB[coll]||[]).slice() : DB[coll].filter(x=>matchStrat(x.strategy));
   if(!list.length){ alert(t("exp.empty")); return; }
   const parts=list.map(x=>`> ${MD_TITLE[coll](x)}\n\n${MD_FN[coll](x)}`);
@@ -6496,6 +6858,224 @@ function openRight(id){
   drawerFoot("rights",id); openDrawer();
 }
 function openRight_go(did){ openDecision(did); }
+
+/* ---------- Eskalering: læring som går opp ---------- */
+function escRoute(e){
+  const f=escalationFrom(e), to=escalationTo(e);
+  return `${esc(f?f.name:"—")} <span class="esc-arr">→</span> ${esc(to?to.name:t("esc.nobody"))}`;
+}
+function escThresholdText(e){
+  const th=escalationThreshold(e);
+  if(th.rule==="loops") return t(th.met?"esc.th.loops.met":"esc.th.loops.below").replace("{n}",th.n).replace("{m}",ESC_PERSIST);
+  if(th.rule==="siblings") return t(th.met?"esc.th.sib.met":"esc.th.sib.below").replace("{n}",th.n);
+  return t("esc.th.always");
+}
+function vEscalations(){
+  const w=el("div","view");
+  w.appendChild(headWithExport(t("vh.escalations.t"),t("vh.escalations.d"),"escalations"));
+  const all=(DB.escalations||[]).filter(escalationInView)
+    .filter(x=>matchQ((x.observation||"")+(x.consequence||"")+(x.reason||"")+(x.owner||"")));
+  const open=all.filter(escalationOpen), unr=all.filter(e=>!escalationOpen(e)&&!String(e.reason||"").trim());
+  const dueIds=new Set(escalationsParkedDue().map(e=>e.id)), due=all.filter(e=>dueIds.has(e.id));
+  const below=open.filter(e=>!escalationThreshold(e).met);
+  if(open.length||unr.length||due.length){
+    const b=el("div","rt-banner");
+    b.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20V6"/><path d="M6 11l6-6 6 6"/></svg>
+      <div>${open.length?`<div><b>${open.length}</b> ${esc(t(open.length===1?"esc.b.open.one":"esc.b.open.many"))}</div>`:""}
+      ${due.length?`<div><b>${due.length}</b> ${esc(t(due.length===1?"esc.b.due.one":"esc.b.due.many"))}</div>`:""}
+      ${unr.length?`<div><b>${unr.length}</b> ${esc(t(unr.length===1?"esc.b.noreason.one":"esc.b.noreason.many"))}</div>`:""}
+      ${below.length?`<div><b>${below.length}</b> ${esc(t(below.length===1?"esc.b.below.one":"esc.b.below.many"))}</div>`:""}
+      <div class="sub">${esc(t("esc.banner.note"))}</div></div>`;
+    w.appendChild(b);
+  }
+  const panel=el("div","panel");
+  if(!all.length) return emptyInto(w,panel,t("empty.escalations.t"),t("empty.escalations.d"));
+  const rank={open:0,parked:1,"taken-in":2,rejected:3};
+  const rows=all.slice().sort((a,b)=>{
+    const ra=dueIds.has(a.id)?0:(rank[a.response||"open"]??9), rb=dueIds.has(b.id)?0:(rank[b.response||"open"]??9);
+    if(ra!==rb) return ra-rb;
+    return String(b.raised||"").localeCompare(String(a.raised||""));
+  });
+  const tb=el("table","tbl");
+  tb.innerHTML=`<thead><tr><th>${esc(t("th.esc.obs"))}</th><th>${esc(t("th.esc.field"))}</th><th>${esc(t("th.esc.ev"))}</th><th>${esc(t("th.esc.answer"))}</th></tr></thead>`;
+  const bd=el("tbody");
+  rows.forEach(raw=>{ const e=trView(raw);
+    const weak=escalationWeak(raw), th=escalationThreshold(raw);
+    const tr=el("tr","row");
+    tr.innerHTML=`<td><div class="stmt">${esc(L(e,"observation"))}</div>
+        <div class="meta">${escRoute(raw)}${raw.raised?` · <span class="mono">${esc(raw.raised)}</span>`:""}</div>
+        ${weak.length?`<div class="rt-weak">${esc(t("esc.weak"))}: ${weak.map(k=>esc(t("esc.weak."+k))).join(" · ")}</div>`:""}</td>
+      <td><div class="meta">${raw.field?esc(t("inh.f."+raw.field)):"—"}</div>
+        <div class="meta">${raw.kind?esc(t("esc.kind."+raw.kind)):""}</div></td>
+      <td><span class="meta">${raw.evidence?esc(t("esc.ev."+raw.evidence)):"—"}</span></td>
+      <td>${stateBadge(raw.response||"open")}${escalationOpen(raw)&&!th.met?` <span class="sug-chip">${esc(t("esc.below"))}</span>`:""}${dueIds.has(raw.id)?` <span class="sug-chip warn">${esc(t("esc.due"))}</span>`:""}</td>`;
+    clickable(tr,()=>openEscalation(raw.id),openLbl("escalations","")+": "+L(e,"observation"));
+    bd.appendChild(tr);
+  });
+  tb.appendChild(bd); panel.appendChild(tb); w.appendChild(panel);
+  return w;
+}
+function openEscalation(id){
+  const raw=byId("escalations",id); if(!raw) return;
+  const e=trView(raw);
+  const f=escalationFrom(raw), to=escalationTo(raw);
+  const a=raw.assumptionId?byId("assumptions",raw.assumptionId):null;
+  const weak=escalationWeak(raw), th=escalationThreshold(raw);
+  const stratLink=s=>s?`<a class="linkc" onclick="gotoStrategy('${s.id}')"><span class="tk">${esc(t("goal.type."+altOfStrategy(s)))}</span>${esc(trunc(s.name,40))}</a>`:"";
+  const diag=to?diagnosisOf(to):null;
+  drawerShell(t("dr.eye.esc"), `<div style="margin-top:6px">${stateBadge(raw.response||"open")}</div>`);
+  $("#drawerB").innerHTML=`<h3>${esc(L(e,"observation"))}</h3>
+    <div class="link-row">${stratLink(f)||`<span class="badge b-mute"><span class="dot"></span>${esc(t("esc.weak.nofrom"))}</span>`}
+      <span class="esc-arr">→</span>${stratLink(to)||`<span class="badge b-warn"><span class="dot"></span>${esc(t("esc.nobody"))}</span>`}</div>
+    <dl class="kv">
+      <dt>${esc(t("esc.field"))}</dt><dd>${raw.field?esc(t("inh.f."+raw.field)):"—"}</dd>
+      <dt>${esc(t("esc.kind"))}</dt><dd>${raw.kind?esc(t("esc.kind."+raw.kind)):"—"}</dd>
+      <dt>${esc(t("esc.ev"))}</dt><dd>${raw.evidence?esc(t("esc.ev."+raw.evidence)):"—"}</dd>
+      <dt>${esc(t("esc.loops"))}</dt><dd>${raw.loops===""||raw.loops==null?"—":esc(raw.loops)}</dd>
+      <dt>${esc(t("esc.sender"))}</dt><dd>${esc(raw.owner||"—")}</dd>
+      <dt>${esc(t("esc.raised"))}</dt><dd class="mono">${esc(raw.raised||"—")}</dd>
+    </dl>
+    <div class="lbl-mini">${esc(t("esc.threshold"))}</div>
+    <p class="note">${esc(escThresholdText(raw))}</p>
+    ${a?`<div class="lbl-mini">${esc(t("esc.asm"))}</div><div class="link-row"><a class="linkc" onclick="openAssumption('${a.id}')"><span class="tk">${esc(t("state."+a.state)||a.state)}</span>${esc(trunc(L(trView(a),"statement"),48))}</a></div>`:""}
+    <div class="lbl-mini">${esc(t("esc.cons"))}</div>
+    <p class="note">${esc(L(e,"consequence")||"—")}</p>
+    <div class="lbl-mini">${esc(t("esc.answer"))}</div>
+    <p class="note">${escalationOpen(raw)?esc(t("esc.waiting")):esc(L(e,"reason")||t("esc.noreason"))}</p>
+    ${raw.response==="parked"&&raw.revisit?`<p class="note">${esc(t("esc.revisit"))}: <span class="mono">${esc(raw.revisit)}</span></p>`:""}
+    ${raw.response==="taken-in"&&diag?`<div class="link-row"><a class="linkc" onclick="openDiagnosis('${diag.id}')"><span class="tk">${esc(t("esc.taken.diag"))}</span>${esc(trunc(L(trView(diag),"statement"),44))}</a></div>`:""}
+    ${weak.length?`<div class="val-warn">${esc(t("esc.weak"))}: ${weak.map(k=>esc(t("esc.weak."+k))).join(" · ")}</div>`:""}`;
+  drawerFoot("escalations",id); openDrawer();
+}
+// Åpner skjemaet med avsender, felt og type ferdig utfylt — der funnet ble gjort.
+function raiseEscalation(sid, field, kind, assumptionId){
+  const st=byId("strategies",sid); if(!st) return;
+  const k=kind || (field==="watches"?"assumption-broken":field==="nonChoices"?"nonchoice-cost":"constraint-blocks");
+  editing={coll:"escalations", id:null, data:{
+    fromStrategy:st.id, field:field||ESC_FIELD_OF[k]||"", kind:k,
+    assumptionId:assumptionId||"", owner:st.owner||"", raised:todayISO(), response:"open"}};
+  buildForm(0);
+}
+function editStrategyInherit(sid){
+  editing={coll:"strategies",id:sid,data:structuredClone(byId("strategies",sid))};
+  buildForm(tabOfField("strategies","parentId"));
+}
+// Arvepanelet på strategikortet. Utledet fra forelderen — ingen har skrevet
+// retning, utfall eller ikke-valg her, og det skal synes.
+function inheritPanel(s){
+  const nodes=[];
+  const inh=inheritanceOf(s);
+  const orphan=!inh && strategiesWithoutParent().some(x=>x.id===s.id);
+  if(!inh && !orphan) return nodes;
+  nodes.push(el("div","sect-h",`<h2>${esc(t("inh.head"))}</h2><span class="hint">${esc(t("inh.hint"))}</span>`));
+  const p=el("div","panel inh-panel");
+  if(!inh){
+    const e=el("div","empty",`<span class="serif">${esc(t("inh.none.t"))}</span>${esc(t("inh.none.d"))}`);
+    const act=el("div"); act.style.marginTop="14px";
+    const go=el("button","btn pri",esc(t("inh.set")));
+    go.onclick=()=>editStrategyInherit(s.id);
+    act.appendChild(go); e.appendChild(act); p.appendChild(e); nodes.push(p);
+    return nodes;
+  }
+  const par=inh.parent;
+  const head=el("div","inh-parent");
+  head.innerHTML=`<span class="tk">${esc(t("inh.parent"))} · ${esc(t("goal.type."+altOfStrategy(par)))}</span><span class="n">${esc(par.name)}</span>`;
+  clickable(head,()=>gotoStrategy(par.id),openLbl("strategies",par.name));
+  p.appendChild(head);
+  if(parentMisplaced(s)) p.appendChild(el("div","bind-warn",esc(t("inh.misplaced"))));
+  const broken=watchedBroken(s);
+  INH_FIELDS.forEach((k,ix)=>{
+    const fd=inh.fields[k];
+    const row=el("div","inh-row"+(fd.items.length?"":" empty"));
+    const lab=el("div","inh-l",`<div class="k"><span class="ix">${ix+1}</span>${esc(t("inh.f."+k))}</div>
+      <div class="d">${esc(t("inh.d."+k))}</div>
+      <span class="src src-${fd.src}">${esc(t("inh.src."+fd.src))}</span>`);
+    const body=el("div","inh-b");
+    if(!fd.items.length){
+      const note=k==="outcome"&&fd.note?t("inh.outcome."+fd.note):t("inh.empty");
+      body.appendChild(el("div","inh-find",esc(note)));
+      const acts=el("div","inh-acts");
+      if(fd.src==="child"){
+        const fb=el("button","btn",esc(t("inh.fill"))); fb.onclick=()=>editStrategyInherit(s.id); acts.appendChild(fb);
+      }
+      const eb=el("button","btn",esc(t("inh.escalate"))); eb.onclick=()=>raiseEscalation(s.id,k);
+      acts.appendChild(eb);
+      body.appendChild(acts);
+    }else if(k==="outcome"){
+      fd.items.forEach(g=>{
+        const gv=trView(g), outs=outcomesOfGoal(g.id);
+        const gi=el("div","inh-item",`<b>${esc(L(gv,"title"))}</b>`+(outs.length
+          ? `<div class="inh-sub">${outs.map(o=>`${esc(trunc(L(trView(o),"statement"),70))} · ${esc(t("state."+o.state)||o.state)}`).join("<br>")}</div>`:""));
+        clickable(gi,()=>openGoal(g.id),openLbl("goals",L(gv,"title")));
+        body.appendChild(gi);
+      });
+    }else if(k==="watches"){
+      fd.items.forEach(a=>{
+        const av=trView(a), isB=broken.some(x=>x.id===a.id), foreign=fd.foreign.some(x=>x.id===a.id);
+        const it=el("div","inh-item inh-asm");
+        it.innerHTML=`<div class="c">${esc(trunc(L(av,"statement"),96))}
+          ${foreign?`<div class="rt-weak">${esc(t("inh.foreign"))}</div>`:""}</div><div class="r">${stateBadge(a.state)}</div>`;
+        clickable(it,()=>openAssumption(a.id),openLbl("assumptions"));
+        body.appendChild(it);
+        if(isB){
+          const up=el("div","inh-acts");
+          const bb=el("button","btn pri",esc(t("inh.broken")));
+          bb.onclick=()=>raiseEscalation(s.id,"watches","assumption-broken",a.id);
+          up.appendChild(bb); body.appendChild(up);
+        }
+      });
+    }else if(k==="direction"){
+      body.appendChild(el("p","inh-dir",esc(fd.items[0])));
+    }else{
+      const ul=el("ul","inh-list");
+      fd.items.forEach(x=>ul.appendChild(el("li",null,esc(x))));
+      body.appendChild(ul);
+    }
+    row.appendChild(lab); row.appendChild(body); p.appendChild(row);
+  });
+  const filled=INH_FIELDS.length-inh.empty.length;
+  p.appendChild(el("div","inh-test",esc(t("inh.test").replace("{n}",filled).replace("{m}",INH_FIELDS.length))));
+  // Det som allerede er sendt opp herfra — og om noen har svart.
+  const sent=escalationsFrom(s);
+  if(sent.length){
+    const box=el("div","inh-sent");
+    box.appendChild(el("div","lbl-mini",esc(t("inh.sent"))));
+    sent.forEach(raw=>{
+      const r=el("div","inh-item inh-asm");
+      r.innerHTML=`<div class="c">${esc(trunc(L(trView(raw),"observation"),96))}</div><div class="r">${stateBadge(raw.response||"open")}</div>`;
+      clickable(r,()=>openEscalation(raw.id),openLbl("escalations"));
+      box.appendChild(r);
+    });
+    p.appendChild(box);
+  }
+  nodes.push(p);
+  return nodes;
+}
+// Forelderens side: hvem som arver herfra, og hva de har sendt opp.
+function childrenPanel(s){
+  const nodes=[], kids=childrenOf(s), inbox=escalationsTo(s);
+  if(!kids.length && !inbox.length) return nodes;
+  nodes.push(el("div","sect-h",`<h2>${esc(t("kids.head"))}</h2><span class="hint">${esc(t("kids.hint"))}</span>`));
+  const p=el("div","panel");
+  kids.forEach(k=>{
+    const n=escalationsFrom(k).filter(escalationOpen).length;
+    const r=el("div","bind-row");
+    r.innerHTML=`<span class="w">${esc(k.name)} <span class="meta">· ${esc(t("goal.type."+altOfStrategy(k)))}</span></span>
+      ${n?`<span class="badge b-warn"><span class="dot"></span>${esc(t("kids.open").replace("{n}",n))}</span>`:`<span class="meta">${esc(t("kids.quiet"))}</span>`}`;
+    clickable(r,()=>gotoStrategy(k.id),openLbl("strategies",k.name));
+    p.appendChild(r);
+  });
+  inbox.forEach(raw=>{
+    const r=el("div","init-row");
+    r.innerHTML=`<div class="c"><div class="s">${esc(trunc(L(trView(raw),"observation"),110))}</div>
+      <div class="m meta">${escRoute(raw)}${raw.field?` · ${esc(t("inh.f."+raw.field))}`:""}</div></div>
+      <div class="r">${stateBadge(raw.response||"open")}</div>`;
+    clickable(r,()=>openEscalation(raw.id),openLbl("escalations"));
+    p.appendChild(r);
+  });
+  nodes.push(p);
+  return nodes;
+}
 function vRadar(){
   const w=el("div","view");
   const head=headWithExport(t("vh.radar.t"),t("vh.radar.d"),"radar");
@@ -6941,6 +7521,26 @@ const FIELDS = {
     {k:"relations",l:"Relates to other strategies",t:"rels"},
     {k:"serves",l:"Serves goals",t:"multiref",ref:"goals"},
     {k:"binds",l:"Who it binds",t:"binds"},
+    {k:"parentId",l:"Inherits from",t:"ref",ref:"strategies"},
+    {k:"constraints",l:"Constraints it inherits",t:"lines",ph:"Capacity, budget, platform, regulation, architecture principles — one per line"},
+    {k:"freedoms",l:"Free to decide without asking",t:"lines",ph:"What this strategy may settle on its own — one per line"},
+    {k:"watches",l:"Watches the parent's assumptions",t:"multiref",ref:"assumptions"},
+  ],
+  escalations:[
+    {k:"observation",l:"What was seen",t:"textarea",req:1,ph:"One or two sentences. What happened, not what you think should change."},
+    {k:"fromStrategy",l:"Raised by",t:"ref",ref:"strategies"},
+    {k:"field",l:"Inherited field it would change",t:"seg",opts:["direction","outcome","nonChoices","constraints","freedoms","watches"],noDefault:1},
+    {k:"kind",l:"Kind of signal",t:"seg",opts:["assumption-broken","constraint-blocks","nonchoice-cost","cross-product"],noDefault:1},
+    {k:"assumptionId",l:"Breaks assumption",t:"ref",ref:"assumptions"},
+    {k:"evidence",l:"Evidence",t:"seg",opts:["anecdote","pattern","measured"],noDefault:1},
+    {k:"loops",l:"Product loops it has held",t:"num",ph:"e.g. 2"},
+    {k:"consequence",l:"Proposed consequence",t:"textarea",ph:"What should change in the strategy above — the field, not the product's plan"},
+    {k:"owner",l:"Sender",t:"text",ph:"Who can be asked about it"},
+    {k:"raised",l:"Raised",t:"date"},
+    {k:"response",l:"Answer",t:"seg",opts:["open","taken-in","parked","rejected"]},
+    {k:"reason",l:"Reason for the answer",t:"textarea",ph:"Written to the sender. An answer without a reason teaches them nothing."},
+    {k:"revisit",l:"Look again on",t:"date"},
+    {k:"answered",l:"Answered",t:"date"},
   ],
   insights:[
     {k:"claim",l:"Claim",t:"textarea",req:1,ph:"What you now believe is true…"},
@@ -7082,8 +7682,8 @@ const FIELDS = {
     {k:"note",l:"Note",t:"textarea"},
   ],
 };
-const SING = {initiatives:"Initiative",values:"Value",radar:"Force",rights:"Decision class",diagnoses:"Diagnosis",needs:"Need",strategies:"Strategy",insights:"Insight",decisions:"Decision",assumptions:"Assumption",signals:"Signal",goals:"Goal",outcomes:"Outcome",org:"Organisation"};
-const SING_NO = {initiatives:"Initiativ",values:"Verdi",radar:"Kraft",rights:"Beslutningsklasse",diagnoses:"Diagnose",needs:"Behov",strategies:"Strategi",insights:"Innsikt",decisions:"Beslutning",assumptions:"Antakelse",signals:"Signal",goals:"Mål",outcomes:"Resultat",org:"Organisasjon"};
+const SING = {escalations:"Escalation",initiatives:"Initiative",values:"Value",radar:"Force",rights:"Decision class",diagnoses:"Diagnosis",needs:"Need",strategies:"Strategy",insights:"Insight",decisions:"Decision",assumptions:"Assumption",signals:"Signal",goals:"Goal",outcomes:"Outcome",org:"Organisation"};
+const SING_NO = {escalations:"Eskalering",initiatives:"Initiativ",values:"Verdi",radar:"Kraft",rights:"Beslutningsklasse",diagnoses:"Diagnose",needs:"Behov",strategies:"Strategi",insights:"Innsikt",decisions:"Beslutning",assumptions:"Antakelse",signals:"Signal",goals:"Mål",outcomes:"Resultat",org:"Organisasjon"};
 // Norsk overlay for redigeringsskjemaet: [etikett, plassholder].
 // FIELDS er kilden for engelsk — mangler en nøkkel her, faller den tilbake dit.
 const FLD_NO = {
@@ -7157,6 +7757,26 @@ const FLD_NO = {
     howKnow:["5 · Hvordan vi vet at det virker","Ett per linje — synlige signaler"],
     diagnosisId:["Svarer på diagnose",""],
     relations:["Forhold til andre strategier",""], serves:["Tjener mål",""],
+    parentId:["Arver fra",""],
+    constraints:["Rammer den arver","Kapasitet, budsjett, plattform, regulering, arkitekturprinsipper — ett per linje"],
+    freedoms:["Fritt å bestemme uten å spørre","Det denne strategien kan avgjøre selv — ett per linje"],
+    watches:["Overvåker forelderens antakelser",""],
+  },
+  escalations:{
+    observation:["Hva vi så","Én eller to setninger. Hva som skjedde, ikke hva du mener bør endres."],
+    fromStrategy:["Sendt av",""],
+    field:["Arvefeltet det ville endret",""],
+    kind:["Type signal",""],
+    assumptionId:["Bryter antakelse",""],
+    evidence:["Evidens",""],
+    loops:["Produktløkker det har holdt","f.eks. 2"],
+    consequence:["Foreslått konsekvens","Hva som bør endres i strategien over — feltet, ikke produktets plan"],
+    owner:["Avsender","Hvem som kan spørres om det"],
+    raised:["Sendt",""],
+    response:["Svar",""],
+    reason:["Begrunnelse for svaret","Skrevet til avsenderen. Et svar uten begrunnelse lærer dem ingenting."],
+    revisit:["Se på igjen",""],
+    answered:["Besvart",""],
   },
   insights:{
     claim:["Påstand","Hva du nå tror er sant…"],
@@ -7507,6 +8127,129 @@ function assentFloor(st){
 // Over hele porteforljen: hvilke strategier hviler pa antatt tilslutning.
 function strategiesOnSilence(){
   return (DB.strategies||[]).filter(st=>st.status!=="archived" && assentAssumed(st).length);
+}
+
+/* ── Arv ned og eskalering: nesting mellom strategier ─────────────────
+   En produktstrategi starter ikke på blanke ark. Den arver retning, utfall,
+   ikke-valg og antakelser fra strategien over seg — og det meste av det
+   står allerede som data på forelderen. Derfor utledes arven; den skrives
+   ikke av. Bare rammer og frihetsgrader føres inn på barnet, fordi de ikke
+   står noe sted ovenfra.
+   Et tomt felt er et funn, ikke et hull å gjette seg forbi.
+   Eskaleringen er den andre enden av samme ledning: læring som ville endret
+   et arvefelt, går opp — og den som mottar den, har svarplikt. */
+const INH_FIELDS = ["direction","outcome","nonChoices","constraints","freedoms","watches"];
+// Hvor feltet leses fra. Forelderens felt kan barnet ikke rette selv.
+const INH_SRC = {direction:"parent", outcome:"parent", nonChoices:"parent",
+                 constraints:"child", freedoms:"child", watches:"child"};
+function parentOf(st){ return st && st.parentId ? byId("strategies",st.parentId) : null; }
+function childrenOf(st){ return st ? (DB.strategies||[]).filter(x=>x.parentId===st.id) : []; }
+// Forelderen skal stå høyere på stigen. Samme høyde eller lavere betyr at
+// noen har koblet sidelengs og kalt det arv.
+function parentMisplaced(st){
+  const p=parentOf(st);
+  return !!p && altI(altOfStrategy(p))<=altI(altOfStrategy(st));
+}
+// Strategier som burde arvet noe: det finnes en strategi høyere opp, men
+// ingen forelder er satt. Står alt på samme høyde, er det ingen å arve fra.
+function strategiesWithoutParent(){
+  const live=(DB.strategies||[]).filter(liveStrategy);
+  if(!live.length) return [];
+  const top=Math.max(...live.map(s=>altI(altOfStrategy(s))));
+  return live.filter(st=>!st.parentId && altI(altOfStrategy(st))<top);
+}
+function inhLines(a){ return (Array.isArray(a)?a:[]).filter(x=>String(x||"").trim()); }
+function inheritanceOf(st){
+  const p=parentOf(st); if(!p) return null;
+  const pv=trView(p), sv=trView(st);
+  const pGoals=(p.serves||[]).map(id=>byId("goals",id)).filter(Boolean);
+  const shared=pGoals.filter(g=>(st.serves||[]).includes(g.id));
+  const watched=(st.watches||[]).map(id=>byId("assumptions",id)).filter(Boolean);
+  const dir=String(L(pv,"approach")||"").trim();
+  const f={
+    direction:{items:dir?[dir]:[]},
+    // Utfallet er målene forelderen tjener OG barnet har tatt på seg. Tjener
+    // barnet ingen av dem, bidrar det ikke oppover — uansett hvor godt det går.
+    outcome:{items:shared, note:!pGoals.length?"none-above":(!shared.length?"none-shared":"")},
+    nonChoices:{items:inhLines(L(pv,"notDoing"))},
+    constraints:{items:inhLines(L(sv,"constraints"))},
+    freedoms:{items:inhLines(L(sv,"freedoms"))},
+    // Antakelser som ikke er forelderens egne, tester ikke forelderens diagnose.
+    watches:{items:watched, foreign:watched.filter(a=>a.strategy!==p.name)},
+  };
+  INH_FIELDS.forEach(k=>f[k].src=INH_SRC[k]);
+  const empty=INH_FIELDS.filter(k=>!f[k].items.length);
+  return {parent:p, fields:f, empty};
+}
+// En overvåket antakelse som har røket, er signal type 1: den går alltid opp.
+function watchedBroken(st){
+  return (st&&st.watches||[]).map(id=>byId("assumptions",id))
+    .filter(a=>a && a.state==="broken" &&
+      !(DB.escalations||[]).some(e=>e.fromStrategy===st.id && e.assumptionId===a.id));
+}
+
+const ESC_KINDS = ["assumption-broken","constraint-blocks","nonchoice-cost","cross-product"];
+const ESC_EVIDENCE = ["anecdote","pattern","measured"];
+const ESC_RESP = ["open","taken-in","parked","rejected"];
+// Type 2 og 3 må ha holdt seg over så mange produktløkker før de går opp.
+// Én dårlig uke skal ikke tvinge fram en ny diagnose på nivået over.
+const ESC_PERSIST = 2;
+// Hvilket arvefelt en type naturlig treffer. Forvalg, ikke tvang.
+const ESC_FIELD_OF = {"assumption-broken":"watches","constraint-blocks":"constraints","nonchoice-cost":"nonChoices"};
+function escalationFrom(e){ return e && e.fromStrategy ? byId("strategies",e.fromStrategy) : null; }
+// Mottakeren utledes: den som sendte, har bare én forelder.
+function escalationTo(e){ return parentOf(escalationFrom(e)); }
+function escalationOpen(e){ return !!e && (!e.response || e.response==="open"); }
+// Samme arvefelt, samme mottaker, et annet produkt. Det er mønsteret som
+// gjør svake signaler sterke nok til å gå opp.
+function escalationSiblings(e){
+  const to=escalationTo(e); if(!to) return [];
+  return (DB.escalations||[]).filter(x=>x.id!==e.id && x.field && x.field===e.field &&
+    x.fromStrategy!==e.fromStrategy && (escalationTo(x)||{}).id===to.id);
+}
+function escalationThreshold(e){
+  const k=e && e.kind;
+  if(k==="constraint-blocks"||k==="nonchoice-cost"){
+    const n=Number(e.loops)||0;
+    return {met:n>=ESC_PERSIST, rule:"loops", n};
+  }
+  if(k==="cross-product"){
+    const n=escalationSiblings(e).length;
+    return {met:n>0, rule:"siblings", n:n+1};
+  }
+  return {met:true, rule:"always", n:0};
+}
+function escalationWeak(e){
+  const out=[];
+  if(!e.fromStrategy) out.push("nofrom");
+  else if(!escalationTo(e)) out.push("noparent");
+  if(!e.field) out.push("nofield");
+  if(!escalationOpen(e) && !String(e.reason||"").trim()) out.push("noreason");
+  if(e.response==="parked" && !e.revisit) out.push("nodate");
+  return out;
+}
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function escalationsOpen(){ return (DB.escalations||[]).filter(escalationOpen); }
+// Svart uten begrunnelse er ikke svart. Avsenderen lærer ingenting av et nei.
+function escalationsUnreasoned(){
+  return (DB.escalations||[]).filter(e=>!escalationOpen(e) && !String(e.reason||"").trim());
+}
+function escalationsParkedDue(today){
+  const d=today||todayISO();
+  return (DB.escalations||[]).filter(e=>e.response==="parked" && e.revisit && e.revisit<=d);
+}
+// Det gjennomgangen skylder et svar på: alt åpent, pluss parkerte som har nådd datoen.
+function escalationsDue(today){
+  const due=new Set(escalationsParkedDue(today).map(e=>e.id));
+  return (DB.escalations||[]).filter(e=>escalationOpen(e)||due.has(e.id));
+}
+function escalationsTo(st){ return st ? (DB.escalations||[]).filter(e=>(escalationTo(e)||{}).id===st.id) : []; }
+function escalationsFrom(st){ return st ? (DB.escalations||[]).filter(e=>e.fromStrategy===st.id) : []; }
+// Strategifilteret treffer begge ender: den som sendte, og den som skal svare.
+function escalationInView(e){
+  if(stratF==="*") return true;
+  const f=escalationFrom(e), to=escalationTo(e);
+  return (!!f && f.name===stratF) || (!!to && to.name===stratF);
 }
 
 const NEED_SRC = ["assumed","heard","verified"];
@@ -7981,12 +8724,13 @@ const LABEL_F = {
   strategies:"name", goals:"title", outcomes:"statement", values:"claim",
   needs:"need", diagnoses:"statement", insights:"claim", decisions:"title",
   assumptions:"statement", signals:"signal", radar:"force", rights:"decision",
+  escalations:"observation",
 };
 const OPENERS = {
   insights:openInsight, decisions:openDecision, assumptions:openAssumption,
   signals:openSignal, goals:openGoal, outcomes:openOutcome, values:openValue,
   needs:openNeed, diagnoses:openDiagnosis, rights:openRight, radar:openRadar,
-  initiatives:openInitiative,
+  initiatives:openInitiative, escalations:openEscalation,
 };
 // Strategien er den ene som ikke bor i en skuff — den har sin egen side.
 function openAny(coll,id){
@@ -8000,7 +8744,7 @@ function openAny(coll,id){
 const VIEW_OF_COLL = {radar:"radar", initiatives:"initiatives", values:"values",
   needs:"needs", diagnoses:"diagnoses", rights:"rights", insights:"insights",
   decisions:"decisions", assumptions:"assumptions", signals:"signals",
-  goals:"goals", outcomes:"outcomes"};
+  goals:"goals", outcomes:"outcomes", escalations:"escalations"};
 function openLbl(coll,txt){ return t("a11y.open")+" "+singL(coll).toLowerCase()+(txt?": "+txt:""); }
 function entityLabel(coll,o){
   if(!o) return "";
@@ -8016,6 +8760,7 @@ const OPT_PREFIX = {
   door:"door.", framework:"fw.", status:"status.", commitment:"cm.",
   domain:"radar.dom.", horizon:"radar.hz.", movement:"radar.mv.", dir:"dir.",
   type:"goal.type.",
+  kind:"esc.kind.", field:"inh.f.", evidence:"esc.ev.", response:"state.",
   // Høyden på strategien bruker samme stige som målet, så etikettene deles.
   alt:"goal.type.",
 };
@@ -8034,6 +8779,11 @@ const FORM_TABS = {
     {k:"card",     keys:["name","framework","status","alt","owner","review","version"]},
     {k:"artifact", keys:["challenge","approach","moves","notDoing","howKnow"]},
     {k:"links",    keys:["diagnosisId","serves","binds","relations"]},
+    {k:"inherit",  keys:["parentId","constraints","freedoms","watches"]},
+  ],
+  escalations:[
+    {k:"raise",    keys:["observation","fromStrategy","field","kind","assumptionId","evidence","loops","consequence","owner","raised"]},
+    {k:"answer",   keys:["response","reason","revisit","answered"]},
   ],
 };
 let FORM_TAB = 0;
@@ -8152,7 +8902,7 @@ function buildForm(tabIx){
     else if(f.t==="ref"||f.t==="multiref"){
       inp=el("select"); if(f.t==="multiref") inp.multiple=true, inp.size=Math.min(4,(DB[f.ref]||[]).length+1);
       if(f.t==="ref"){ const o=el("option");o.value="";o.textContent="— "+t("form.none")+" —";inp.appendChild(o); }
-      (DB[f.ref]||[]).forEach(r=>{ const o=el("option"); o.value=r.id; o.textContent=trunc(entityLabel(f.ref,r),60);
+      (DB[f.ref]||[]).filter(r=>!(f.ref===coll && id && r.id===id)).forEach(r=>{ const o=el("option"); o.value=r.id; o.textContent=trunc(entityLabel(f.ref,r),60);
         if(f.t==="multiref"){ if((data[f.k]||[]).includes(r.id)) o.selected=true; } else if(data[f.k]===r.id) o.selected=true;
         inp.appendChild(o); });
       inp.onchange=()=>{ data[f.k]= f.t==="multiref"?Array.from(inp.selectedOptions).map(o=>o.value):inp.value; };
@@ -8239,6 +8989,16 @@ function delEntry(coll,id){
   });
   (DB.diagnoses||[]).forEach(d=>{ if(d.fromInsights) d.fromInsights=d.fromInsights.filter(x=>x!==id); });
   (DB.radar||[]).forEach(r=>{ if(r.threatens) r.threatens=r.threatens.filter(x=>x!==id); });
+  // Arv og eskalering: et barn som mister forelderen sin, arver ingenting —
+  // og det skal vises som et funn, ikke som en lenke til ingenting.
+  (DB.strategies||[]).forEach(st=>{
+    if(st.parentId===id) st.parentId="";
+    if(st.watches) st.watches=st.watches.filter(a=>a!==id);
+  });
+  (DB.escalations||[]).forEach(e=>{
+    if(e.fromStrategy===id) e.fromStrategy="";
+    if(e.assumptionId===id) e.assumptionId="";
+  });
   if(coll==="strategies"){
     currentStrategy=null;
     if(mapFocus===id) mapFocus=null;
