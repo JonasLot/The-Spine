@@ -6,7 +6,7 @@
 --  One table per entity. Each row belongs to a user and stores the
 --  entity as JSONB (the app reads/writes whole objects). Row-Level
 --  Security guarantees a user only ever sees and edits their OWN rows.
---  Version 14.0
+--  Version 15.0 — adds escalations (Arv ned & eskalering)
 -- ════════════════════════════════════════════════════════════════
 
 create extension if not exists "pgcrypto";
@@ -14,7 +14,7 @@ create extension if not exists "pgcrypto";
 do $$
 declare t text;
 begin
-  foreach t in array array['strategies','insights','decisions','assumptions','signals','goals','outcomes','values','reviews','radar','rights','diagnoses','needs','initiatives']
+  foreach t in array array['strategies','insights','decisions','assumptions','signals','goals','outcomes','values','reviews','radar','rights','diagnoses','needs','initiatives','escalations']
   loop
     -- table
     execute format($f$
