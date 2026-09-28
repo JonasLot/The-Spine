@@ -1,8 +1,8 @@
 # Plan — Arv ned & eskalering
 
 > Relatert: [[Plan — Goals & Outcomes]] · [[Plan — Signalhistorikk & tilstandsforslag]] · [[Beslutningsrettigheter — tre klasser]] · [[Backend Setup — Supabase]] · [[Språkvelger — i18n status]] · `app.html`
-> Rammeverk: [[Product Layer Nesting]] · [[Inheritance Schema]] · [[Signal Card]]
-> Status: **Bygget og testet** (2026-09-27) på branch `arv-og-eskalering`. 1054 enhetstester og 353 visninger grønne.
+> Rammeverk: [[Product Layer Nesting]] · [[Inheritance Schema]] · [[Backbrief]] · [[Signal Card]]
+> Status: **Bygget og testet** (2026-09-27) på branch `arv-og-eskalering`. 1075 enhetstester og 362 visninger grønne.
 
 ## Hvorfor
 
@@ -47,6 +47,19 @@ Endrer forelderen seg, endres arven uten at barnet redigeres. Et tomt felt vises
 - **Stående systemer:** Escalations lagt til blant registrene rammeverket ikke navnga.
 - **Seed:** TØFF Migration arver fra Tet Vedtak, med rammer, frihetsgrader og a3 på vakt. Eskaleringen `e1` (DPIA-porten blokkerer skyggekjøringen) er åpen. On-Demand Transit Planning står bevisst uten forelder som eksempel på funnet.
 - **i18n:** alle nye nøkler på begge språk. Seed-teksten er oversatt i `SEED_NO`.
+
+## Tilbakebrief (lagt til 2026-09-28)
+
+Arven leser det som står ovenfra. Tilbakebriefen tester om det ble forstått slik det var ment (Bungay, *The Art of Action*). Den står på strategikortet rett under *Arver fra*, og skrives inline som linsens arbeidsflate.
+
+- **Fire felt:** intensjonen med egne ord, hva vi derfor gjør, hva vi derfor ikke gjør, og tolkningene der strategien er vag («vi leser X som Y»).
+- **Hørt av nivået over:** ikke sendt / sendt, ikke svart / kjent igjen / korrigert, pluss hvem som hørte den. Er den korrigert, vises feltet *Hva de korrigerte*. Det er selve oversettelsesfeilen.
+- **Utdatert:** dato og forelderens versjon stemples når den merkes som hørt. Får forelderen en ny versjon, blir tilbakebriefen *utdatert*.
+- **Kopier som melding:** lager en ferdig tekst å sende, fordi tilbakebriefen er en samtale og ikke et skjema.
+- **Forelderen** ser status per barn i *Det strategiene under sender opp*.
+- **Lagring:** på strategien (`st.backbrief`), ikke i egen tabell. Ingen ny SQL. `KEEP_KEYS` beholder den ved import.
+- **Eksport:** `## Backbrief` i strategieksporten, med lenke til [[Backbrief]].
+- **Seed:** TØFF er korrigert av Partnerforums arbeidsutvalg. «Samme opplevelse» gjelder også skjermbildene, ikke bare beslutningslogikken.
 
 ## Må gjøres før bruk
 
