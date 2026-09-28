@@ -96,7 +96,20 @@ const harness = [
   "function trView(o){return o}",
   func("notionBlock"), func("mdDecision"), func("mdAssumption"),
   func("mdSignal"), func("mdValue"), func("mdForce"), func("mdRight"),
-  func("mdDiagnosis"), func("mdNeed"), decl("MD_FN"),
+  func("mdDiagnosis"), func("mdNeed"),
+  // Arv ned og eskalering
+  decl("INH_FIELDS"), decl("INH_SRC"), func("parentOf"), func("childrenOf"),
+  func("parentMisplaced"), func("strategiesWithoutParent"), func("inhLines"),
+  func("inheritanceOf"), func("watchedBroken"),
+  decl("ESC_KINDS"), decl("ESC_EVIDENCE"), decl("ESC_RESP"), oneLine(/const ESC_PERSIST\s*=/),
+  decl("ESC_FIELD_OF"), func("escalationFrom"), func("escalationTo"), func("escalationOpen"),
+  func("escalationSiblings"), func("escalationThreshold"), func("escalationWeak"),
+  func("todayISO"), func("escalationsOpen"), func("escalationsUnreasoned"),
+  func("escalationsParkedDue"), func("escalationsDue"), func("escalationsTo"),
+  func("escalationsFrom"), func("escalationInView"), func("escThresholdText"),
+  oneLine(/const VAULT_NOTE\s*=/),
+  func("mdEscalation"), func("strategyInheritMd"), func("reviewNoteEscalation"),
+  decl("MD_FN"),
   oneLine(/const mdT\s*=/), decl("MD_TITLE"), func("mdLink"),
   func("valuesOfStrategy"), func("outcomesUnvaluedFor"),
   func("rightHolder"), func("rightVetoHolder"), func("rightsDrift"),
@@ -132,6 +145,11 @@ const harness = [
   "buildSharePayload,shareUrl,shareStale,shareBehind,shareOldFormat,SHARE_V," +
   "setShares:v=>{SHARES=v}," +
   "reviewNoteSignal,reviewNoteBet,reviewChanged,closeReview,reviewNoteValue," +
+  "INH_FIELDS,INH_SRC,parentOf,childrenOf,parentMisplaced,strategiesWithoutParent,inheritanceOf,watchedBroken," +
+  "ESC_KINDS,ESC_EVIDENCE,ESC_RESP,ESC_PERSIST,ESC_FIELD_OF,escalationFrom,escalationTo,escalationOpen," +
+  "escalationSiblings,escalationThreshold,escalationWeak,escalationsOpen,escalationsUnreasoned," +
+  "escalationsParkedDue,escalationsDue,escalationsTo,escalationsFrom,escalationInView,escThresholdText," +
+  "mdEscalation,strategyInheritMd,reviewNoteEscalation," +
   "strategiesOfValue,valuesDue,valueGapInView,setStratF:v=>{stratF=v}," +
   "radarStatus,radarWeight,radarThreatening,RADAR_DUE," +
   "radarChart,RADAR_RINGS,RADAR_DOMS,parseRadarText,radarMapValue," +
@@ -171,6 +189,11 @@ const {
   buildSharePayload, shareUrl, shareStale, shareBehind, shareOldFormat, SHARE_V, setShares,
   byId, STATE_MAP,
   reviewNoteSignal, reviewNoteBet, reviewChanged, closeReview, resetReview,
+  INH_FIELDS, INH_SRC, parentOf, childrenOf, parentMisplaced, strategiesWithoutParent, inheritanceOf, watchedBroken,
+  ESC_KINDS, ESC_EVIDENCE, ESC_RESP, ESC_PERSIST, ESC_FIELD_OF, escalationFrom, escalationTo, escalationOpen,
+  escalationSiblings, escalationThreshold, escalationWeak, escalationsOpen, escalationsUnreasoned,
+  escalationsParkedDue, escalationsDue, escalationsTo, escalationsFrom, escalationInView, escThresholdText,
+  mdEscalation, strategyInheritMd, reviewNoteEscalation,
   reviewNoteValue, strategiesOfValue, valuesDue, valueGapInView, setStratF,
   radarStatus, radarWeight, radarThreatening, RADAR_DUE,
   radarChart, RADAR_RINGS, RADAR_DOMS, parseRadarText, radarMapValue,
@@ -1720,7 +1743,7 @@ ok(SYSTEMS.length === 10, "de ti er fortsatt ti (" + SYSTEMS.length + ")");
   ok(SYSTEMS_X.every(s => !tiRegs.has(s.reg)),
      "ingen av dem dublerer et register de ti allerede eier");
   // Rekkefolgen ER kjeden. Sorteres den bort, mister seksjonen poenget sitt.
-  ok(SYSTEMS_X.map(s => s.reg).join(",") === "Needs,Goals,Outcomes,Values,Diagnoses,Initiatives",
+  ok(SYSTEMS_X.map(s => s.reg).join(",") === "Needs,Goals,Outcomes,Values,Diagnoses,Initiatives,Escalations",
      "retningen star i kjederekkefolge, sa diagnosen, sa arbeidet (fikk: " +
      SYSTEMS_X.map(s => s.reg).join(",") + ")");
   ok(SYSTEMS_X.every(s => s.dies && s.why && s.feeds),
@@ -2052,6 +2075,130 @@ ok(SEED.signals.every(s => (s.log || []).every(r => r.d && r.t !== undefined)),
 ok(SEED_NO.s4.log.length === S("s4").log.length, "NO-overlay for s4 har like mange avlesninger som EN");
 ok(SEED_NO.s4.log.every(r => typeof r.v === "number"), "NO-overlay for s4 har tallverdier");
 ok(SEED_NO.s1.log[0].v === 90 && SEED_NO.s3.log[0].v === 0, "NO-overlay for s1 og s3 har tallverdier");
+
+group("arv ned — utledet fra forelderen");
+{
+  const db = structuredClone(SEED);
+  setDB(db);
+  const st = id => db.strategies.find(x => x.id === id);
+  ok(INH_FIELDS.length === 6, "seks arvefelt, som i Inheritance Schema");
+  ok(INH_FIELDS.every(k => INH_SRC[k] === "parent" || INH_SRC[k] === "child"), "hvert felt har en kilde");
+  ok(parentOf(st("st2")) === st("st1"), "TØFF arver fra Tet Vedtak i seed");
+  ok(childrenOf(st("st1")).map(x => x.id).join() === "st2", "og Tet Vedtak kjenner barnet sitt");
+  const inh = inheritanceOf(st("st2"));
+  ok(inh && inh.parent.id === "st1", "arven peker på forelderen");
+  ok(inh.fields.direction.items[0] === st("st1").approach, "retningen er forelderens tilnærming, lest live");
+  ok(inh.fields.nonChoices.items.length === st("st1").notDoing.length, "ikke-valgene er forelderens notDoing");
+  ok(inh.fields.outcome.items.map(g => g.id).join() === "g1", "utfall = målene begge tjener (g1), ikke g2");
+  ok(inh.fields.constraints.items.length === 3 && inh.fields.freedoms.items.length === 2, "rammer og frihetsgrader skrives på barnet");
+  ok(inh.fields.watches.items.map(a => a.id).join() === "a3" && inh.fields.watches.foreign.length === 0,
+     "a3 er forelderens egen antakelse, ikke fremmed");
+  ok(inh.empty.length === 0, "seed-eksempelet har ingen tomme felt");
+  // Endringer hos forelderen slår gjennom uten at barnet redigeres.
+  st("st1").notDoing = [];
+  ok(inheritanceOf(st("st2")).empty.includes("nonChoices"), "tomme ikke-valg hos forelderen blir et funn hos barnet");
+  ok(inheritanceOf(st("st1")) === null, "en strategi uten forelder har ingen arv");
+  ok(strategiesWithoutParent().map(x => x.id).join() === "st3",
+     "st3 står under porteføljen uten forelder — og er den eneste");
+  st("st2").serves = ["g3"];
+  ok(inheritanceOf(st("st2")).fields.outcome.note === "none-shared", "tjener ingen av forelderens mål → eget funn");
+  st("st1").serves = [];
+  ok(inheritanceOf(st("st2")).fields.outcome.note === "none-above", "forelder uten mål → eget funn");
+  st("st2").alt = "portfolio";
+  ok(parentMisplaced(st("st2")), "forelder på samme høyde er en sidelengs lenke");
+  st("st2").alt = "product";
+  ok(!parentMisplaced(st("st2")), "forelder høyere opp er arv");
+  st("st2").watches = ["a4"];
+  ok(inheritanceOf(st("st2")).fields.watches.foreign.length === 1, "barnets egen antakelse flagges som fremmed");
+  db.assumptions.find(a => a.id === "a4").state = "broken";
+  ok(watchedBroken(st("st2")).map(a => a.id).join() === "a4", "en overvåket antakelse som røk, skal opp");
+  db.escalations.push({ id: "eX", fromStrategy: "st2", assumptionId: "a4" });
+  ok(watchedBroken(st("st2")).length === 0, "men ikke to ganger — den er allerede sendt");
+  ok(strategiesWithoutParent().length === 1, "arkiverte og toppnivå regnes ikke som foreldreløse");
+  setDB({ strategies: [], escalations: [] });
+  ok(strategiesWithoutParent().length === 0, "tom database gir ingen funn, ikke krasj");
+}
+
+group("eskalering — terskel og svarplikt");
+{
+  const db = structuredClone(SEED);
+  setDB(db);
+  const e1 = db.escalations.find(e => e.id === "e1");
+  ok(escalationFrom(e1).id === "st2" && escalationTo(e1).id === "st1", "mottakeren utledes fra avsenderens forelder");
+  ok(escalationsTo(db.strategies[0]).map(e => e.id).join() === "e1", "forelderen ser den i innboksen sin");
+  ok(escalationThreshold(e1).met && escalationThreshold(e1).rule === "loops", "type 2 med to løkker er over terskelen");
+  ok(!escalationThreshold({ ...e1, loops: 1 }).met, "én løkke er ikke et mønster");
+  ok(!escalationThreshold({ ...e1, loops: "" }).met, "tomt antall løkker regnes som null");
+  ok(escalationThreshold({ kind: "assumption-broken" }).met, "brutt antakelse går alltid opp");
+  ok(escalationThreshold({ kind: "nonchoice-cost", loops: 3 }).met, "type 3 følger samme persistensregel");
+  const cp = { id: "c1", kind: "cross-product", field: "constraints", fromStrategy: "st2" };
+  ok(!escalationThreshold(cp).met, "mønster på tvers krever mer enn ett produkt");
+  db.strategies.push({ id: "stY", name: "Annet produkt", alt: "product", parentId: "st1", status: "draft" });
+  db.escalations.push({ id: "c2", kind: "cross-product", field: "constraints", fromStrategy: "stY" });
+  ok(escalationThreshold(cp).met && escalationThreshold(cp).n === 2, "to produkter på samme felt er mønsteret");
+  ok(escalationsOpen().some(e => e.id === "e1"), "e1 venter på svar");
+  ok(escalationWeak(e1).length === 0, "seed-eskaleringen er komplett");
+  ok(escalationWeak({ ...e1, response: "rejected", reason: "" }).includes("noreason"), "avvist uten begrunnelse er svakt");
+  ok(escalationWeak({ ...e1, response: "parked", reason: "x", revisit: "" }).includes("nodate"), "parkert uten dato er svakt");
+  ok(escalationWeak({ ...e1, fromStrategy: "st3" }).includes("noparent"), "avsender uten forelder: ingen skylder svar");
+  ok(escalationWeak({ id: "x" }).includes("nofrom"), "uten avsender er det ingen rute");
+  db.escalations.push({ id: "p1", fromStrategy: "st2", response: "parked", reason: "venter på Gate 1", revisit: "2026-01-01" },
+                      { id: "p2", fromStrategy: "st2", response: "parked", reason: "senere", revisit: "2999-01-01" },
+                      { id: "t1", fromStrategy: "st2", response: "taken-in", reason: "enig" },
+                      { id: "r1", fromStrategy: "st2", response: "rejected", reason: "" });
+  const due = escalationsDue("2026-09-27").map(e => e.id);
+  ok(due.includes("e1") && due.includes("p1"), "åpne og forfalte parkerte skal på gjennomgangen");
+  ok(!due.includes("p2") && !due.includes("t1") && !due.includes("r1"), "framtidige parkerte og besvarte skal ikke");
+  ok(escalationsUnreasoned().map(e => e.id).join() === "r1", "avvist uten begrunnelse fanges");
+  setStratF("TØFF Migration");
+  ok(escalationInView(e1), "filteret treffer avsenderen");
+  setStratF("Tet Vedtak — Case Platform");
+  ok(escalationInView(e1), "og mottakeren");
+  setStratF("On-Demand Transit Planning");
+  ok(!escalationInView(e1), "men ikke en tredje strategi");
+  setStratF("*");
+  ok(ESC_KINDS.join() === FIELDS.escalations.find(f => f.k === "kind").opts.join(), "skjemaet har de fire typene");
+  ok(INH_FIELDS.join() === FIELDS.escalations.find(f => f.k === "field").opts.join(), "og de seks arvefeltene");
+  ok(ESC_RESP.join() === FIELDS.escalations.find(f => f.k === "response").opts.join(), "og de fire svarene");
+  ok(ESC_EVIDENCE.join() === FIELDS.escalations.find(f => f.k === "evidence").opts.join(), "og de tre evidensnivåene");
+  for (const lang of ["en", "no"]) {
+    setLang(lang);
+    const miss = [...ESC_KINDS.map(k => "esc.kind." + k), ...ESC_EVIDENCE.map(k => "esc.ev." + k),
+      ...ESC_RESP.map(k => "state." + k), ...INH_FIELDS.map(k => "inh.f." + k), ...INH_FIELDS.map(k => "inh.d." + k)]
+      .filter(k => T[lang][k] === undefined);
+    ok(miss.length === 0, `alle valg har etikett (${lang}): ` + miss.join(", "));
+    ok(!/\{[nm]\}/.test(escThresholdText(e1)), `terskelteksten fylles ut (${lang})`);
+  }
+  setLang("en");
+  ok(OPT_PREFIX.kind === "esc.kind." && OPT_PREFIX.field === "inh.f." && OPT_PREFIX.response === "state.",
+     "segmentene i skjemaet slår opp riktig prefiks");
+}
+
+group("eskalering — gjennomgangen og eksporten");
+{
+  const db = structuredClone(SEED);
+  setDB(db);
+  resetReview();
+  const e1 = db.escalations.find(e => e.id === "e1");
+  e1.response = "parked"; e1.reason = "Tas på porteføljemøtet"; e1.revisit = "2026-10-15";
+  reviewNoteEscalation(e1, "open");
+  ok(reviewChanged() === 1, "et svar teller som en endring i gjennomgangen");
+  const rec = closeReview("");
+  ok(rec.escalations.length === 1 && rec.escalations[0].to === "parked", "arkivet husker svaret");
+  const md = mdEscalation(e1);
+  ok(md.includes("[[" + MD_TITLE.strategies(db.strategies.find(s => s.id === "st2")) + "]]"), "eksporten lenker til avsenderen");
+  ok(md.includes("[[" + MD_TITLE.strategies(db.strategies.find(s => s.id === "st1")) + "]]"), "og til mottakeren");
+  ok(md.includes("[[Signal Card]]") && md.includes("[[Product Layer Nesting]]"), "og til rammeverksnotatene i vaulten");
+  ok(md.includes("Tas på porteføljemøtet"), "begrunnelsen er med");
+  const im = strategyInheritMd(db.strategies.find(s => s.id === "st2"));
+  ok(im.includes("## Inherits from") && im.includes("[[Inheritance Schema]]"), "strategieksporten bærer arven");
+  ok(im.includes("[[" + MD_TITLE.goals(db.goals.find(g => g.id === "g1")) + "]]"), "med utfallet som lenke");
+  ok(strategyInheritMd(db.strategies.find(s => s.id === "st3")) === "", "uten forelder: ingen arveseksjon");
+  ok(SEED.escalations.every(e => SEED.strategies.some(s => s.id === e.fromStrategy)), "seed-eskaleringer har en avsender som finnes");
+  ok(SEED_NO.e1 && SEED_NO.e1.observation && SEED_NO.e1.consequence, "og er oversatt");
+  ok(SEED_NO.st2.constraints.length === SEED.strategies.find(s => s.id === "st2").constraints.length,
+     "norske rammer for TØFF har like mange linjer");
+}
 
 if (failures.length) {
   console.log(`\n${failures.length} FEILET av ${pass + failures.length}:`);
