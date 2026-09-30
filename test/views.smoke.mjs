@@ -606,6 +606,28 @@ console.log("arv ned og eskalering");
   runView("vStrategyDetail", () => app.vStrategyDetail("st2"), "vStrategyDetail(st2, forelder finnes ikke)");
   app.setDB(structuredClone(app.SEED));
 }
+
+console.log("tilbakebrief");
+{
+  const txt = id => { const n = app.vStrategyDetail(id); return n ? (n.deepText || "") : ""; };
+  for (const lang of ["en", "no"]) {
+    app.setLang(lang);
+    const T = app.T[lang];
+    const t2 = txt("st2");
+    ok(t2.includes(T["bb.head"]) && t2.includes(T["bb.st.corrected"]), `barnet viser tilbakebriefen med status (${lang})`);
+    ok(t2.includes(T["bb.gaps.l"]), `korreksjonsfeltet vises når den er korrigert (${lang})`);
+    const t1 = txt("st1");
+    ok(!t1.includes(T["bb.head"]), `toppnivået har ingen tilbakebrief (${lang})`);
+    ok(t1.includes(T["bb.st.corrected"]), `forelderen ser barnets status (${lang})`);
+  }
+  app.setLang("en");
+  const db = structuredClone(app.SEED);
+  delete db.strategies.find(x => x.id === "st2").backbrief;
+  app.setDB(db);
+  const t2 = txt("st2");
+  ok(t2.includes(app.T.en["bb.st.missing"]) && !t2.includes(app.T.en["bb.gaps.l"]), "uten tilbakebrief: manglende, uten korreksjonsfelt");
+  app.setDB(structuredClone(app.SEED));
+}
 console.log("stående systemer peker på visninger som finnes");
 {
   const views = new Set(Object.keys(app.ctx).map(n => n.slice(1).toLowerCase()));

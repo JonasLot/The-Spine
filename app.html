@@ -894,6 +894,10 @@ a{color:inherit}
 .inh-sent{padding:4px 18px 16px;display:flex;flex-direction:column;gap:8px}
 .inh-sent .lbl-mini{margin-top:10px}
 .esc-arr{color:var(--ink-3);margin:0 4px;align-self:center}
+.bb-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.bb-to{font-size:12.5px;color:var(--ink-2)}
+.bb-warn{border-radius:var(--r-sm);border:none;margin-bottom:14px;background:var(--warn-bg)}
+.kid-r{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 .inh-dir{margin:0;text-wrap:pretty;line-height:1.55}
 .rev-err{font-size:12.5px;color:var(--bad);min-height:0}
 .rev-err:empty{display:none}
@@ -1593,6 +1597,13 @@ const SEED = {
       constraints:["Fixed window: CMP is decommissioned on 31.12.2026","The DPIA gate: no real case data in an automated flow before Gate 1","Per-tenant configuration, never per-tenant code"],
       freedoms:["How the cutover is sequenced, and the rollback design","Tooling for the shadow run"],
       watches:["a3"],
+      backbrief:{
+        intent:"Tet Vedtak wants one decision logic running everywhere, so a case gets the same outcome whichever municipality it is in — and every outcome can be audited. The migration exists so that nothing old stands in the way of that.",
+        willDo:["Move every tenant into per-tenant configuration, not per-tenant code","Keep statutory deadlines intact through the cutover window"],
+        wontDo:["Carry local rule workarounds from CMP over to the new platform","Automate anything during migration that is not automated today"],
+        readings:["We read «same experience» as the same decision logic — not the same screens in every municipality","We read the DPIA gate as covering the shadow run too (the open question in e1)"],
+        heard:"corrected", heardFrom:"Partnerforum working group", date:"2026-09-10", parentVersion:3,
+        gaps:"«Same experience» also means the same caseworker screens. Local UI variants are not to be migrated either."},
       challenge:"CMP is decommissioned on 31.12.2026; the TØFF migration must complete inside a fixed window with no break in statutory service delivery.",
       approach:"Sequence the migration into increment T2 with a clean rollback path, validating statutory flows in a shadow run before cutover.",
       moves:["Establish a pre-migration baseline","Stage the cutover with a tested rollback","Validate statutory deadlines in a shadow run"],
@@ -2045,6 +2056,44 @@ const T = {
     "gv.unval.many":"outcomes under this goal carry no value claim.",
     "vh.rights.t":"Decision Rights","vh.rights.d":"Who can say yes, who can say no, and who must be heard first — set against who actually decided.",
     "nav.rights":"Decision Rights","dr.eye.right":"Decision class",
+    "bb.head":"Backbrief",
+    "bb.hint":"Say back what you understood before writing your own diagnosis. The gaps are translation errors, caught before they cost anything.",
+    "bb.to":"To {b} · owner {o}",
+    "bb.intent.l":"What we understand the level above wants to achieve — and why",
+    "bb.intent.ph":"The intent, in your own words. Not the strategy's sentence copied back.",
+    "bb.willDo.l":"What we will therefore do",
+    "bb.willDo.ph":"One per line",
+    "bb.wontDo.l":"What we will therefore not do",
+    "bb.wontDo.ph":"One per line — including what the parent's no's mean for this product",
+    "bb.readings.l":"Where the strategy is open, this is how we read it",
+    "bb.readings.ph":"One per line — «we read X as Y». A vague strategy gives freedom only if the reading is visible.",
+    "bb.heard.l":"Heard by the level above",
+    "bb.h.unsent":"Not sent",
+    "bb.h.sent":"Sent, no answer",
+    "bb.h.recognised":"Recognised",
+    "bb.h.corrected":"Corrected",
+    "bb.from.l":"Who heard it",
+    "bb.from.ph":"A name or a forum — who can say this is what they meant",
+    "bb.gaps.l":"What they corrected",
+    "bb.gaps.ph":"What the level above meant that we did not read. This is the translation error.",
+    "bb.st.missing":"No backbrief",
+    "bb.st.unsent":"Not sent",
+    "bb.st.sent":"Awaiting recognition",
+    "bb.st.recognised":"Recognised",
+    "bb.st.corrected":"Corrected",
+    "bb.st.stale":"Out of date",
+    "bb.stale":"The parent has changed since this backbrief (v{a} → v{b}). What was heard was another version. Do it again.",
+    "bb.empty":"Write something first. There is nothing to send.",
+    "bb.copy":"Copy as message",
+    "bb.copied":"Copied",
+    "bb.date":"Last heard {d}, against parent v{v}.",
+    "bb.why":"Write it, send it, and mark what came back. Silence is not recognition.",
+    "bb.msg.head":"Backbrief — {a} → {b}",
+    "bb.msg.intent":"What we understand you want to achieve, and why:",
+    "bb.msg.will":"What we will therefore do:",
+    "bb.msg.wont":"What we will therefore not do:",
+    "bb.msg.read":"Where the strategy is open, this is how we read it:",
+    "bb.msg.ask":"Is this what you meant? Where it is not, we would rather know now than after we have built it.",
     "nav.escalations":"Escalations",
     "vh.escalations.t":"Escalations",
     "vh.escalations.d":"What the strategies below have learned that would change what they inherit. Every one is owed an answer: taken in, parked or rejected — with a reason.",
@@ -2560,6 +2609,44 @@ const T = {
     "gv.unval.many":"utfall under dette målet bærer ingen verdipåstand.",
     "vh.rights.t":"Beslutningsrettigheter","vh.rights.d":"Hvem som kan si ja, hvem som kan si nei, og hvem som må høres først — holdt opp mot hvem som faktisk bestemte.",
     "nav.rights":"Beslutningsrettigheter","dr.eye.right":"Beslutningsklasse",
+    "bb.head":"Tilbakebrief",
+    "bb.hint":"Si tilbake hva du har forstått før dere skriver egen diagnose. Avvikene er oversettelsesfeil, fanget før de koster noe.",
+    "bb.to":"Til {b} · eier {o}",
+    "bb.intent.l":"Hva vi forstår at nivået over vil oppnå — og hvorfor",
+    "bb.intent.ph":"Intensjonen, med egne ord. Ikke strategiens setning kopiert tilbake.",
+    "bb.willDo.l":"Hva vi derfor gjør",
+    "bb.willDo.ph":"Ett per linje",
+    "bb.wontDo.l":"Hva vi derfor ikke gjør",
+    "bb.wontDo.ph":"Ett per linje — også hva forelderens nei betyr for dette produktet",
+    "bb.readings.l":"Der strategien er åpen, leser vi den slik",
+    "bb.readings.ph":"Ett per linje — «vi leser X som Y». En vag strategi gir frihet bare hvis tolkningen er synlig.",
+    "bb.heard.l":"Hørt av nivået over",
+    "bb.h.unsent":"Ikke sendt",
+    "bb.h.sent":"Sendt, ikke svart",
+    "bb.h.recognised":"Kjent igjen",
+    "bb.h.corrected":"Korrigert",
+    "bb.from.l":"Hvem hørte den",
+    "bb.from.ph":"Et navn eller et forum — noen som kan si at det var dette de mente",
+    "bb.gaps.l":"Hva de korrigerte",
+    "bb.gaps.ph":"Det nivået over mente som vi ikke leste. Dette er oversettelsesfeilen.",
+    "bb.st.missing":"Ingen tilbakebrief",
+    "bb.st.unsent":"Ikke sendt",
+    "bb.st.sent":"Venter på gjenkjenning",
+    "bb.st.recognised":"Kjent igjen",
+    "bb.st.corrected":"Korrigert",
+    "bb.st.stale":"Utdatert",
+    "bb.stale":"Forelderen er endret siden denne tilbakebriefen (v{a} → v{b}). Det som ble hørt, var en annen versjon. Gjør den på nytt.",
+    "bb.empty":"Skriv noe først. Det er ingenting å sende.",
+    "bb.copy":"Kopier som melding",
+    "bb.copied":"Kopiert",
+    "bb.date":"Sist hørt {d}, mot forelderens v{v}.",
+    "bb.why":"Skriv den, send den, og merk hva som kom tilbake. Stillhet er ikke gjenkjenning.",
+    "bb.msg.head":"Tilbakebrief — {a} → {b}",
+    "bb.msg.intent":"Hva vi forstår at dere vil oppnå, og hvorfor:",
+    "bb.msg.will":"Hva vi derfor gjør:",
+    "bb.msg.wont":"Hva vi derfor ikke gjør:",
+    "bb.msg.read":"Der strategien er åpen, leser vi den slik:",
+    "bb.msg.ask":"Er det dette dere mente? Der det ikke er det, vil vi heller vite det nå enn etter at vi har bygget det.",
     "nav.escalations":"Eskaleringer",
     "vh.escalations.t":"Eskaleringer",
     "vh.escalations.d":"Det strategiene under har lært som ville endret det de arver. Hver eneste har krav på et svar: tatt inn, parkert eller avvist — med begrunnelse.",
@@ -2923,7 +3010,14 @@ const SEED_NO = {
     notDoing:["Utsette til T3","En big-bang-cutover uten fallback"],
     howKnow:["Ingen målbart tjenesteavbrudd i vinduet","Alle lovbestemte frister overholdt under cutover"],
     constraints:["Fast vindu: CMP legges ned 31.12.2026","DPIA-porten: ingen ekte saksdata i en automatisert flyt før Gate 1","Konfigurasjon per tenant, aldri kode per tenant"],
-    freedoms:["Hvordan cutover sekvenseres, og rollback-designet","Verktøy for skyggekjøringen"]},
+    freedoms:["Hvordan cutover sekvenseres, og rollback-designet","Verktøy for skyggekjøringen"],
+    backbrief:{
+      intent:"Tet Vedtak vil ha én beslutningslogikk som kjører overalt, så en sak får samme utfall uansett kommune — og hvert utfall kan etterprøves. Migreringen finnes for at ingenting gammelt skal stå i veien for det.",
+      willDo:["Flytte hver tenant over til konfigurasjon per tenant, ikke kode per tenant","Holde lovpålagte frister intakte gjennom cutover-vinduet"],
+      wontDo:["Ta med lokale regel-omveier fra CMP over i den nye plattformen","Automatisere noe under migreringen som ikke er automatisert i dag"],
+      readings:["Vi leser «samme opplevelse» som samme beslutningslogikk — ikke samme skjermbilder i hver kommune","Vi leser DPIA-porten som at den også dekker skyggekjøringen (det åpne spørsmålet i e1)"],
+      heard:"corrected", heardFrom:"Partnerforums arbeidsutvalg", date:"2026-09-10", parentVersion:3,
+      gaps:"«Samme opplevelse» betyr også samme skjermbilder for saksbehandler. Lokale UI-varianter skal heller ikke migreres."}},
   e1:{
     observation:"Skyggekjøringen trenger produksjonslike tenant-data, men den arvede DPIA-porten holder ekte saksdata ute av enhver automatisert flyt til Gate 1. Lovpålagte flyter kan ikke valideres før cutover innenfor begge rammene.",
     consequence:"Avgjør på porteføljenivå om skyggekjøringen regnes som automatisert behandling etter DPIA-en — eller godta en cutover uten full skyggevalidering, og si det høyt."},
@@ -3659,6 +3753,7 @@ function vStrategyDetail(id){
 
   // arv ned og det som går opp igjen — begge utledet fra forelder-lenken
   inheritPanel(s).forEach(n=>w.appendChild(n));
+  backbriefPanel(s).forEach(n=>w.appendChild(n));
   childrenPanel(s).forEach(n=>w.appendChild(n));
 
   // hvem avtalen binder — bare der noen faktisk er ført opp
@@ -3931,7 +4026,17 @@ function strategyInheritMd(s){
     + `### 3 · Non-choices\n${li(f.nonChoices.items)}\n\n`
     + `### 4 · Constraints\n${li(f.constraints.items)}\n\n`
     + `### 5 · Degrees of freedom\n${li(f.freedoms.items)}\n\n`
-    + `### 6 · Assumptions on watch\n${li(f.watches.items.map(a=>mdLink("assumptions",a)))}\n`;
+    + `### 6 · Assumptions on watch\n${li(f.watches.items.map(a=>mdLink("assumptions",a)))}\n`
+    + strategyBackbriefMd(s);
+}
+function strategyBackbriefMd(s){
+  const st=backbriefStatus(s); if(!st) return "";
+  const b=s.backbrief||{}, li=a=>inhLines(a).length?inhLines(a).map(x=>`- ${x}`).join("\n"):"- —";
+  return `\n## Backbrief\n_Status: ${st}${b.date?` · ${b.date} · parent v${b.parentVersion||"?"}`:""}${b.heardFrom?` · heard by ${b.heardFrom}`:""} — see ${VAULT_NOTE("Backbrief")}._\n\n`
+    + `**Intent as we understand it**\n${String(b.intent||"").trim()||"—"}\n\n`
+    + `**We will therefore**\n${li(b.willDo)}\n\n**We will not**\n${li(b.wontDo)}\n\n`
+    + `**Where we interpreted**\n${li(b.readings)}\n`
+    + (st==="corrected"&&String(b.gaps||"").trim()?`\n**Corrected by the level above**\n${b.gaps}\n`:"");
 }
 // Utledet, og merket som utledet: leseren skal se at ingen har skrevet dette.
 function strategyValueMd(s){
@@ -6145,7 +6250,7 @@ function numOrBlank(v){
 // Normaliser et løst objekt til et rent entitetsobjekt + advarsler.
 // Felt som lever utenfor FIELDS, men som skal overleve en import.
 // Uten dette forkaster normalizeEntity dem som "ukjente".
-const KEEP_KEYS = {strategies:["lens","smellFlags","smellChecked"], signals:["log"]};
+const KEEP_KEYS = {strategies:["lens","smellFlags","smellChecked","backbrief"], signals:["log"]};
 function normalizeEntity(coll, raw){
   const clean = {}, warnings = [];
   const keep = KEEP_KEYS[coll] || [];
@@ -7270,6 +7375,85 @@ function inheritPanel(s){
   nodes.push(p);
   return nodes;
 }
+// Tilbakebriefen: skrives inline på kortet, som linsens arbeidsflate.
+function backbriefPanel(s){
+  const nodes=[], p=parentOf(s);
+  if(!p) return nodes;
+  const status=backbriefStatus(s);
+  nodes.push(el("div","sect-h",`<h2>${esc(t("bb.head"))}</h2><span class="hint">${esc(t("bb.hint"))}</span>`));
+  const panel=el("div","panel panel-pad lens-panel bb-panel");
+  const top=el("div","bb-top");
+  top.innerHTML=`${backbriefBadge(s)}<span class="bb-to">${esc(t("bb.to").replace("{b}",p.name).replace("{o}",p.owner||"—"))}</span>`;
+  panel.appendChild(top);
+  if(status==="stale"){
+    panel.appendChild(el("div","bind-warn bb-warn",esc(t("bb.stale")
+      .replace("{a}",s.backbrief.parentVersion).replace("{b}",p.version||1))));
+  }
+  // Visningen kan være den norske seed-teksten. Første redigering tar med
+  // seg det brukeren så, så resten av feltene ikke hopper tilbake til engelsk.
+  const cur=L(s,"backbrief")||{};
+  let live=null;
+  const b=()=>{
+    if(!live) live = (s.backbrief && cur!==s.backbrief) ? (s.backbrief=structuredClone(cur)) : (s.backbrief=s.backbrief||{});
+    return live;
+  };
+  [["intent","textarea"],["willDo","lines"],["wontDo","lines"],["readings","lines"]].forEach(([k,kind])=>{
+    const fg=el("div","fg");
+    fg.appendChild(el("label",null,esc(t("bb."+k+".l"))));
+    const inp=el("textarea"); inp.rows=kind==="lines"?3:2; inp.placeholder=t("bb."+k+".ph");
+    inp.value=kind==="lines"?inhLines(cur[k]).join("\n"):(cur[k]||"");
+    inp.onchange=()=>{
+      b()[k]= kind==="lines" ? inp.value.split("\n").map(x=>x.trim()).filter(Boolean) : inp.value;
+      saveData(); render();
+    };
+    fg.appendChild(inp); panel.appendChild(fg);
+  });
+  // Hvem som har hørt den, og hva de sa.
+  const hr=el("div","fg");
+  hr.appendChild(el("label",null,esc(t("bb.heard.l"))));
+  const seg=el("div","seg");
+  const pick=BB_HEARD.includes(cur.heard)?cur.heard:"unsent";
+  BB_HEARD.forEach(o=>{
+    const btn=el("button",o===pick?"on":""); btn.type="button"; btn.textContent=t("bb.h."+o);
+    btn.onclick=()=>{
+      if(o!=="unsent" && !backbriefFilled(s.backbrief)){ note.textContent=t("bb.empty"); return; }
+      b(); backbriefSetHeard(s,o); saveData(); render();
+    };
+    seg.appendChild(btn);
+  });
+  hr.appendChild(seg);
+  const note=el("div","rev-err");
+  hr.appendChild(note);
+  panel.appendChild(hr);
+  const fr=el("div","fg");
+  fr.appendChild(el("label",null,esc(t("bb.from.l"))));
+  const from=el("input"); from.type="text"; from.placeholder=t("bb.from.ph"); from.value=cur.heardFrom||"";
+  from.onchange=()=>{ b().heardFrom=from.value.trim(); saveData(); };
+  fr.appendChild(from); panel.appendChild(fr);
+  if(pick==="corrected"){
+    const fg=el("div","fg");
+    fg.appendChild(el("label",null,esc(t("bb.gaps.l"))));
+    const g=el("textarea"); g.rows=3; g.placeholder=t("bb.gaps.ph"); g.value=cur.gaps||"";
+    g.onchange=()=>{ b().gaps=g.value; saveData(); };
+    fg.appendChild(g); panel.appendChild(fg);
+  }
+  const foot=el("div","lens-foot");
+  const meta=el("div","lens-note",esc(cur.date
+    ? t("bb.date").replace("{d}",cur.date).replace("{v}",cur.parentVersion||"?")
+    : t("bb.why")));
+  const copy=el("button","btn",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>${esc(t("bb.copy"))}`);
+  const filled=backbriefFilled(s.backbrief);
+  copy.disabled=!filled; copy.style.opacity=filled?"1":".45"; copy.style.pointerEvents=filled?"":"none";
+  copy.onclick=async()=>{
+    try{ await navigator.clipboard.writeText(backbriefText(s)); }catch(e){}
+    copy.lastChild.textContent=t("bb.copied");
+    setTimeout(()=>{ copy.lastChild.textContent=t("bb.copy"); },1400);
+  };
+  foot.appendChild(meta); foot.appendChild(copy);
+  panel.appendChild(foot);
+  nodes.push(panel);
+  return nodes;
+}
 // Forelderens side: hvem som arver herfra, og hva de har sendt opp.
 function childrenPanel(s){
   const nodes=[], kids=childrenOf(s), inbox=escalationsTo(s);
@@ -7280,7 +7464,8 @@ function childrenPanel(s){
     const n=escalationsFrom(k).filter(escalationOpen).length;
     const r=el("div","bind-row");
     r.innerHTML=`<span class="w">${esc(k.name)} <span class="meta">· ${esc(t("goal.type."+altOfStrategy(k)))}</span></span>
-      ${n?`<span class="badge b-warn"><span class="dot"></span>${esc(t("kids.open").replace("{n}",n))}</span>`:`<span class="meta">${esc(t("kids.quiet"))}</span>`}`;
+      <span class="kid-r">${backbriefBadge(k)}
+      ${n?`<span class="badge b-warn"><span class="dot"></span>${esc(t("kids.open").replace("{n}",n))}</span>`:`<span class="meta">${esc(t("kids.quiet"))}</span>`}</span>`;
     clickable(r,()=>gotoStrategy(k.id),openLbl("strategies",k.name));
     p.appendChild(r);
   });
@@ -8405,6 +8590,58 @@ function watchedBroken(st){
   return (st&&st.watches||[]).map(id=>byId("assumptions",id))
     .filter(a=>a && a.state==="broken" &&
       !(DB.escalations||[]).some(e=>e.fromStrategy===st.id && e.assumptionId===a.id));
+}
+
+/* ── Tilbakebrief: si tilbake hva du forsto, før du bygger på det ──────
+   Arven leser det som står ovenfra. Tilbakebriefen tester om det ble
+   forstått slik det var ment: barnet sier intensjonen, hva det derfor gjør
+   og ikke gjør, og hvor det har tolket noe vagt — og nivået over svarer.
+   Avvikene er oversettelsesfeil fanget før de koster noe.
+   Bor på strategien (st.backbrief), ikke i en egen tabell: den er én ting
+   per strategi, og den foreldes når forelderen får en ny versjon. */
+const BB_HEARD = ["unsent","sent","recognised","corrected"];
+const BB_BADGE = {missing:"b-warn", unsent:"b-mute", sent:"b-acc", recognised:"b-good", corrected:"b-warn", stale:"b-bad"};
+function backbriefFilled(b){
+  return !!b && (String(b.intent||"").trim()!=="" || inhLines(b.willDo).length>0 ||
+                 inhLines(b.wontDo).length>0 || inhLines(b.readings).length>0);
+}
+// null = ingen forelder, altså ingenting å tilbakebriefe til.
+function backbriefStatus(st){
+  const p=parentOf(st); if(!p) return null;
+  const b=st.backbrief;
+  if(!backbriefFilled(b)) return "missing";
+  const heard=BB_HEARD.includes(b.heard)?b.heard:"unsent";
+  // Forelderen har fått en ny versjon siden sist: det som ble hørt, var en annen strategi.
+  if(heard!=="unsent" && b.parentVersion!=null && String(b.parentVersion)!==String(p.version||1)) return "stale";
+  return heard;
+}
+function backbriefBadge(st){
+  const k=backbriefStatus(st); if(!k) return "";
+  return `<span class="badge ${BB_BADGE[k]}"><span class="dot"></span>${esc(t("bb.st."+k))}</span>`;
+}
+// Stemples når nivået over faktisk har fått den — ikke når den skrives.
+function backbriefSetHeard(st, heard, today){
+  const p=parentOf(st); if(!p) return;
+  const b=st.backbrief=st.backbrief||{};
+  b.heard=BB_HEARD.includes(heard)?heard:"unsent";
+  if(b.heard!=="unsent"){ b.date=today||todayISO(); b.parentVersion=p.version||1; }
+  if(b.heard!=="corrected") b.gaps=b.gaps||"";
+}
+// Klar til å sendes som en melding — tilbakebriefen er en samtale, ikke et skjema.
+function backbriefText(st){
+  const p=parentOf(st), b=st&&st.backbrief||{};
+  if(!p) return "";
+  const li=a=>inhLines(a).map(x=>"- "+x).join("\n")||"- —";
+  return `${t("bb.msg.head").replace("{a}",st.name).replace("{b}",p.name)}\n\n`
+    + `${t("bb.msg.intent")}\n${String(b.intent||"").trim()||"—"}\n\n`
+    + `${t("bb.msg.will")}\n${li(b.willDo)}\n\n`
+    + `${t("bb.msg.wont")}\n${li(b.wontDo)}\n\n`
+    + (inhLines(b.readings).length?`${t("bb.msg.read")}\n${li(b.readings)}\n\n`:"")
+    + t("bb.msg.ask");
+}
+// Barn under denne forelderen som ikke har en gyldig, hørt tilbakebrief.
+function childrenUnbriefed(st){
+  return childrenOf(st).filter(k=>["missing","unsent","stale"].includes(backbriefStatus(k)));
 }
 
 const ESC_KINDS = ["assumption-broken","constraint-blocks","nonchoice-cost","cross-product"];

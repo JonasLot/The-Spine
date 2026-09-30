@@ -108,6 +108,9 @@ const harness = [
   func("escalationsParkedDue"), func("escalationsDue"), func("escalationsTo"),
   func("escalationsFrom"), func("escalationInView"), func("escThresholdText"),
   oneLine(/const VAULT_NOTE\s*=/),
+  decl("BB_HEARD"), decl("BB_BADGE"), func("backbriefFilled"), func("backbriefStatus"),
+  func("backbriefBadge"), func("backbriefSetHeard"), func("backbriefText"),
+  func("childrenUnbriefed"), func("strategyBackbriefMd"),
   func("mdEscalation"), func("strategyInheritMd"), func("reviewNoteEscalation"),
   decl("MD_FN"),
   oneLine(/const mdT\s*=/), decl("MD_TITLE"), func("mdLink"),
@@ -150,6 +153,7 @@ const harness = [
   "escalationSiblings,escalationThreshold,escalationWeak,escalationsOpen,escalationsUnreasoned," +
   "escalationsParkedDue,escalationsDue,escalationsTo,escalationsFrom,escalationInView,escThresholdText," +
   "mdEscalation,strategyInheritMd,reviewNoteEscalation," +
+  "BB_HEARD,BB_BADGE,backbriefFilled,backbriefStatus,backbriefBadge,backbriefSetHeard,backbriefText,childrenUnbriefed,strategyBackbriefMd," +
   "strategiesOfValue,valuesDue,valueGapInView,setStratF:v=>{stratF=v}," +
   "radarStatus,radarWeight,radarThreatening,RADAR_DUE," +
   "radarChart,RADAR_RINGS,RADAR_DOMS,parseRadarText,radarMapValue," +
@@ -194,6 +198,8 @@ const {
   escalationSiblings, escalationThreshold, escalationWeak, escalationsOpen, escalationsUnreasoned,
   escalationsParkedDue, escalationsDue, escalationsTo, escalationsFrom, escalationInView, escThresholdText,
   mdEscalation, strategyInheritMd, reviewNoteEscalation,
+  BB_HEARD, BB_BADGE, backbriefFilled, backbriefStatus, backbriefBadge, backbriefSetHeard, backbriefText,
+  childrenUnbriefed, strategyBackbriefMd,
   reviewNoteValue, strategiesOfValue, valuesDue, valueGapInView, setStratF,
   radarStatus, radarWeight, radarThreatening, RADAR_DUE,
   radarChart, RADAR_RINGS, RADAR_DOMS, parseRadarText, radarMapValue,
@@ -2198,6 +2204,51 @@ group("eskalering — gjennomgangen og eksporten");
   ok(SEED_NO.e1 && SEED_NO.e1.observation && SEED_NO.e1.consequence, "og er oversatt");
   ok(SEED_NO.st2.constraints.length === SEED.strategies.find(s => s.id === "st2").constraints.length,
      "norske rammer for TØFF har like mange linjer");
+}
+
+group("tilbakebrief — si tilbake før du bygger");
+{
+  const db = structuredClone(SEED);
+  setDB(db);
+  const st = id => db.strategies.find(x => x.id === id);
+  ok(backbriefStatus(st("st1")) === null, "toppnivået har ingen å tilbakebriefe til");
+  ok(backbriefStatus(st("st3")) === null, "heller ikke en strategi uten forelder");
+  ok(backbriefStatus(st("st2")) === "corrected", "seed: TØFF ble korrigert av nivået over");
+  ok(childrenUnbriefed(st("st1")).length === 0, "et korrigert svar er et svar — ingen mangler");
+  st("st1").version = 4;
+  ok(backbriefStatus(st("st2")) === "stale", "ny versjon hos forelderen gjør tilbakebriefen utdatert");
+  ok(childrenUnbriefed(st("st1")).map(x => x.id).join() === "st2", "og forelderen ser at barnet må gjøre den på nytt");
+  backbriefSetHeard(st("st2"), "recognised", "2026-09-28");
+  ok(backbriefStatus(st("st2")) === "recognised" && st("st2").backbrief.parentVersion === 4
+     && st("st2").backbrief.date === "2026-09-28", "å merke den hørt stempler dato og forelderversjon");
+  backbriefSetHeard(st("st2"), "unsent");
+  ok(backbriefStatus(st("st2")) === "unsent", "ikke sendt er ikke utdatert, uansett versjon");
+  st("st2").backbrief = { heard: "recognised" };
+  ok(backbriefStatus(st("st2")) === "missing", "en merket, men tom tilbakebrief regnes som manglende");
+  st("st2").backbrief = { intent: "  ", willDo: ["", " "] };
+  ok(!backbriefFilled(st("st2").backbrief), "blanke linjer teller ikke som innhold");
+  st("st2").backbrief = { willDo: ["x"], heard: "tull" };
+  ok(backbriefStatus(st("st2")) === "unsent", "ukjent status faller tilbake til ikke sendt");
+  ok(BB_HEARD.every(k => BB_BADGE[k]) && ["missing", "stale"].every(k => BB_BADGE[k]), "hver status har et merke");
+  for (const lang of ["en", "no"]) {
+    setLang(lang);
+    const miss = [...BB_HEARD.map(k => "bb.h." + k), ...Object.keys(BB_BADGE).map(k => "bb.st." + k)]
+      .filter(k => T[lang][k] === undefined);
+    ok(miss.length === 0, `alle statuser har tekst (${lang}): ` + miss.join(", "));
+  }
+  setLang("en");
+  const fresh = structuredClone(SEED); setDB(fresh);
+  const msg = backbriefText(fresh.strategies.find(x => x.id === "st2"));
+  ok(msg.startsWith("Backbrief — TØFF Migration → Tet Vedtak"), "meldingen sier hvem til hvem");
+  ok(msg.includes("«same experience»") && msg.includes("Is this what you meant?"), "med tolkningene og spørsmålet");
+  ok(!/\{[ab]\}/.test(msg), "ingen ufylte plassholdere");
+  ok(backbriefText(fresh.strategies.find(x => x.id === "st3")) === "", "uten forelder: ingen melding");
+  const md = strategyInheritMd(fresh.strategies.find(x => x.id === "st2"));
+  ok(md.includes("## Backbrief") && md.includes("[[Backbrief]]") && md.includes("Corrected by the level above"),
+     "strategieksporten bærer tilbakebriefen og korreksjonen");
+  ok(KEEP_KEYS.strategies.includes("backbrief"), "import beholder tilbakebriefen");
+  ok(SEED_NO.st2.backbrief && SEED_NO.st2.backbrief.readings.length === SEED.strategies.find(x => x.id === "st2").backbrief.readings.length,
+     "seed-tilbakebriefen er oversatt linje for linje");
 }
 
 if (failures.length) {
