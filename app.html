@@ -24,7 +24,7 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=t==="dar
   --panel:#FFFFFF;
   --ink:#1C1A16;         /* off-black */
   --ink-2:#56524A;       /* muted */
-  --ink-3:#736E63;       /* faint */
+  --ink-3:#6B665B;       /* faint — ≥4.5:1 på panel, bg og mute-bg */
   --line:#E4DFD3;        /* hairline */
   --line-2:#EFEBE1;
   --accent:#234E42;      /* deep ink-forest */
@@ -53,7 +53,7 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=t==="dar
   --good:#2E7D5B;   --good-bg:#E7F1EB;
   --warn:#B07B2E;   --warn-bg:#F7EFE1;  --warn-line:#E8D3AE;
   --bad:#B23A3A;    --bad-bg:#F7E7E5;   --bad-line:#E8C3BF;
-  --mute:#736E63;   --mute-bg:#EEEAE0;
+  --mute:#6B665B;   --mute-bg:#EEEAE0;
 
   --good-line:#C8DDD1; --mute-line:var(--line);
   --panel-2:#FBF9F4; --inset:#FBF9F4; --ink-inv:#FFFFFF; --line-3:#D9D3C5; --accent-line:#CFE0D8;
@@ -644,14 +644,18 @@ a{color:inherit}
 .strat-grid{grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
 .strat-card{padding:20px;cursor:pointer;transition:transform .14s cubic-bezier(.2,.8,.2,1),box-shadow .18s,border-color .18s;display:flex;flex-direction:column;gap:10px}
 .strat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--ink-3)}
-.sc-top{display:flex;align-items:center}
+.sc-top{display:flex;align-items:center;gap:10px;min-height:22px}
+.sc-rev{margin-left:auto;font-size:11.5px;font-weight:500;color:var(--ink-3);font-family:var(--font-mono);white-space:nowrap}
+.sc-rev.late{color:var(--bad)} .sc-rev.soon{color:var(--warn)}
+.sc-ch.nodiag{color:var(--accent-ink);font-weight:500}
 .strat-card h3{font-size:24px;line-height:1.1;font-weight:400;text-wrap:pretty}
 .sc-ch{font-size:13px;color:var(--ink-2);line-height:1.55;text-wrap:pretty}
 .sc-meta{font-size:11.5px;color:var(--ink-3);font-weight:500}
-.sc-stats{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);border-top:1px solid var(--line-2);padding-top:11px;margin-top:2px}
+.sc-stats{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);border-top:1px solid var(--line-2);padding-top:11px;margin-top:auto}
 .sc-stats b{font-family:var(--font-mono);color:var(--ink);font-weight:500}
 .sc-stats .flash{color:var(--bad)} .sc-stats .flash b{color:var(--bad)}
-.sc-stats .ok{color:var(--good);font-weight:600;margin-left:auto}
+.sc-stats .zero{color:var(--ink-3)} .sc-stats .zero b{color:var(--ink-3)}
+.sc-stats .gap{color:var(--warn)} .sc-stats .gap b{color:var(--warn)}
 .onepage{padding:6px 26px}
 .op-sec{padding:20px 0;border-bottom:1px solid var(--line-2)}
 .op-sec:last-child{border-bottom:none}
@@ -1093,7 +1097,7 @@ kbd.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:
 :root[data-theme="dark"]{
   color-scheme:dark;
   --bg:#080C14; --bg-2:#0B1120; --panel:#0F172A; --panel-2:#1E293B; --inset:#151E2E;
-  --ink:#F8FAFC; --ink-2:#94A3B8; --ink-3:#64748B; --ink-inv:#080C14;
+  --ink:#F8FAFC; --ink-2:#94A3B8; --ink-3:#8391A7; --ink-inv:#080C14;
   --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.05); --line-3:rgba(255,255,255,.12);
   --accent:#10B981; --accent-soft:rgba(16,185,129,.12); --accent-ink:#34D399; --accent-line:rgba(52,211,153,.4);
   --good:#10B981; --good-bg:rgba(16,185,129,.12); --good-line:rgba(16,185,129,.3);
@@ -2210,6 +2214,9 @@ const T = {
     "sect.matrix":"Confidence × consequence","sect.matrix.h":"The top-left cell is where strategies quietly die — watch those first",
     "rev.1":"Read the signals","rev.1.h":"Append a fresh reading; set the new state","rev.2":"Re-rate the bets","rev.2.h":"Has confidence moved? Is it broken?","rev.3":"End in a decision","rev.3.h":"If nothing changed, it was theatre",
     "kpi.bets":"bets","kpi.signals":"signals","kpi.decisions":"decisions","kpi.ontrack":"on track",
+    "kpi.bet":"bet","kpi.signal":"signal","kpi.decision":"decision",
+    "health.flashing":"flashing","health.overdue":"Review {d}d overdue","health.nodiag":"No diagnosis","health.nosig":"No signals","health.ok":"On track",
+    "rev.short.late":"review {d}d late","rev.short.soon":"review in {d}d","rev.short.in":"review in {d}d","rev.short.none":"no review date","op.nodiag.cta":"Write the diagnosis →",
     "flow.repeat":"The standing systems are what make this flow repeatable — and compound across passes.",
     "flow.01":"Understand","flow.01d":"Diagnose the real problem. Fed by Insights & the Radar.","flow.02":"Develop","flow.02d":"Turn diagnosis into bets. Harvested into Assumptions.","flow.03":"Communicate","flow.03d":"One canonical artifact. Aligned by the Operating Rhythm.","flow.04":"Track","flow.04d":"Watch the Signals. Reality disagrees → back to Understand.",
     "dr.eye.insight":"Insight · Sensing","dr.eye.decision":"Decision · Memory","dr.eye.assumption":"Assumption · Memory","dr.eye.signal":"Signal · Feedback",
@@ -2722,6 +2729,9 @@ const T = {
     "sect.matrix":"Konfidens × konsekvens","sect.matrix.h":"Cellen øverst til venstre er der strategier stille dør — se på dem først",
     "rev.1":"Les signalene","rev.1.h":"Legg til en fersk avlesning; sett ny tilstand","rev.2":"Revurder bettene","rev.2.h":"Har konfidensen flyttet seg? Er det brutt?","rev.3":"Avslutt med en beslutning","rev.3.h":"Hvis ingenting endret seg, var det teater",
     "kpi.bets":"bets","kpi.signals":"signaler","kpi.decisions":"beslutninger","kpi.ontrack":"på sporet",
+    "kpi.bet":"bet","kpi.signal":"signal","kpi.decision":"beslutning",
+    "health.flashing":"blinker","health.overdue":"Gjennomgang {d}d over tid","health.nodiag":"Mangler diagnose","health.nosig":"Ingen signaler","health.ok":"På sporet",
+    "rev.short.late":"gjennomgang {d}d over","rev.short.soon":"gjennomgang om {d}d","rev.short.in":"gjennomgang om {d}d","rev.short.none":"ingen gjennomgangsdato","op.nodiag.cta":"Skriv diagnosen →",
     "flow.repeat":"De stående systemene er det som gjør denne flyten repeterbar — og som akkumulerer på tvers av runder.",
     "flow.01":"Forstå","flow.01d":"Diagnostiser det reelle problemet. Matet av Innsikter og Radaren.","flow.02":"Utvikle","flow.02d":"Gjør diagnosen om til bets. Høstet inn i Antakelser.","flow.03":"Kommuniser","flow.03d":"Ett kanonisk artefakt. Samordnet av Driftsrytmen.","flow.04":"Spor","flow.04d":"Overvåk Signalene. Virkeligheten er uenig → tilbake til Forstå.",
     "dr.eye.insight":"Innsikt · Sansing","dr.eye.decision":"Beslutning · Hukommelse","dr.eye.assumption":"Antakelse · Hukommelse","dr.eye.signal":"Signal · Tilbakekobling",
@@ -2827,7 +2837,7 @@ function applyChrome(){
 function setLang(l){
   if(l===LANG) return;
   LANG=l; PROFILE.lang=l;
-  applyChrome(); render();
+  applyChrome(); setAccount(); render();
   if(SB && USER) saveProfile();
 }
 /* Demo-content overlay: the seed strategies read in Norwegian when NO is
@@ -3462,6 +3472,30 @@ function reviewRadarPanel(){
   });
   tb.appendChild(b); panel.appendChild(tb); return panel;
 }
+/* Én dom per strategi. Verste signal vinner — et kort kan aldri være
+   både rødt og «på sporet». Rekkefølge: blinker > forfalt > mangler
+   diagnose > forpliktet uten signaler > ok. */
+function stratHealth(s,k,rev){
+  const live=s.status==="committed";
+  if(k.flashing) return {cls:"b-bad",txt:k.flashing+" "+t("health.flashing")};
+  if(rev.days!=null&&rev.days<0) return {cls:"b-bad",txt:t("health.overdue").replace("{d}",Math.abs(rev.days)),rev:true};
+  if(!L(s,"challenge")) return {cls:"b-warn",txt:t("health.nodiag")};
+  if(live&&!k.sigs) return {cls:"b-warn",txt:t("health.nosig")};
+  if(!live) return {cls:"b-mute",txt:statusL(s.status)};
+  return {cls:"b-good",txt:t("health.ok")};
+}
+function plural(n,one,many){ return n===1?t(one):t(many); }
+function clip(str,max){
+  if(!str||str.length<=max) return str||"";
+  let c=str.slice(0,max); const sp=c.lastIndexOf(" "); if(sp>max*.6) c=c.slice(0,sp);
+  return c.replace(/[\s.,;:–—-]+$/,"")+"…";
+}
+function revShort(rev){
+  if(rev.days==null) return {cls:"",txt:t("rev.short.none")};
+  if(rev.days<0) return {cls:"late",txt:t("rev.short.late").replace("{d}",Math.abs(rev.days))};
+  if(rev.days<=14) return {cls:"soon",txt:t("rev.short.soon").replace("{d}",rev.days)};
+  return {cls:"",txt:t("rev.short.in").replace("{d}",rev.days)};
+}
 function vStrategies(){
   if(currentStrategy) return vStrategyDetail(currentStrategy);
   const w=el("div","view");
@@ -3490,19 +3524,22 @@ function vStrategies(){
     const rev=reviewStatus(s.review);
     const k=stratStats(s.name);
     const card=el("div","panel strat-card");
+    const h=stratHealth(s,k,rev), rs=revShort(rev), ch=L(s,"challenge");
+    const live=s.status==="committed";
+    const stat=(n,one,many,warnIfZero)=>`<span class="${n?"":(warnIfZero?"gap":"zero")}"><b>${n}</b> ${esc(plural(n,one,many))}</span>`;
+    const nSmell=smellsFlagged(s).length;
     card.innerHTML=`
       <div class="sc-top">
-        <span class="badge ${st[0]}"><span class="dot"></span>${esc(statusL(s.status))}</span>
-        <span class="badge ${rev.cls}" style="margin-left:auto"><span class="dot"></span>${rev.txt}</span>
+        <span class="badge ${h.cls}"><span class="dot"></span>${esc(h.txt)}</span>
+        ${h.rev?"":`<span class="sc-rev ${rs.cls}">${esc(rs.txt)}</span>`}
       </div>
       <h3 class="serif">${esc(s.name)}</h3>
-      <p class="sc-ch">${esc((L(s,"challenge")||t("op.nodiag")).slice(0,150))}${(L(s,"challenge")||"").length>150?"…":""}</p>
-      <div class="sc-meta">${esc(fwL(s.framework))} · v${esc(s.version||1)} · ${esc(s.owner||t("strat.unowned"))}${smellsFlagged(s).length?` · <span class="smell-chip">${smellsFlagged(s).length} ${esc(t(smellsFlagged(s).length===1?"smell.flag":"smell.flags"))}</span>`:""}</div>
+      ${ch?`<p class="sc-ch">${esc(clip(ch,150))}</p>`:`<p class="sc-ch nodiag">${esc(t("op.nodiag.cta"))}</p>`}
+      <div class="sc-meta">${esc(statusL(s.status))} · ${esc(fwL(s.framework))} · v${esc(s.version||1)} · ${esc(s.owner||t("strat.unowned"))}${nSmell?` · <span class="smell-chip">${nSmell} ${esc(t(nSmell===1?"smell.flag":"smell.flags"))}</span>`:""}</div>
       <div class="sc-stats">
-        <span title="${esc(t("nav.assumptions"))}"><b>${k.bets}</b> ${esc(t("kpi.bets"))}</span>
-        <span title="${esc(t("nav.signals"))}"><b>${k.sigs}</b> ${esc(t("kpi.signals"))}</span>
-        <span title="${esc(t("nav.decisions"))}"><b>${k.decs}</b> ${esc(t("kpi.decisions"))}</span>
-        ${k.flashing?`<span class="flash"><b>${k.flashing}</b> ${esc(t("state.flashing"))}</span>`:`<span class="ok">${esc(t("kpi.ontrack"))}</span>`}
+        ${stat(k.bets,"kpi.bet","kpi.bets",false)}
+        ${stat(k.sigs,"kpi.signal","kpi.signals",live)}
+        ${stat(k.decs,"kpi.decision","kpi.decisions",false)}
       </div>`;
     clickable(card,()=>{ currentStrategy=s.id; render(); },openLbl("strategies","")+": "+s.name);
     grid.appendChild(card);
