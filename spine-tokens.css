@@ -1,0 +1,74 @@
+/* ══════════════════════════════════════════════════════════════════
+   Studio Operator — rolige verktøy for studioer som leverer.
+   Varmt papir, nesten svart blekk, og én oransje som viser hvor du er.
+   Tokens først; alle komponenter under leser kun herfra.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Delt av index.html, login.html og s.html. app.html bærer samme blokk inline;
+   test/signal.test.mjs sørger for at de to ikke driver fra hverandre. */
+:root{
+  color-scheme:light;
+
+  /* Papir */
+  --canvas:#F6F3EC;        /* siden */
+  --surface:#FDFCFA;       /* kort, felt, tabeller */
+  --line:#E4DFD3;          /* 1px kant */
+  --subtle:#E9E4D8;        /* fokusring */
+  --well:#EDE9E0;          /* tellechip, innfelt flate */
+
+  /* Blekk i fem nivåer */
+  --ink:#1C1917;           /* overskrifter og verdier */
+  --ink-2:#44403C;         /* nav og brødtekst */
+  --ink-3:#55504A;         /* sekundær tekst og tabelloverskrifter */
+  --ink-4:#6B655B;         /* bildetekster */
+  --ink-5:#A39C90;         /* kun plassholdere og fokuskant */
+
+  /* Handling er blekk. Oransje er sted, aldri handling. */
+  --action:#1C1917;  --action-hover:#38332E;  --on-action:#FAF8F4;
+  --accent:#B03E07;  --accent-tint:#FCEBDD;
+
+  /* Semantiske fremhevinger: tint som bakgrunn, mørk tone som tekst */
+  --danger:#A8281F;  --danger-tint:#FBE8E5;
+  --warning:#7A4D00; --warning-tint:#F8EBCB;
+  --success:#2A6244; --success-tint:#E3F0E7;
+  --info:#2A5A89;    --info-tint:#E5EEF7;
+
+  /* Stadiefarger: kun merker. 6px prikker og 2–3px streker, aldri flater eller tekst. */
+  --st-sense:#4A7DB3;   --st-mem:#B8862F;    --st-align:#4B8F6C;  --st-feed:#B5587A;
+  --st-goal:#7B5BB0;    --st-val:#84922F;    --st-right:#9A5C9C;  --st-init:#2F8581;
+  --st-force:#697C8D;   --st-need:#5B68AE;   --st-diag:#A9603A;   --st-outcome:#2E8A9A;
+
+  /* Skrift */
+  --font-sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+
+  /* Radius vokser med beholderen */
+  --r-chip:4px; --r-btn:8px; --r-card:12px; --r-composer:16px;
+
+  /* Dybde: en hårstrek. Ekte skygge kun for overlegg. */
+  --hairline:0 1px 2px rgba(28,25,23,.04);
+  --overlay:0 1px 2px rgba(28,25,23,.06),0 16px 40px -12px rgba(28,25,23,.22);
+  --scrim:rgba(28,25,23,.36);
+
+  /* Bevegelse */
+  --ease:cubic-bezier(0.23,1,0.32,1);
+  --t:150ms;
+
+  /* ── Eldre navn. Beholdt slik at gammel inline-bruk og kodens egne
+        var(--…)-oppslag fortsatt treffer et token. Ikke bruk i nytt arbeid. ── */
+  --bg:var(--canvas); --bg-2:var(--canvas); --panel:var(--surface); --panel-2:var(--canvas); --inset:var(--canvas);
+  --ink-inv:var(--on-action); --line-2:var(--line); --line-3:var(--line);
+  --accent-soft:var(--accent-tint); --accent-ink:var(--accent); --accent-line:var(--line);
+  --good:var(--success);   --good-bg:var(--success-tint);   --good-line:var(--line);
+  --warn:var(--warning);   --warn-bg:var(--warning-tint);   --warn-line:var(--line);
+  --bad:var(--danger);     --bad-bg:var(--danger-tint);     --bad-line:var(--line);
+  --mute:var(--ink-3);     --mute-bg:var(--well);
+  --sense:var(--st-sense); --sense-bg:var(--well);  --mem:var(--st-mem);   --mem-bg:var(--well);
+  --align:var(--st-align); --align-bg:var(--well);  --feed:var(--st-feed); --feed-bg:var(--well);
+  --goal:var(--st-goal);   --goal-bg:var(--well);   --val:var(--st-val);   --val-bg:var(--well);
+  --right:var(--st-right); --right-bg:var(--well);  --init:var(--st-init); --init-bg:var(--well);
+  --force:var(--st-force); --force-bg:var(--well);  --need:var(--st-need); --need-bg:var(--well);
+  --diag:var(--st-diag);   --diag-bg:var(--well);   --outcome:var(--st-outcome); --outcome-bg:var(--well);
+  --font-serif:var(--font-sans); --font-mono:var(--font-sans);
+  --r-sm:var(--r-btn); --r-md:var(--r-card); --r-lg:var(--r-composer);
+  --shadow:var(--hairline); --shadow-lg:var(--overlay);
+}
