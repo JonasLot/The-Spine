@@ -3,9 +3,9 @@
 > Rolige verktøy for studioer som leverer. Varmt papir, nesten svart blekk, og én oransje som viser hvor du er.
 
 ## Hvor det bor
-- **`spine-tokens.css`** — tokens for `index.html`, `login.html` og `s.html`.
+- **`spine-tokens.css`** — tokens (lyst og mørkt lag) for `index.html`, `login.html` og `s.html`.
 - **`app.html`** — samme `:root`-blokk limt inn i `<style>`, fordi appen er én fil uten byggsteg.
-- `test/signal.test.mjs` feiler hvis de to blokkene ikke er identiske. Endre token ett sted, kopier til det andre.
+- `test/signal.test.mjs` feiler hvis de to blokkene (lys `:root` og mørkt lag) ikke er identiske, eller hvis et mørkt token mangler lyst motstykke. Endre token ett sted, kopier til det andre.
 - Gamle navn (`--bg`, `--panel`, `--accent-soft`, `--good` …) er beholdt som aliaser nederst i `:root`. Ikke bruk dem i nytt arbeid.
 - `canvas-prototype.html` er det opprinnelige lerretsprototypet (lerretet er nå bygget i `app.html`). Det er ikke flyttet over til systemet.
 
@@ -45,7 +45,11 @@ Fargeoverganger 150 ms. Trykk gir `scale(.97)` på 150 ms med `cubic-bezier(0.23
 ## Stemme
 Rolig, konkret, på studioets side. Si hva som skjer videre («Ingenting krever handling. Signaler og antakelser står som du har satt dem.»), navngi grensene til et tall (hver nøkkelrad forteller hva den ikke teller), betrygg én gang og stille. Ingen utropstegn, ingen emoji.
 
+## Mørkt papir
+Samme roller, varm stein i stedet for papir: `canvas #171513`, `surface #1F1C19`, `ink #F4F1EA`, `accent #F59A62`. `action` snur til lys fyll med mørk tekst, så ink fortsatt er eneste knappefyll. Tinter er dype og varme; tekst på tint holder 6:1 eller mer.
+- Laget ligger bak `@media screen`, slik at utskrift av delingssiden alltid blir lys.
+- Tema velges før CSS lastes: lagret valg (`spine.theme`), ellers systemets `prefers-color-scheme`. Bryter i appens topplinje, forsiden og innloggingen. `s.html` følger bare valget.
+
 ## Bevisste valg
-- **Mørkt tema er fjernet.** Systemet har ett papir. Lagret `spine.theme` leses ikke lenger.
 - Stadiefarger er merker. De gamle tonede flatene og fargede etikettene på lerret, familiekort og chips er byttet mot prikk eller strek med nøytral tekst.
 - Segmentvalg og valgte noder bruker blekk (kant), ikke oransje. Oransje står kun for sted: aktiv nav, aktiv fane og logomerket.

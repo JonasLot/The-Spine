@@ -2257,18 +2257,29 @@ group("tilbakebrief — si tilbake før du bygger");
 // innlogging og delingssiden) og er limt inn i app.html. De to må være like,
 // ellers ser appen og resten av produktet ut som to forskjellige produkter.
 {
+  // Lys :root og mørkt overstyringslag. Begge må være like på tvers av filene.
   const rootBlock = t => /:root\{[\s\S]*?\n\}/.exec(t)?.[0];
+  const darkBlock = t => /@media screen\{\n:root\[data-theme="dark"\]\{[\s\S]*?\n\} \/\* \/mørkt \*\//.exec(t)?.[0];
   const css = readFileSync(join(root, "spine-tokens.css"), "utf8");
   const appCss = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m => m[1]).join("\n");
   ok(rootBlock(css) && rootBlock(css) === rootBlock(appCss),
      "spine-tokens.css og :root i app.html er identiske");
+  ok(darkBlock(css) && darkBlock(css) === darkBlock(appCss),
+     "det mørke tokenlaget er identisk i spine-tokens.css og app.html");
+  // Mørkt skal overstyre rollene, ikke finne på nye: hvert token i mørkt lag finnes i lys :root.
+  for (const m of (darkBlock(appCss) || "").matchAll(/(--[\w-]+):/g))
+    ok(new RegExp(m[1] + ":").test(rootBlock(appCss)), "mørkt token " + m[1] + " har et lyst motstykke");
+  for (const page of ["app.html","index.html","login.html","s.html"]) {
+    const h = readFileSync(join(root, page), "utf8");
+    ok(/prefers-color-scheme: dark/.test(h) && /spine\.theme/.test(h), page + " setter tema før CSS fra lagret valg eller systemet");
+  }
   for (const tok of ["--canvas","--surface","--line","--action","--accent","--accent-tint","--ink-2","--ink-3","--ink-4","--ink-5","--subtle","--well","--danger","--danger-tint"]) {
     ok(new RegExp(tok + ":").test(rootBlock(appCss) || ""), "token " + tok + " er definert");
   }
   ok(!/transition:\s*all/.test(appCss), "ingen transition:all i app.html — egenskaper navngis");
   ok(!/text-transform:\s*uppercase/.test(appCss.replace(/\.tbl th\{[^}]*\}/, "").replace(/\.nav-grp\{[^}]*\}/, "")),
      "store bokstaver er forbeholdt tabelloverskrifter og sidebar-grupper");
-  ok(!/data-theme/.test(appCss), "ingen mørkt tema i app.html — designsystemet har ett papir");
+  ok(/@media screen\{\n:root\[data-theme="dark"\]/.test(appCss), "mørkt tema ligger bak @media screen, så utskrift forblir lys");
 }
 
 if (failures.length) {

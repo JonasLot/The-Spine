@@ -72,3 +72,25 @@
   --r-sm:var(--r-btn); --r-md:var(--r-card); --r-lg:var(--r-composer);
   --shadow:var(--hairline); --shadow-lg:var(--overlay);
 }
+
+/* Mørkt papir: samme roller, varm stein i stedet for papir. Bare på skjerm,
+   slik at utskrift av delingssiden alltid blir lys. */
+@media screen{
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --canvas:#171513; --surface:#1F1C19; --line:#2E2A26; --subtle:#38332E; --well:#2A2622;
+  --ink:#F4F1EA; --ink-2:#D2CCC2; --ink-3:#ADA79C; --ink-4:#948E83; --ink-5:#615B52;
+  --action:#F2EEE6; --action-hover:#DDD7CC; --on-action:#1C1917;
+  --accent:#F59A62; --accent-tint:#3A281C;
+  --danger:#F4A097;  --danger-tint:#3B2421;
+  --warning:#E8BC6A; --warning-tint:#3A2F1B;
+  --success:#8FCFA8; --success-tint:#1F3025;
+  --info:#92BCE8;    --info-tint:#1F2B3B;
+  --st-sense:#6E9FD3; --st-mem:#D2A04A; --st-align:#6DB28A; --st-feed:#D07A9B;
+  --st-goal:#9C7FD0;  --st-val:#A3B24D; --st-right:#BB7EBD; --st-init:#4FA8A3;
+  --st-force:#8A9DAE; --st-need:#8290CF; --st-diag:#CC8359; --st-outcome:#52AFBF;
+  --hairline:0 1px 2px rgba(0,0,0,.28);
+  --overlay:0 1px 2px rgba(0,0,0,.4),0 16px 40px -12px rgba(0,0,0,.6);
+  --scrim:rgba(8,7,6,.6);
+}
+} /* /mørkt */
