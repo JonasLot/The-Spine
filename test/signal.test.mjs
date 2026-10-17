@@ -1721,7 +1721,9 @@ group("skuff og modal - lagreglene star i kilden");
 {
   const css = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m => m[1]).join("\n");
   const block = /\.modal\{([\s\S]*?)\}/.exec(css);
-  ok(block && /background:\s*rgba/.test(block[1]),
+  // Bakgrunnen kan være et token, så lenge tokenet er en halvgjennomsiktig farge.
+  const scrim = /--scrim:\s*(rgba\([^)]*\))/.exec(css);
+  ok(block && (/background:\s*rgba/.test(block[1]) || (/background:\s*var\(--scrim\)/.test(block[1]) && scrim)),
      "modalen har en synlig bakgrunn, sa et lag over aldri kan vaere usynlig");
   ok(block && /pointer-events:none/.test(block[1]),
      "og slipper klikk gjennom nar den er av");
@@ -2249,6 +2251,24 @@ group("tilbakebrief — si tilbake før du bygger");
   ok(KEEP_KEYS.strategies.includes("backbrief"), "import beholder tilbakebriefen");
   ok(SEED_NO.st2.backbrief && SEED_NO.st2.backbrief.readings.length === SEED.strategies.find(x => x.id === "st2").backbrief.readings.length,
      "seed-tilbakebriefen er oversatt linje for linje");
+}
+
+// Designsystemet: Studio Operator. Tokenene bor i spine-tokens.css (forsiden,
+// innlogging og delingssiden) og er limt inn i app.html. De to må være like,
+// ellers ser appen og resten av produktet ut som to forskjellige produkter.
+{
+  const rootBlock = t => /:root\{[\s\S]*?\n\}/.exec(t)?.[0];
+  const css = readFileSync(join(root, "spine-tokens.css"), "utf8");
+  const appCss = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m => m[1]).join("\n");
+  ok(rootBlock(css) && rootBlock(css) === rootBlock(appCss),
+     "spine-tokens.css og :root i app.html er identiske");
+  for (const tok of ["--canvas","--surface","--line","--action","--accent","--accent-tint","--ink-2","--ink-3","--ink-4","--ink-5","--subtle","--well","--danger","--danger-tint"]) {
+    ok(new RegExp(tok + ":").test(rootBlock(appCss) || ""), "token " + tok + " er definert");
+  }
+  ok(!/transition:\s*all/.test(appCss), "ingen transition:all i app.html — egenskaper navngis");
+  ok(!/text-transform:\s*uppercase/.test(appCss.replace(/\.tbl th\{[^}]*\}/, "").replace(/\.nav-grp\{[^}]*\}/, "")),
+     "store bokstaver er forbeholdt tabelloverskrifter og sidebar-grupper");
+  ok(!/data-theme/.test(appCss), "ingen mørkt tema i app.html — designsystemet har ett papir");
 }
 
 if (failures.length) {
