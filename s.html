@@ -4,6 +4,13 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#F6F3EC" />
+<script>
+/* Tema: lagret valg, ellers systemets. Settes før CSS for å unngå blink. */
+(function(){var t;try{t=localStorage.getItem("spine.theme")}catch(e){}
+if(t!=="light"&&t!=="dark")t=(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";
+document.documentElement.setAttribute("data-theme",t);
+var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=t==="dark"?"#171513":"#F6F3EC";})();
+</script>
 <meta name="robots" content="noindex, nofollow" />
 <title>Strategy — The Spine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
